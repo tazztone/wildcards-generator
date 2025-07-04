@@ -69,12 +69,46 @@
                 <label for="global-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Global System Prompt</label>
                 <textarea id="global-prompt" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" rows="4"></textarea>
             </div>
+            <div class="mt-6 text-left max-w-4xl mx-auto">
+                <label for="api-key" class="block text-lg font-semibold text-indigo-300 mb-2">API Key (LLM_KEY)</label>
+                <input type="password" id="api-key" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter your API key or set via LLM_KEY environment variable">
+                <p class="text-xs text-gray-400 mt-1">Note: For security, do not hardcode keys in the code. Use environment variables or this input field.</p>
+            </div>
+            <div class="mt-6 text-left max-w-4xl mx-auto">
+                <label for="api-endpoint" class="block text-lg font-semibold text-indigo-300 mb-2">API Endpoint</label>
+                <select id="api-endpoint" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="gemini" selected>Gemini API (Default)</option>
+                    <option value="openrouter">OpenRouter API</option>
+                    <option value="ollama">Ollama (Local)</option>
+                    <option value="custom">Custom Endpoint</option>
+                </select>
+                <input type="text" id="custom-endpoint" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm mt-2 hidden focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter custom API endpoint URL">
+            </div>
 
+            <div class="mt-6 text-left max-w-4xl mx-auto">
+                <label for="search-wildcards" class="block text-lg font-semibold text-indigo-300 mb-2">Search Wildcards</label>
+                <input type="text" id="search-wildcards" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Search for wildcards...">
+            </div>
             <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
                 <button id="download-all-zip" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
                     Download All as .zip
                 </button>
-                 <button id="reset-btn" class="bg-red-800 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
+                <button id="export-state" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
+                    Export State
+                </button>
+                <button id="import-state" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
+                    Import State
+                </button>
+                <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
+                    Undo
+                </button>
+                <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
+                    Redo
+                </button>
+                <button id="help-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
+                    Help
+                </button>
+                <button id="reset-btn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
                     Reset to Defaults
                 </button>
             </div>
@@ -188,6 +222,71 @@
 
         const debouncedSaveState = debounce(saveState, 500);
 
+        const HISTORY_KEY = 'wildcardGeneratorHistory_v2';
+        let history = [];
+        let historyIndex = -1;
+        const HISTORY_LIMIT = 10; // Limit to 10 history states to manage storage size
+
+        function saveStateToHistory() {
+            try {
+                if (historyIndex < history.length - 1) {
+                    history = history.slice(0, historyIndex + 1);
+                }
+                history.push(JSON.stringify(appState));
+                if (history.length > HISTORY_LIMIT) {
+                    history.shift();
+                }
+                historyIndex = history.length - 1;
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                localStorage.setItem('historyIndex', historyIndex);
+                console.log("State saved to history.");
+            } catch (error) {
+                console.error("Failed to save state to history", error);
+            }
+        }
+
+        function loadHistory() {
+            try {
+                const savedHistory = localStorage.getItem(HISTORY_KEY);
+                const savedIndex = localStorage.getItem('historyIndex');
+                if (savedHistory) {
+                    history = JSON.parse(savedHistory);
+                    historyIndex = savedIndex ? parseInt(savedIndex, 10) : history.length - 1;
+                } else {
+                    history = [];
+                    historyIndex = -1;
+                }
+            } catch (error) {
+                console.error("Failed to load history from localStorage", error);
+                history = [];
+                historyIndex = -1;
+            }
+        }
+
+        function undoState() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                appState = JSON.parse(history[historyIndex]);
+                localStorage.setItem('historyIndex', historyIndex);
+                buildUI();
+                showNotification('Undo successful.');
+            } else {
+                showNotification('No more actions to undo.');
+            }
+        }
+
+        function redoState() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                appState = JSON.parse(history[historyIndex]);
+                localStorage.setItem('historyIndex', historyIndex);
+                buildUI();
+                showNotification('Redo successful.');
+            } else {
+                showNotification('No more actions to redo.');
+            }
+        }
+
         function saveState() {
             try {
                 const stateString = JSON.stringify(appState);
@@ -256,8 +355,46 @@
                 }
             };
             
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            // SECURITY NOTE: API key should not be hardcoded in client-side code.
+            // Use environment variables or user input for secure key management.
+            // Attempt to use LLM_KEY from environment if available, otherwise fallback to user input.
+            let apiKey = "";
+            if (typeof process !== 'undefined' && process.env && process.env.LLM_KEY) {
+                apiKey = process.env.LLM_KEY;
+            } else {
+                apiKey = document.getElementById('api-key').value.trim();
+            }
+            if (!apiKey) {
+                throw new Error("API key is not provided. Please enter it in the API Key field or set LLM_KEY environment variable.");
+            }
+            
+            // Determine API endpoint based on user selection
+            const endpointSelect = document.getElementById('api-endpoint');
+            const customEndpointInput = document.getElementById('custom-endpoint');
+            let apiUrl = "";
+            switch (endpointSelect.value) {
+                case "gemini":
+                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    break;
+                case "openrouter":
+                    apiUrl = `https://openrouter.ai/api/v1/chat/completions?key=${apiKey}`;
+                    break;
+                case "ollama":
+                    apiUrl = `http://localhost:11434/api/generate`;
+                    break;
+                case "custom":
+                    apiUrl = customEndpointInput.value.trim();
+                    if (!apiUrl) {
+                        throw new Error("Custom API endpoint URL is not provided.");
+                    }
+                    // Ensure the custom URL includes the API key if needed
+                    if (apiUrl.includes("key=") || apiUrl.includes("api_key=")) {
+                        apiUrl = apiUrl.replace(/key=[^&]*/i, `key=${apiKey}`).replace(/api_key=[^&]*/i, `api_key=${apiKey}`);
+                    }
+                    break;
+                default:
+                    throw new Error("Invalid API endpoint selection.");
+            }
 
             try {
                 const response = await fetch(apiUrl, {
@@ -269,7 +406,7 @@
 
                 if (!response.ok) {
                     const errorBody = await response.text();
-                    throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
+                    throw new Error(`API request failed with status ${response.status}: ${errorBody}. Please check your network connection or API quota.`);
                 }
 
                 const result = await response.json();
@@ -279,7 +416,7 @@
                     return JSON.parse(text);
                 } else {
                     console.error("Unexpected API response structure:", result);
-                    throw new Error("Could not parse the response from the AI.");
+                    throw new Error("Could not parse the response from the AI. The response structure might have changed or there was an API error.");
                 }
             } catch (error) {
                 if (error.name === 'AbortError') {
@@ -294,6 +431,9 @@
         }
 
         // --- /src/ui.js ---
+        // NOTE: For performance optimization, consider implementing lazy loading of categories
+        // or using a virtualization library (e.g., react-virtualized for a future React version)
+        // to render only visible elements, reducing DOM overhead on lower-end devices.
         const modal = document.getElementById('notification-modal');
         const modalMessage = document.getElementById('notification-message');
         const closeBtn = document.getElementById('notification-close');
@@ -326,6 +466,9 @@
         function hideNotification() {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            confirmationButtons.classList.add('hidden');
+            confirmationButtons.classList.remove('flex');
+            closeBtn.classList.remove('hidden');
         }
 
         function renderChip(wildcard, index, category, subCategory) {
@@ -333,11 +476,19 @@
             chip.className = 'chip bg-indigo-500/50 text-white text-sm px-2 py-1 rounded-md flex items-center gap-2 whitespace-nowrap';
             chip.dataset.index = index;
 
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'batch-select';
+            checkbox.dataset.category = category;
+            checkbox.dataset.subCategory = subCategory;
+            checkbox.dataset.index = index;
+
             const deleteBtn = document.createElement('button');
             deleteBtn.innerHTML = '&times;';
             deleteBtn.className = 'text-indigo-200 hover:text-white font-bold text-lg leading-none';
             deleteBtn.title = "Delete wildcard";
             deleteBtn.addEventListener('click', () => {
+                saveStateToHistory();
                 appState.wildcards[category][subCategory].wildcards.splice(index, 1);
                 debouncedSaveState();
                 const card = document.querySelector(`[data-category="${category}"][data-sub-category="${subCategory}"]`);
@@ -351,6 +502,7 @@
             textSpan.addEventListener('blur', (e) => {
                 const newText = e.target.textContent.trim();
                 if (newText && newText !== wildcard) {
+                    saveStateToHistory();
                     appState.wildcards[category][subCategory].wildcards[index] = newText;
                     debouncedSaveState();
                 } else {
@@ -364,6 +516,7 @@
                 }
             });
 
+            chip.appendChild(checkbox); // Checkbox for batch operations
             chip.appendChild(deleteBtn); // X button at the start
             chip.appendChild(textSpan);
             return chip;
@@ -389,19 +542,51 @@
                 
                 const details = document.createElement('details');
                 details.className = 'group';
+                details.setAttribute('role', 'group');
+                details.setAttribute('aria-expanded', 'false');
 
                 const summary = document.createElement('summary');
                 summary.className = 'flex justify-between items-center p-4 cursor-pointer';
+                summary.setAttribute('role', 'button');
+                summary.setAttribute('aria-controls', category.replace(/_/g, '-'));
+                summary.setAttribute('tabindex', '0');
+                
+                const titleContainer = document.createElement('div');
+                titleContainer.className = 'flex items-center gap-2';
                 
                 const title = document.createElement('h2');
                 title.className = 'text-xl sm:text-2xl font-semibold text-indigo-400';
                 title.textContent = category.replace(/_/g, ' ');
                 
+                const addSubCategoryBtn = document.createElement('button');
+                addSubCategoryBtn.textContent = '+';
+                addSubCategoryBtn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 rounded-md';
+                addSubCategoryBtn.title = `Add new sub-category under ${category.replace(/_/g, ' ')}`;
+                addSubCategoryBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent summary click from triggering
+                    const newSubCategory = prompt(`Enter new sub-category name for ${category.replace(/_/g, ' ')}:`);
+                    if (newSubCategory && newSubCategory.trim()) {
+                        const sanitizedKey = newSubCategory.trim().replace(/\s+/g, '_');
+                        if (!appState.wildcards[category][sanitizedKey]) {
+                            saveStateToHistory();
+                            appState.wildcards[category][sanitizedKey] = { instruction: '', wildcards: [] };
+                            debouncedSaveState();
+                            buildUI();
+                            showNotification(`Added sub-category ${newSubCategory} under ${category.replace(/_/g, ' ')}.`);
+                        } else {
+                            showNotification(`Sub-category ${newSubCategory} already exists under ${category.replace(/_/g, ' ')}.`);
+                        }
+                    }
+                });
+                
+                titleContainer.appendChild(title);
+                titleContainer.appendChild(addSubCategoryBtn);
+                
                 const arrow = document.createElement('span');
                 arrow.className = 'arrow-down transition-transform duration-300 text-indigo-400';
                 arrow.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>`;
 
-                summary.appendChild(title);
+                summary.appendChild(titleContainer);
                 summary.appendChild(arrow);
                 
                 const contentWrapper = document.createElement('div');
@@ -414,11 +599,38 @@
                     card.dataset.subCategory = subCategory;
 
                     const cardHeader = document.createElement('div');
-                    cardHeader.className = 'flex justify-between items-center mb-2';
+                    cardHeader.className = 'flex justify-between items-center mb-2 relative';
                     const cardTitle = document.createElement('h3');
                     cardTitle.className = 'font-bold text-lg text-gray-100';
                     cardTitle.textContent = subCategory.replace(/_/g, ' ');
+                    const deleteSubCategoryBtn = document.createElement('button');
+                    deleteSubCategoryBtn.innerHTML = '&times;';
+                    deleteSubCategoryBtn.className = 'text-red-400 hover:text-red-300 font-bold text-lg leading-none absolute right-0 top-0';
+                    deleteSubCategoryBtn.title = `Delete sub-category ${subCategory.replace(/_/g, ' ')}`;
+                    deleteSubCategoryBtn.addEventListener('click', () => {
+                        showNotification(
+                            `Are you sure you want to delete the sub-category "${subCategory.replace(/_/g, ' ')}"? All associated wildcards will be lost.`,
+                            true,
+                            () => {
+                                saveStateToHistory();
+                                delete appState.wildcards[category][subCategory];
+                                debouncedSaveState();
+                                // Prevent collapse by ensuring the details element remains open
+                                details.open = true;
+                                details.setAttribute('aria-expanded', 'true');
+                                buildUI();
+                                // Ensure the details element remains open after rebuild
+                                const updatedDetails = document.querySelector(`summary[aria-controls="${category.replace(/_/g, '-')}"]`).parentElement;
+                                if (updatedDetails) {
+                                    updatedDetails.open = true;
+                                    updatedDetails.setAttribute('aria-expanded', 'true');
+                                }
+                                showNotification(`Deleted sub-category ${subCategory.replace(/_/g, ' ')}.`);
+                            }
+                        );
+                    });
                     cardHeader.appendChild(cardTitle);
+                    cardHeader.appendChild(deleteSubCategoryBtn);
 
                     const customInstructionsInput = document.createElement('input');
                     customInstructionsInput.type = 'text';
@@ -443,19 +655,52 @@
                     addWildcardContainer.appendChild(addWildcardBtn);
 
                     const cardFooter = document.createElement('div');
-                    cardFooter.className = 'flex justify-between items-center mt-3';
+                    cardFooter.className = 'flex justify-between items-center mt-3 flex-wrap gap-2';
 
                     const generateBtn = document.createElement('button');
                     generateBtn.innerHTML = `<span class="btn-text">Generate More</span><div class="loader hidden"></div>`;
                     generateBtn.title = `Use AI to generate more wildcards`;
                     generateBtn.className = 'generate-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-3 rounded-md flex items-center gap-2';
+                    generateBtn.setAttribute('aria-label', `Generate more wildcards for ${subCategory.replace(/_/g, ' ')}`);
                     
                     const copyBtn = document.createElement('button');
                     copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 hover:text-white transition-colors"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
                     copyBtn.title = `Copy all wildcards in this category`;
+                    copyBtn.setAttribute('aria-label', `Copy all wildcards for ${subCategory.replace(/_/g, ' ')}`);
+
+                    const batchDeleteBtn = document.createElement('button');
+                    batchDeleteBtn.textContent = 'Delete Selected';
+                    batchDeleteBtn.className = 'bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-3 rounded-md';
+                    batchDeleteBtn.title = `Delete selected wildcards in this category`;
+                    batchDeleteBtn.addEventListener('click', () => {
+                        saveStateToHistory();
+                        const checkboxes = card.querySelectorAll('.batch-select:checked');
+                        const indices = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index)).sort((a, b) => b - a);
+                        indices.forEach(idx => {
+                            appState.wildcards[category][subCategory].wildcards.splice(idx, 1);
+                        });
+                        if (indices.length > 0) {
+                            debouncedSaveState();
+                            renderChipsInContainer(card.querySelector('.chip-container'), category, subCategory);
+                            showNotification(`Deleted ${indices.length} wildcards from ${subCategory.replace(/_/g, ' ')}.`);
+                        }
+                    });
+
+                    const selectAllBtn = document.createElement('button');
+                    selectAllBtn.textContent = 'Select All';
+                    selectAllBtn.className = 'bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold py-2 px-3 rounded-md';
+                    selectAllBtn.title = `Toggle selection of all wildcards in this category for batch operations`;
+                    selectAllBtn.addEventListener('click', () => {
+                        const checkboxes = card.querySelectorAll('.batch-select');
+                        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                        checkboxes.forEach(cb => cb.checked = !allChecked);
+                        selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
+                    });
 
                     cardFooter.appendChild(generateBtn);
                     cardFooter.appendChild(copyBtn);
+                    cardFooter.appendChild(selectAllBtn);
+                    cardFooter.appendChild(batchDeleteBtn);
 
                     card.appendChild(cardHeader);
                     card.appendChild(customInstructionsInput);
@@ -485,6 +730,32 @@
                 debouncedSaveState();
             });
 
+            // Handle API endpoint selection change to show/hide custom endpoint input
+            document.getElementById('api-endpoint').addEventListener('change', (e) => {
+                const customEndpointInput = document.getElementById('custom-endpoint');
+                if (e.target.value === 'custom') {
+                    customEndpointInput.classList.remove('hidden');
+                } else {
+                    customEndpointInput.classList.add('hidden');
+                }
+            });
+
+            // Save API key to localStorage if provided (for session persistence, not long-term storage)
+            document.getElementById('api-key').addEventListener('input', (e) => {
+                const apiKey = e.target.value.trim();
+                if (apiKey) {
+                    localStorage.setItem('temp_api_key', apiKey);
+                } else {
+                    localStorage.removeItem('temp_api_key');
+                }
+            });
+
+            // Load API key from localStorage if available (temporary session storage)
+            const savedApiKey = localStorage.getItem('temp_api_key');
+            if (savedApiKey) {
+                document.getElementById('api-key').value = savedApiKey;
+            }
+
             document.getElementById('download-all-zip').addEventListener('click', () => {
                 const zip = new JSZip();
                 for (const category in appState.wildcards) {
@@ -500,6 +771,89 @@
                     document.body.appendChild(element);
                     element.click();
                     document.body.removeChild(element);
+                });
+            });
+
+            document.getElementById('export-state').addEventListener('click', () => {
+                const stateString = JSON.stringify(appState, null, 2);
+                const blob = new Blob([stateString], { type: 'application/json' });
+                const element = document.createElement('a');
+                element.href = URL.createObjectURL(blob);
+                element.download = "wildcard_generator_state.json";
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+                showNotification('Application state exported successfully.');
+            });
+
+            document.getElementById('import-state').addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            try {
+                                const importedState = JSON.parse(e.target.result);
+                                if (importedState.systemPrompt && importedState.wildcards) {
+                                    appState = importedState;
+                                    saveState();
+                                    buildUI();
+                                    showNotification('Application state imported successfully.');
+                                } else {
+                                    showNotification('Invalid state file format. Missing required fields.');
+                                }
+                            } catch (error) {
+                                showNotification(`Error importing state: ${error.message}`);
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                });
+                input.click();
+            });
+
+            document.getElementById('undo-btn').addEventListener('click', () => {
+                undoState();
+            });
+
+            document.getElementById('redo-btn').addEventListener('click', () => {
+                redoState();
+            });
+
+            document.getElementById('help-btn').addEventListener('click', () => {
+                showNotification(
+                    `Welcome to the AI-Powered Wildcard Generator!\n\n` +
+                    `This tool helps you generate and manage wildcards for AI image prompts using the Gemini API or other LLM providers.\n\n` +
+                    `Key Features:\n` +
+                    `- **Global System Prompt**: Customize the AI's behavior for generating wildcards.\n` +
+                    `- **API Key & Endpoint**: Enter your API key securely or set via LLM_KEY environment variable. Choose from predefined endpoints (Gemini, OpenRouter, Ollama) or set a custom one.\n` +
+                    `- **Search Wildcards**: Use the search bar to filter wildcards across all categories.\n` +
+                    `- **Generate More**: Click "Generate More" in any sub-category to create new wildcards based on custom instructions.\n` +
+                    `- **Edit & Delete**: Edit wildcards directly by clicking on them, or delete with the '×' button. Use batch operations with checkboxes to delete multiple wildcards.\n` +
+                    `- **Export/Import State**: Save your entire state (prompts and wildcards) or import a previous state for backup or sharing.\n` +
+                    `- **Undo/Redo**: Revert or redo changes to your wildcards and prompts.\n` +
+                    `- **Download All as .zip**: Export all wildcards as text files in a zip archive.\n` +
+                    `- **Reset to Defaults**: Reset all data to the initial state (warning: this cannot be undone unless you have a backup).\n\n` +
+                    `Tips:\n` +
+                    `- Use specific custom instructions per sub-category to guide the AI for better results.\n` +
+                    `- Save your state frequently if you make significant changes.\n` +
+                    `- For API issues, check your key and network connection.`
+                );
+            });
+
+            document.getElementById('search-wildcards').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const chips = document.querySelectorAll('.chip');
+                chips.forEach(chip => {
+                    const text = chip.querySelector('span').textContent.toLowerCase();
+                    if (searchTerm === '' || text.includes(searchTerm)) {
+                        chip.style.display = 'flex';
+                    } else {
+                        chip.style.display = 'none';
+                    }
                 });
             });
 
