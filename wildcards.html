@@ -271,25 +271,41 @@
 
         function undoState() {
             if (historyIndex > 0) {
+                // Store the current expanded state of categories
+                const expandedCategories = Array.from(document.querySelectorAll('details[open]')).map(details => details.querySelector('summary').getAttribute('aria-controls'));
+                
                 historyIndex--;
                 appState = JSON.parse(history[historyIndex]);
                 localStorage.setItem('historyIndex', historyIndex);
                 buildUI();
-                showNotification('Undo successful.');
-            } else {
-                showNotification('No more actions to undo.');
+                
+                // Restore the expanded state
+                document.querySelectorAll('details').forEach(details => {
+                    const categoryId = details.querySelector('summary').getAttribute('aria-controls');
+                    if (expandedCategories.includes(categoryId)) {
+                        details.setAttribute('open', 'open');
+                    }
+                });
             }
         }
 
         function redoState() {
             if (historyIndex < history.length - 1) {
+                // Store the current expanded state of categories
+                const expandedCategories = Array.from(document.querySelectorAll('details[open]')).map(details => details.querySelector('summary').getAttribute('aria-controls'));
+                
                 historyIndex++;
                 appState = JSON.parse(history[historyIndex]);
                 localStorage.setItem('historyIndex', historyIndex);
                 buildUI();
-                showNotification('Redo successful.');
-            } else {
-                showNotification('No more actions to redo.');
+                
+                // Restore the expanded state
+                document.querySelectorAll('details').forEach(details => {
+                    const categoryId = details.querySelector('summary').getAttribute('aria-controls');
+                    if (expandedCategories.includes(categoryId)) {
+                        details.setAttribute('open', 'open');
+                    }
+                });
             }
         }
 
@@ -516,23 +532,37 @@
         const searchWildcards = document.getElementById('search-wildcards');
 
         function showNotification(message, isConfirmation = false, onConfirm = () => {}) {
+            // Clear any dynamic content from the previous modal
+            modalMessage.innerHTML = '';
             modalMessage.textContent = message;
+
             if (isConfirmation) {
                 confirmationButtons.classList.remove('hidden');
                 confirmationButtons.classList.add('flex');
                 closeBtn.classList.add('hidden');
                 
-                const newConfirmBtn = confirmBtn.cloneNode(true);
-                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                // --- START: THE FIX ---
+                // 1. Always get a FRESH reference to the button currently in the DOM
+                let currentConfirmBtn = document.getElementById('confirm-btn');
+                
+                // 2. Create a new button by cloning the current one to strip old listeners
+                const newConfirmBtn = currentConfirmBtn.cloneNode(true);
+                
+                // 3. Add the new, specific event listener for this action
                 newConfirmBtn.addEventListener('click', () => {
                     onConfirm();
                     hideNotification();
-                });
+                }, { once: true }); // Use { once: true } for extra safety to ensure it only fires once
+
+                // 4. Replace the old button with the newly created one
+                currentConfirmBtn.parentNode.replaceChild(newConfirmBtn, currentConfirmBtn);
+                // --- END: THE FIX ---
 
             } else {
                 confirmationButtons.classList.add('hidden');
                 closeBtn.classList.remove('hidden');
             }
+            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
@@ -557,17 +587,6 @@
             checkbox.dataset.subCategory = subCategory;
             checkbox.dataset.index = index;
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.innerHTML = '&times;';
-            deleteBtn.className = 'text-indigo-200 hover:text-white font-bold text-lg leading-none';
-            deleteBtn.title = "Delete wildcard";
-            deleteBtn.addEventListener('click', () => {
-                saveStateToHistory();
-                appState.wildcards[category][subCategory].wildcards.splice(index, 1);
-                debouncedSaveState();
-                const card = document.querySelector(`[data-category="${category}"][data-sub-category="${subCategory}"]`);
-                renderChipsInContainer(card.querySelector('.chip-container'), category, subCategory);
-            });
 
             const textSpan = document.createElement('span');
             textSpan.textContent = wildcard;
@@ -590,9 +609,8 @@
                 }
             });
 
-            chip.appendChild(checkbox); // Checkbox for batch operations
-            chip.appendChild(deleteBtn); // X button at the start
-            chip.appendChild(textSpan);
+    chip.appendChild(checkbox); // Checkbox for batch operations
+    chip.appendChild(textSpan);
             return chip;
         }
 
@@ -605,19 +623,42 @@
             let startIndex = Math.max(0, Math.floor(container.scrollTop / itemHeight) - buffer);
             let endIndex = Math.min(wildcards.length, Math.floor((container.scrollTop + container.clientHeight) / itemHeight) + buffer);
             
+            // Get the current selection state
+            const selectedIndices = [];
+            if (container.dataset.selected) {
+                selectedIndices.push(...container.dataset.selected.split(',').map(idx => parseInt(idx)).filter(idx => !isNaN(idx)));
+            }
+            
             for (let i = startIndex; i < endIndex; i++) {
-                fragment.appendChild(renderChip(wildcards[i], i, category, subCategory));
+                const chip = renderChip(wildcards[i], i, category, subCategory);
+                if (selectedIndices.includes(i)) {
+                    chip.querySelector('.batch-select').checked = true;
+                }
+                fragment.appendChild(chip);
             }
             container.appendChild(fragment);
-            container.scrollTop = container.scrollHeight;
+            // Maintain scroll position if needed, but avoid setting to bottom unnecessarily
+            if (container.scrollHeight > container.clientHeight) {
+                container.scrollTop = container.scrollTop || container.scrollHeight;
+            }
             
             function updateVisibleChips() {
+                // Get the full selection state, including non-visible items
+                const selectedIndices = [];
+                if (container.dataset.selected) {
+                    selectedIndices.push(...container.dataset.selected.split(',').map(idx => parseInt(idx)).filter(idx => !isNaN(idx)));
+                }
+                
                 startIndex = Math.max(0, Math.floor(container.scrollTop / itemHeight) - buffer);
                 endIndex = Math.min(wildcards.length, Math.floor((container.scrollTop + container.clientHeight) / itemHeight) + buffer);
                 container.innerHTML = '';
                 const visibleFragment = document.createDocumentFragment();
                 for (let i = startIndex; i < endIndex; i++) {
-                    visibleFragment.appendChild(renderChip(wildcards[i], i, category, subCategory));
+                    const chip = renderChip(wildcards[i], i, category, subCategory);
+                    if (selectedIndices.includes(i)) {
+                        chip.querySelector('.batch-select').checked = true;
+                    }
+                    visibleFragment.appendChild(chip);
                 }
                 container.appendChild(visibleFragment);
             }
@@ -746,28 +787,8 @@
                     
                     const deleteSubCategoryBtn = document.createElement('button');
                     deleteSubCategoryBtn.innerHTML = '&times;';
-                    deleteSubCategoryBtn.className = 'text-red-400 hover:text-red-300 font-bold text-lg leading-none absolute right-0 top-0';
+                    deleteSubCategoryBtn.className = 'delete-subcategory-btn text-red-400 hover:text-red-300 font-bold text-lg leading-none absolute right-0 top-0';
                     deleteSubCategoryBtn.title = `Delete sub-category ${subCategory.replace(/_/g, ' ')}`;
-                    deleteSubCategoryBtn.addEventListener('click', () => {
-                        showNotification(
-                            `Are you sure you want to delete the sub-category "${subCategory.replace(/_/g, ' ')}"? All associated wildcards will be lost.`,
-                            true,
-                            () => {
-                                saveStateToHistory();
-                                delete appState.wildcards[category][subCategory];
-                                debouncedSaveState();
-                                // Remove the specific sub-category card directly to prevent UI collapse
-                                const cardToRemove = deleteSubCategoryBtn.closest('[data-category][data-sub-category]');
-                                if (cardToRemove) {
-                                    cardToRemove.remove();
-                                }
-                                // Ensure the details element remains open
-                                details.open = true;
-                                details.setAttribute('aria-expanded', 'true');
-                                showNotification(`Deleted sub-category ${subCategory.replace(/_/g, ' ')}.`);
-                            }
-                        );
-                    });
                     cardHeader.appendChild(cardTitle);
                     cardHeader.appendChild(deleteSubCategoryBtn);
 
@@ -841,7 +862,19 @@
                         });
                         if (indices.length > 0) {
                             debouncedSaveState();
-                            renderChipsInContainer(card.querySelector('.chip-container'), category, subCategory);
+                            // Clear any stored selections
+                            const chipContainer = card.querySelector('.chip-container');
+                            chipContainer.dataset.selected = '';
+                            renderChipsInContainer(chipContainer, category, subCategory);
+                            // Update the counters in the UI
+                            const subCounter = card.querySelector('h3 span');
+                            subCounter.textContent = `(${appState.wildcards[category][subCategory].wildcards.length})`;
+                            const categoryCounter = card.closest('details').querySelector('summary h2 span');
+                            let totalWildcards = 0;
+                            for (const subCat in appState.wildcards[category]) {
+                                totalWildcards += appState.wildcards[category][subCat].wildcards.length;
+                            }
+                            categoryCounter.textContent = `(${totalWildcards})`;
                             showNotification(`Deleted ${indices.length} wildcards from ${subCategory.replace(/_/g, ' ')}.`);
                         }
                     });
@@ -851,10 +884,20 @@
                     selectAllBtn.className = 'bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold py-2 px-3 rounded-md';
                     selectAllBtn.title = `Toggle selection of all wildcards in this category for batch operations`;
                     selectAllBtn.addEventListener('click', () => {
+                        const chipContainer = card.querySelector('.chip-container');
                         const checkboxes = card.querySelectorAll('.batch-select');
                         const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-                        checkboxes.forEach(cb => cb.checked = !allChecked);
-                        selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
+                        if (allChecked) {
+                            checkboxes.forEach(cb => cb.checked = false);
+                            chipContainer.dataset.selected = '';
+                            selectAllBtn.textContent = 'Select All';
+                        } else {
+                            checkboxes.forEach(cb => cb.checked = true);
+                            // Store all indices for this subcategory, even those not currently rendered
+                            const allIndices = Array.from(appState.wildcards[category][subCategory].wildcards.keys());
+                            chipContainer.dataset.selected = allIndices.join(',');
+                            selectAllBtn.textContent = 'Deselect All';
+                        }
                     });
 
                     cardFooter.appendChild(generateBtn);
@@ -1099,6 +1142,35 @@
                         input.value = '';
                         input.focus();
                     }
+                }
+
+                const deleteSubCatBtn = e.target.closest('.delete-subcategory-btn');
+                if (deleteSubCatBtn) {
+                    const card = e.target.closest('[data-category][data-sub-category]');
+                    const { category, subCategory } = card.dataset;
+                    const details = card.closest('details');
+
+                    showNotification(
+                        `Are you sure you want to delete the sub-category "${subCategory.replace(/_/g, ' ')}"? All associated wildcards will be lost.`,
+                        true,
+                        () => {
+                            saveStateToHistory();
+                            delete appState.wildcards[category][subCategory];
+                            debouncedSaveState();
+                            
+                            // Remove the specific sub-category card directly to prevent UI issues
+                            if (card) {
+                                card.remove();
+                            }
+                            
+                            // Ensure the category remains expanded
+                            if (details) {
+                                details.open = true;
+                            }
+                            
+                            showNotification(`Deleted sub-category ${subCategory.replace(/_/g, ' ')}.`);
+                        }
+                    );
                 }
             });
             
