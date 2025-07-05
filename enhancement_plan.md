@@ -1,46 +1,43 @@
-# Enhancement Plan for AI-Powered Wildcard Generator
+# Enhancement Plan for Wildcards Generator
 
-This document outlines a 10-point plan for enhancing the AI-Powered Wildcard Generator tool, based on user feedback and analysis of the current implementation in `wildcards.html`. The plan prioritizes key features requested by the user and includes additional improvements to ensure a comprehensive upgrade to the tool's functionality and user experience.
+This document outlines the plan for enhancing the 'wildcards.html' file as per the user's request. The goal is to address critical fixes, performance optimizations, accessibility and UX improvements, security hardening, code quality enhancements, and optional features while maintaining the monolithic structure of the file.
 
-## 1. Use of `LLM_KEY` Environment Variable for API Key Management
-- **Objective**: Replace the hardcoded empty API key with a secure method using an `LLM_KEY` environment variable.
-- **Implementation**: Integrate a build-time process or a minimal backend proxy to inject the environment variable into the client-side code. For static hosting, a configuration script or build step can embed the key securely. If hosted on a server, a backend endpoint will provide the key to the frontend, ensuring it is not exposed in the source code.
+## 1. Critical Fixes
+- **Global `AbortController` Reuse**: Wrap each `generateMoreWildcards` call in a `try/finally` block to ensure `activeAIController` is reset to `null` after each request, preventing race conditions. Add a check for `if (activeAIController?.signal.aborted)` before any UI updates to avoid interference from aborted requests.
+- **`innerHTML` Injection for Icons**: Replace direct `innerHTML` usage for SVG icons with `createElementNS` to create SVG elements safely, mitigating potential XSS risks.
+- **Missing `await` in History Load**: Modify `loadHistory()` to return the parsed state and ensure it's called before UI build, or mark it as `async` and `await` it where necessary to guarantee data availability.
+- **`prompt()` for New Sub-Categories**: Replace the blocking `prompt()` with a custom modal integrated into the existing notification system, ensuring non-blocking interaction and input validation.
 
-## 2. Support for Custom API Endpoints
-- **Objective**: Allow users to specify custom API endpoints for different LLM providers, including OpenRouter and Ollama for local model support.
-- **Implementation**: Add a UI input field in the settings or header section for users to enter a custom API endpoint URL. Include a dropdown with predefined options (Gemini, OpenRouter, Ollama) that can be overridden with a custom URL. Adjust the API request logic in the code to use the selected endpoint dynamically.
+## 2. Performance Optimizations
+- **Move Blocking Scripts**: Add the `defer` attribute to script tags and move them to the end of the body to improve initial page load performance.
+- **Virtual-Scroll the Chip List**: Implement a simple virtualization function for the chip list within `chip-container` elements, rendering only visible chips based on `scrollTop`, `clientHeight`, and `offsetHeight` calculations.
+- **Batch DOM Writes**: Update `renderChipsInContainer` to use a `DocumentFragment` for appending chips, inserting them all at once to minimize layout thrashing.
+- **Cache Heavy Selectors**: Cache repeated DOM queries like `document.getElementById` and `querySelector` in local variables within loops to reduce lookup overhead.
+- **Font & CSS Hints**: Add `<link rel="preload">` tags for fonts and critical CSS to eliminate late-loaded text flashes.
 
-## 3. Confirm Autosave Functionality
-- **Objective**: Ensure the application always autosaves its state to prevent data loss.
-- **Implementation**: Verify that the current debounced autosave mechanism to localStorage is functioning as intended. No changes are needed unless the user specifies a different behavior or storage method.
+## 3. Accessibility & UX Improvements
+- **`details/summary` Keyboard Focus**: Ensure `summary` elements have native toggling without custom `tabindex` unless custom click handling is added, improving screen-reader support.
+- **Live-Region Status**: Add `role="alertdialog"` to the notification modal and implement focus on the first button when opened for immediate screen-reader perception.
+- **Chip Check-Boxes**: Add `aria-label="Select wildcard ‹text›"` to checkboxes for better accessibility.
+- **Color Contrast**: Adjust text and button color combinations (e.g., gray-400 on gray-800) to meet WCAG AA standards by lightening foreground or darkening background colors.
 
-## 4. Enhance Reset Button
-- **Objective**: Review the existing red "Reset to Defaults" button and potentially enhance its visibility or behavior.
-- **Implementation**: Confirm with the user if a stylistic change (e.g., more prominent red color) or additional confirmation steps are desired. If no changes are requested, maintain the current implementation which already includes a confirmation dialog.
+## 4. Security Hardening
+- **No Secrets in `localStorage`**: Modify API key storage to keep it in memory only, or prompt users to input it each session, removing any persistence in `localStorage`.
+- **Content-Security-Policy (CSP)**: Add a CSP meta tag to limit XSS vectors, allowing only necessary external APIs.
 
-## 5. Ensure Dark Mode by Default
-- **Objective**: Confirm that the UI uses dark mode as the default theme.
-- **Implementation**: The current design already uses a dark theme with `bg-gray-900` and corresponding dark elements. Verify with the user if this meets their expectation or if a light/dark mode toggle or further customization is needed. No immediate changes unless specified.
+## 5. Code Quality & Maintainability
+- **Module Pattern**: Wrap all variables and functions in an Immediately Invoked Function Expression (IIFE) to prevent global namespace pollution, exposing only a minimal public API.
+- **Config Constants**: Create a `const CONFIG = { … }` object for magic numbers and settings like `HISTORY_LIMIT` for easier maintenance.
+- **Typed JSDoc**: Annotate key functions with JSDoc for better code documentation and editor IntelliSense support.
+- **Prefer `const` over `let`**: Update variable declarations to use `const` where reassignment isn't needed to clarify intent.
+- **Single Event Delegation**: Consolidate multiple event listeners on `wildcard-container` into a single `click` handler with class-based branching for efficiency.
 
-## 6. Add Export/Import Functionality for Application State
-- **Objective**: Enable users to export the entire application state (including global prompt and custom instructions) and import it later for backup or sharing.
-- **Implementation**: Add UI buttons for exporting the state as a JSON file and importing a previously saved state, updating the localStorage accordingly. Ensure the import function validates the data structure before overwriting the current state.
+## 6. Optional Enhancements
+- **Progressive Web App Wrapper**: Add a small inline service-worker to cache Tailwind, JSZip, and the HTML for offline capability, if desired by the user.
+- **Theme Switcher**: Implement a toggle for Tailwind's dark mode using a `data-theme` attribute with persistence, based on user preference.
+- **Import Auto-Merge**: Add an option during state import to merge with existing data instead of overwriting, contingent on user approval.
 
-## 7. Implement Search and Filter Functionality
-- **Objective**: Improve usability by allowing users to search for specific wildcards or filter by categories/sub-categories.
-- **Implementation**: Add a search bar at the top of the UI to filter wildcards across all categories. Implement a filter dropdown to show/hide specific categories or sub-categories, dynamically updating the UI based on user input.
+## Implementation Approach
+The changes will be implemented in a prioritized order: critical fixes first, followed by performance and security enhancements, then accessibility and UX improvements, and finally code quality and optional features. All modifications will be made within the single 'wildcards.html' file to maintain its monolithic structure as per the user's instructions. The user has specified not to run or open the file after edits, which will be adhered to during the implementation phase.
 
-## 8. Add Undo/Redo Functionality
-- **Objective**: Prevent accidental data loss by allowing users to undo actions like deleting wildcards or resetting to defaults.
-- **Implementation**: Maintain a history stack of state changes in localStorage or memory, with UI buttons to undo or redo actions. Limit the history to a reasonable number of steps to manage storage size, ensuring key actions like edits and deletions are reversible.
-
-## 9. Enable Batch Operations for Wildcard Management
-- **Objective**: Allow users to perform actions on multiple wildcards simultaneously, such as deletion or moving between categories.
-- **Implementation**: Add checkbox selection to wildcard chips for batch operations. Include UI controls to delete selected wildcards or move them to a different sub-category, updating the state and UI accordingly.
-
-## 10. Include In-App Documentation or Help Section
-- **Objective**: Provide guidance within the app to help users understand how to use the tool and craft effective prompts.
-- **Implementation**: Add a help icon or button in the header that opens a modal with documentation on using the tool, including tips for custom instructions and API endpoint setup. Ensure the content is concise yet comprehensive, covering all major functionalities.
-
-## Next Steps
-This plan will be implemented in phases, starting with the user-prioritized features (points 1 and 2). Each enhancement will be coded into `wildcards.html` as a monolithic file per the user's instructions in `.clinerules`. User feedback will be sought after key implementations to ensure alignment with expectations. Once all features are integrated, a final review will confirm the tool's enhanced functionality and usability.
+This plan will guide the subsequent updates to 'wildcards.html', ensuring all requested enhancements are addressed systematically and efficiently.

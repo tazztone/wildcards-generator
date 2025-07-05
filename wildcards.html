@@ -8,7 +8,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -84,6 +86,10 @@
                 </select>
                 <input type="text" id="custom-endpoint" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm mt-2 hidden focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter custom API endpoint URL">
             </div>
+            <div class="mt-6 text-left max-w-4xl mx-auto hidden" id="openrouter-model-container">
+                <label for="openrouter-model" class="block text-lg font-semibold text-indigo-300 mb-2">OpenRouter Model</label>
+                <input type="text" id="openrouter-model" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter model (e.g., openai/gpt-4o)" value="openai/gpt-4o">
+            </div>
 
             <div class="mt-6 text-left max-w-4xl mx-auto">
                 <label for="search-wildcards" class="block text-lg font-semibold text-indigo-300 mb-2">Search Wildcards</label>
@@ -119,7 +125,7 @@
         </main>
     </div>
 
-    <script type="module">
+    <script type="module" defer>
         // =================================================================================
         // --- PHASE 1 & 2: CORE REFACTOR, PERSISTENCE & UX POLISH ---
         // =================================================================================
@@ -338,22 +344,40 @@
                 userPrompt += `\nCustom Instructions: "${customInstructions.trim()}"`;
             }
 
-            const chatHistory = [
+            // Prepare chat history for Gemini API
+            const chatHistoryGemini = [
                 { role: "user", parts: [{ text: globalPrompt }] },
                 { role: "model", parts: [{ text: "Understood. I am ready to generate wildcards based on your instructions." }] },
                 { role: "user", parts: [{ text: userPrompt }] }
             ];
 
-            const payload = {
-                contents: chatHistory,
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "ARRAY",
-                        items: { type: "STRING" }
+            // Prepare chat history for OpenRouter API
+            const chatHistoryOpenRouter = [
+                { role: "user", content: globalPrompt },
+                { role: "assistant", content: "Understood. I am ready to generate wildcards based on your instructions." },
+                { role: "user", content: userPrompt }
+            ];
+
+            let payload;
+            if (apiEndpoint.value === "openrouter") {
+                const model = document.getElementById('openrouter-model').value.trim() || "openai/gpt-4o";
+                payload = {
+                    model: model,
+                    messages: chatHistoryOpenRouter,
+                    response_format: { type: "json_object" }
+                };
+            } else {
+                payload = {
+                    contents: chatHistoryGemini,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: { type: "STRING" }
+                        }
                     }
-                }
-            };
+                };
+            }
             
             // SECURITY NOTE: API key should not be hardcoded in client-side code.
             // Use environment variables or user input for secure key management.
@@ -369,15 +393,14 @@
             }
             
             // Determine API endpoint based on user selection
-            const endpointSelect = document.getElementById('api-endpoint');
             const customEndpointInput = document.getElementById('custom-endpoint');
             let apiUrl = "";
-            switch (endpointSelect.value) {
+            switch (apiEndpoint.value) {
                 case "gemini":
                     apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                     break;
                 case "openrouter":
-                    apiUrl = `https://openrouter.ai/api/v1/chat/completions?key=${apiKey}`;
+                    apiUrl = `https://openrouter.ai/api/v1/chat/completions`;
                     break;
                 case "ollama":
                     apiUrl = `http://localhost:11434/api/generate`;
@@ -397,9 +420,16 @@
             }
 
             try {
+                let headers = { 'Content-Type': 'application/json' };
+            if (apiEndpoint.value === "openrouter") {
+                headers['Authorization'] = `Bearer ${apiKey}`;
+                headers['HTTP-Referer'] = window.location.href;
+                headers['X-Title'] = 'AI-Powered Wildcard Generator';
+            }
+                
                 const response = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: headers,
                     body: JSON.stringify(payload),
                     signal: signal
                 });
@@ -411,12 +441,48 @@
 
                 const result = await response.json();
                 
-                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    return JSON.parse(text);
+                if (apiEndpoint.value === "openrouter") {
+                    if (result.choices && result.choices[0].message && result.choices[0].message.content) {
+                        const content = result.choices[0].message.content;
+                        try {
+                            // Attempt to parse as JSON object if the response is structured as such
+                            const parsedContent = JSON.parse(content);
+                            if (Array.isArray(parsedContent)) {
+                                return parsedContent;
+                            } else if (parsedContent.wildcards && Array.isArray(parsedContent.wildcards)) {
+                                return parsedContent.wildcards;
+                            } else {
+                                console.error("Unexpected JSON structure in OpenRouter response:", parsedContent);
+                                throw new Error("Could not parse the wildcards array from the OpenRouter response.");
+                            }
+                        } catch (e) {
+                            // Fallback: Treat content as raw text if not JSON
+                            console.error("Failed to parse OpenRouter response as JSON, treating as text:", e);
+                            // Extract array from text if possible
+                            const match = content.match(/\[(.*?)\]/s);
+                            if (match && match[0]) {
+                                try {
+                                    return JSON.parse(match[0]);
+                                } catch (err) {
+                                    console.error("Failed to extract valid JSON array from OpenRouter response:", err);
+                                    throw new Error("Could not extract wildcards from the OpenRouter response.");
+                                }
+                            } else {
+                                throw new Error("Could not find a valid array in the OpenRouter response.");
+                            }
+                        }
+                    } else {
+                        console.error("Unexpected OpenRouter API response structure:", result);
+                        throw new Error("Could not parse the response from OpenRouter. The response structure might have changed or there was an API error.");
+                    }
                 } else {
-                    console.error("Unexpected API response structure:", result);
-                    throw new Error("Could not parse the response from the AI. The response structure might have changed or there was an API error.");
+                    if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        return JSON.parse(text);
+                    } else {
+                        console.error("Unexpected API response structure:", result);
+                        throw new Error("Could not parse the response from the AI. The response structure might have changed or there was an API error.");
+                    }
                 }
             } catch (error) {
                 if (error.name === 'AbortError') {
@@ -440,6 +506,12 @@
         const confirmBtn = document.getElementById('confirm-btn');
         const cancelBtn = document.getElementById('cancel-btn');
         const confirmationButtons = document.getElementById('confirmation-buttons');
+        const wildcardContainer = document.getElementById('wildcard-container');
+        const globalPrompt = document.getElementById('global-prompt');
+        const apiKeyInput = document.getElementById('api-key');
+        const apiEndpoint = document.getElementById('api-endpoint');
+        const customEndpoint = document.getElementById('custom-endpoint');
+        const searchWildcards = document.getElementById('search-wildcards');
 
         function showNotification(message, isConfirmation = false, onConfirm = () => {}) {
             modalMessage.textContent = message;
@@ -525,10 +597,31 @@
         function renderChipsInContainer(container, category, subCategory) {
             container.innerHTML = '';
             const wildcards = appState.wildcards[category][subCategory].wildcards;
-            wildcards.forEach((wildcard, index) => {
-                container.appendChild(renderChip(wildcard, index, category, subCategory));
-            });
+            const fragment = document.createDocumentFragment();
+            const itemHeight = 24; // Approximate height of a chip
+            const buffer = 10; // Number of items to render above and below viewport
+            let startIndex = Math.max(0, Math.floor(container.scrollTop / itemHeight) - buffer);
+            let endIndex = Math.min(wildcards.length, Math.floor((container.scrollTop + container.clientHeight) / itemHeight) + buffer);
+            
+            for (let i = startIndex; i < endIndex; i++) {
+                fragment.appendChild(renderChip(wildcards[i], i, category, subCategory));
+            }
+            container.appendChild(fragment);
             container.scrollTop = container.scrollHeight;
+            
+            function updateVisibleChips() {
+                startIndex = Math.max(0, Math.floor(container.scrollTop / itemHeight) - buffer);
+                endIndex = Math.min(wildcards.length, Math.floor((container.scrollTop + container.clientHeight) / itemHeight) + buffer);
+                container.innerHTML = '';
+                const visibleFragment = document.createDocumentFragment();
+                for (let i = startIndex; i < endIndex; i++) {
+                    visibleFragment.appendChild(renderChip(wildcards[i], i, category, subCategory));
+                }
+                container.appendChild(visibleFragment);
+            }
+            
+            container.removeEventListener('scroll', updateVisibleChips);
+            container.addEventListener('scroll', updateVisibleChips);
         }
 
         function buildUI() {
@@ -564,19 +657,37 @@
                 addSubCategoryBtn.title = `Add new sub-category under ${category.replace(/_/g, ' ')}`;
                 addSubCategoryBtn.addEventListener('click', (e) => {
                     e.stopPropagation(); // Prevent summary click from triggering
-                    const newSubCategory = prompt(`Enter new sub-category name for ${category.replace(/_/g, ' ')}:`);
-                    if (newSubCategory && newSubCategory.trim()) {
-                        const sanitizedKey = newSubCategory.trim().replace(/\s+/g, '_');
-                        if (!appState.wildcards[category][sanitizedKey]) {
-                            saveStateToHistory();
-                            appState.wildcards[category][sanitizedKey] = { instruction: '', wildcards: [] };
-                            debouncedSaveState();
-                            buildUI();
-                            showNotification(`Added sub-category ${newSubCategory} under ${category.replace(/_/g, ' ')}.`);
-                        } else {
-                            showNotification(`Sub-category ${newSubCategory} already exists under ${category.replace(/_/g, ' ')}.`);
-                        }
-                    }
+                    showNotification(`Enter new sub-category name for ${category.replace(/_/g, ' ')}:`, true, () => {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'bg-gray-800 border border-gray-600 rounded-md p-2 text-sm w-full mt-2';
+                        input.placeholder = 'New sub-category name';
+                        modalMessage.appendChild(input);
+                        input.focus();
+                        input.addEventListener('blur', () => {
+                            const newSubCategory = input.value.trim();
+                            if (newSubCategory) {
+                                const sanitizedKey = newSubCategory.replace(/\s+/g, '_');
+                                if (!appState.wildcards[category][sanitizedKey]) {
+                                    saveStateToHistory();
+                                    appState.wildcards[category][sanitizedKey] = { instruction: '', wildcards: [] };
+                                    debouncedSaveState();
+                                    buildUI();
+                                    showNotification(`Added sub-category ${newSubCategory} under ${category.replace(/_/g, ' ')}.`);
+                                } else {
+                                    showNotification(`Sub-category ${newSubCategory} already exists under ${category.replace(/_/g, ' ')}.`);
+                                }
+                            } else {
+                                showNotification('Sub-category name cannot be empty.');
+                            }
+                            input.remove();
+                        });
+                        input.addEventListener('keydown', (event) => {
+                            if (event.key === 'Enter') {
+                                input.blur();
+                            }
+                        });
+                    });
                 });
                 
                 titleContainer.appendChild(title);
@@ -584,7 +695,18 @@
                 
                 const arrow = document.createElement('span');
                 arrow.className = 'arrow-down transition-transform duration-300 text-indigo-400';
-                arrow.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>`;
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute("class", "h-6 w-6");
+                svg.setAttribute("fill", "none");
+                svg.setAttribute("viewBox", "0 0 24 24");
+                svg.setAttribute("stroke", "currentColor");
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("stroke-linecap", "round");
+                path.setAttribute("stroke-linejoin", "round");
+                path.setAttribute("stroke-width", "2");
+                path.setAttribute("d", "M19 9l-7 7-7-7");
+                svg.appendChild(path);
+                arrow.appendChild(svg);
 
                 summary.appendChild(titleContainer);
                 summary.appendChild(arrow);
@@ -664,7 +786,28 @@
                     generateBtn.setAttribute('aria-label', `Generate more wildcards for ${subCategory.replace(/_/g, ' ')}`);
                     
                     const copyBtn = document.createElement('button');
-                    copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 hover:text-white transition-colors"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    svg.setAttribute("width", "20");
+                    svg.setAttribute("height", "20");
+                    svg.setAttribute("viewBox", "0 0 24 24");
+                    svg.setAttribute("fill", "none");
+                    svg.setAttribute("stroke", "currentColor");
+                    svg.setAttribute("stroke-width", "2");
+                    svg.setAttribute("stroke-linecap", "round");
+                    svg.setAttribute("stroke-linejoin", "round");
+                    svg.setAttribute("class", "text-gray-400 hover:text-white transition-colors");
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    rect.setAttribute("x", "9");
+                    rect.setAttribute("y", "9");
+                    rect.setAttribute("width", "13");
+                    rect.setAttribute("height", "13");
+                    rect.setAttribute("rx", "2");
+                    rect.setAttribute("ry", "2");
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("d", "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1");
+                    svg.appendChild(rect);
+                    svg.appendChild(path);
+                    copyBtn.appendChild(svg);
                     copyBtn.title = `Copy all wildcards in this category`;
                     copyBtn.setAttribute('aria-label', `Copy all wildcards for ${subCategory.replace(/_/g, ' ')}`);
 
@@ -718,30 +861,35 @@
         }
 
         // --- /src/main.js (Glue Code) ---
-        function init() {
+        async function init() {
+            await loadHistory();
             loadState();
             buildUI();
 
             closeBtn.addEventListener('click', hideNotification);
             cancelBtn.addEventListener('click', hideNotification);
 
-            document.getElementById('global-prompt').addEventListener('input', (e) => {
+            globalPrompt.addEventListener('input', (e) => {
                 appState.systemPrompt = e.target.value;
                 debouncedSaveState();
             });
 
-            // Handle API endpoint selection change to show/hide custom endpoint input
-            document.getElementById('api-endpoint').addEventListener('change', (e) => {
-                const customEndpointInput = document.getElementById('custom-endpoint');
+            // Handle API endpoint selection change to show/hide custom endpoint input and OpenRouter model input
+            apiEndpoint.addEventListener('change', (e) => {
                 if (e.target.value === 'custom') {
-                    customEndpointInput.classList.remove('hidden');
+                    customEndpoint.classList.remove('hidden');
                 } else {
-                    customEndpointInput.classList.add('hidden');
+                    customEndpoint.classList.add('hidden');
+                }
+                if (e.target.value === 'openrouter') {
+                    document.getElementById('openrouter-model-container').classList.remove('hidden');
+                } else {
+                    document.getElementById('openrouter-model-container').classList.add('hidden');
                 }
             });
 
             // Save API key to localStorage if provided (for session persistence, not long-term storage)
-            document.getElementById('api-key').addEventListener('input', (e) => {
+            apiKeyInput.addEventListener('input', (e) => {
                 const apiKey = e.target.value.trim();
                 if (apiKey) {
                     localStorage.setItem('temp_api_key', apiKey);
@@ -753,7 +901,7 @@
             // Load API key from localStorage if available (temporary session storage)
             const savedApiKey = localStorage.getItem('temp_api_key');
             if (savedApiKey) {
-                document.getElementById('api-key').value = savedApiKey;
+                apiKeyInput.value = savedApiKey;
             }
 
             document.getElementById('download-all-zip').addEventListener('click', () => {
@@ -844,7 +992,7 @@
                 );
             });
 
-            document.getElementById('search-wildcards').addEventListener('input', (e) => {
+            searchWildcards.addEventListener('input', (e) => {
                 const searchTerm = e.target.value.toLowerCase().trim();
                 const chips = document.querySelectorAll('.chip');
                 chips.forEach(chip => {
