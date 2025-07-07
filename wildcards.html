@@ -55,6 +55,8 @@
             padding: 0; margin: -1px; overflow: hidden;
             clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;
         }
+        .dragging { opacity: 0.5; border: 2px dashed var(--accent-primary); }
+        .drag-over { background-color: var(--accent-primary) !important; opacity: 0.3; }
     </style>
 </head>
 <body class="antialiased">
@@ -157,14 +159,14 @@
         // --- CONFIGURATION & CONSTANTS
         // =================================================================================
         const Config = {
-            STORAGE_KEY: 'wildcardGeneratorState_v6',
-            API_KEY_GEMINI: 'gemini_api_key_v6',
-            API_KEY_OPENROUTER: 'openrouter_api_key_v6',
-            HISTORY_KEY: 'wildcardGeneratorHistory_v6',
+            STORAGE_KEY: 'wildcardGeneratorState_v7',
+            API_KEY_GEMINI: 'gemini_api_key_v7',
+            API_KEY_OPENROUTER: 'openrouter_api_key_v7',
+            HISTORY_KEY: 'wildcardGeneratorHistory_v7',
             HISTORY_LIMIT: 20,
             AUTOSAVE_INTERVAL: 500,
             SEARCH_DEBOUNCE_DELAY: 300,
-            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a main category, a sub-category, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the sub-category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the sub-category provided.`
+            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the category provided.`
         };
 
         // =================================================================================
@@ -261,23 +263,9 @@
                             return;
                         }
                     }
-                } catch (error) { console.error("Failed to load state, using defaults.", error); }
+                } catch (error) { console.error("Failed to load state, falling back to default.", error); }
                 
-                this.appState.wildcards = {};
-                this.appState.systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
-                this.saveState(true);
-                
-                fetch('initial-data.json')
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to load initial data');
-                        return response.json();
-                    })
-                    .then(data => {
-                        this.appState.wildcards = data;
-                        this.saveState(true);
-                        UI.renderAll();
-                    })
-                    .catch(error => console.error("Failed to load initial data:", error));
+                this.resetState(false); // Don't show notification on initial load
             },
             saveState(immediate = false) {
                 if (immediate) {
@@ -292,7 +280,28 @@
                 }
             },
             _save() { try { localStorage.setItem(Config.STORAGE_KEY, JSON.stringify(this.appState)); } catch (e) { console.error("Failed to save state", e); } },
-            resetState() { /* Logic to fetch initial-data.json and reset */ },
+            resetState(notify = true) {
+                const performReset = (data) => {
+                    this.appState.wildcards = data;
+                    this.appState.systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
+                    this.saveState(true);
+                    this.clearHistory();
+                    this.saveStateToHistory();
+                    UI.renderAll();
+                    if (notify) UI.showNotification('All categories have been reset.');
+                };
+
+                fetch('initial-data.json')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => performReset(data))
+                    .catch(error => {
+                        console.error("Failed to load initial-data.json:", error);
+                        if (notify) UI.showNotification("Error: Could not load default data.");
+                    });
+            },
             saveStateToHistory() {
                 if (this.historyIndex < this.history.length - 1) this.history = this.history.slice(0, this.historyIndex + 1);
                 this.history.push(JSON.stringify(this.appState));
@@ -319,11 +328,11 @@
         // =================================================================================
         const Api = {
             activeController: null,
-            async generateWildcards(globalPrompt, categoryName, subCategoryName, existingWords, customInstructions) {
+            async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions) {
                 if (this.activeController) this.activeController.abort();
                 this.activeController = new AbortController();
                 try {
-                    const { url, payload, headers } = this._prepareRequest(globalPrompt, categoryName, subCategoryName, existingWords, customInstructions);
+                    const { url, payload, headers } = this._prepareRequest(globalPrompt, categoryPath, existingWords, customInstructions);
                     const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)]) });
                     if (!response.ok) {
                         const errorText = await response.text();
@@ -338,9 +347,10 @@
                     this.activeController = null;
                 }
             },
-            _prepareRequest(globalPrompt, categoryName, subCategoryName, existingWords, customInstructions) {
+            _prepareRequest(globalPrompt, categoryPath, existingWords, customInstructions) {
                 const endpoint = document.getElementById('api-endpoint').value;
-                const userPrompt = `Main Category: '${categoryName.replace(/_/g, ' ')}'\nSub-Category: '${subCategoryName.replace(/_/g, ' ')}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+                const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
+                const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
                 let apiKey, url, payload, headers = { 'Content-Type': 'application/json' };
 
                 if (endpoint === 'gemini') {
@@ -411,6 +421,8 @@
                 this.elements.geminiApiKey.value = localStorage.getItem(Config.API_KEY_GEMINI) || '';
                 this.elements.openrouterApiKey.value = localStorage.getItem(Config.API_KEY_OPENROUTER) || '';
                 
+                const openPaths = [...this.elements.container.querySelectorAll('details[open]')].map(d => d.dataset.path);
+
                 this.elements.container.innerHTML = '';
                 const fragment = document.createDocumentFragment();
                 const sortedKeys = Object.keys(wildcards).sort();
@@ -420,55 +432,52 @@
                 }
                 fragment.appendChild(this.createPlaceholderCategory());
                 this.elements.container.appendChild(fragment);
+
+                openPaths.forEach(path => {
+                    const el = this.elements.container.querySelector(`details[data-path="${path}"]`);
+                    if (el) el.open = true;
+                });
             },
             buildRecursiveHtml(name, data, level, path) {
-                // Check if it's a leaf node (a wildcard card)
-                if (data && typeof data === 'object' && Array.isArray(data.wildcards)) {
-                    return this.createWildcardCard(name, data, level, path);
+                const isLeaf = data && typeof data === 'object' && Array.isArray(data.wildcards);
+                const element = isLeaf ? document.createElement('div') : document.createElement('details');
+                
+                element.className = isLeaf 
+                    ? `bg-gray-700/50 p-4 rounded-lg flex flex-col ${level > 0 ? 'col-span-full md:col-span-1' : ''}`
+                    : `bg-gray-800 rounded-lg shadow-md group ${level > 0 ? 'ml-4 mt-2' : ''}`;
+                
+                element.dataset.path = path;
+                element.draggable = true;
+
+                if (isLeaf) {
+                    element.innerHTML = this.getWildcardCardHtml(name, data, path);
+                } else {
+                    element.innerHTML = this.getCategoryFolderHtml(name, path);
+                    const contentWrapper = element.querySelector('.content-wrapper');
+                    const sortedKeys = Object.keys(data).sort();
+                    for (const key of sortedKeys) {
+                        contentWrapper.appendChild(this.buildRecursiveHtml(key, data[key], level + 1, `${path}/${key}`));
+                    }
                 }
-
-                // It's a branch node (a category folder)
-                const details = document.createElement('details');
-                details.className = `bg-gray-800 rounded-lg shadow-md group ${level > 0 ? 'ml-4 mt-2' : ''}`;
-                details.dataset.path = path;
-
-                const summary = document.createElement('summary');
-                summary.className = 'flex justify-between items-center p-4 cursor-pointer';
-                
-                const titleContainer = document.createElement('div');
-                titleContainer.className = 'flex items-center gap-3';
-                titleContainer.innerHTML = `
-                    <h2 class="text-xl font-semibold text-indigo-400">${sanitize(name.replace(/_/g, ' '))}</h2>
-                    <button class="add-subcategory-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 text-sm rounded-md" title="Add new sub-category">+</button>
-                `;
-                
-                const arrow = document.createElement('span');
-                arrow.className = 'arrow-down transition-transform duration-300 text-indigo-400';
-                arrow.innerHTML = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
-
-                summary.appendChild(titleContainer);
-                summary.appendChild(arrow);
-                details.appendChild(summary);
-
-                const contentWrapper = document.createElement('div');
-                contentWrapper.className = 'p-4 border-t border-gray-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
-                
-                const sortedKeys = Object.keys(data).sort();
-                for (const key of sortedKeys) {
-                    contentWrapper.appendChild(this.buildRecursiveHtml(key, data[key], level + 1, `${path}/${key}`));
-                }
-                details.appendChild(contentWrapper);
-
-                return details;
+                return element;
             },
-            createWildcardCard(name, data, level, path) {
-                const card = document.createElement('div');
-                card.className = `bg-gray-700/50 p-4 rounded-lg flex flex-col ${level > 0 ? 'col-span-full md:col-span-1' : ''}`;
-                card.dataset.path = path;
-                card.innerHTML = `
+            getCategoryFolderHtml(name, path) {
+                return `
+                    <summary class="flex justify-between items-center p-4 cursor-pointer">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-xl font-semibold text-indigo-400"><span contenteditable="true" class="outline-none focus:bg-indigo-400/50 rounded px-1">${sanitize(name.replace(/_/g, ' '))}</span></h2>
+                            <button class="add-subcategory-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 text-sm rounded-md" title="Add new sub-category">+</button>
+                            <button class="delete-btn text-red-400 hover:text-red-300 font-bold text-xl leading-none" title="Delete this category">&times;</button>
+                        </div>
+                        <span class="arrow-down transition-transform duration-300 text-indigo-400"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
+                    </summary>
+                    <div class="content-wrapper p-4 border-t border-gray-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>`;
+            },
+            getWildcardCardHtml(name, data, path) {
+                return `
                     <div class="flex justify-between items-center mb-2">
                         <h3 class="font-bold text-lg text-gray-100"><span contenteditable="true" class="outline-none focus:bg-indigo-400/50 rounded px-1">${sanitize(name.replace(/_/g, ' '))}</span> <span class="text-gray-400 text-sm ml-2">(${(data.wildcards || []).length})</span></h3>
-                        <button class="delete-subcategory-btn text-red-400 hover:text-red-300 font-bold text-xl leading-none" title="Delete this card">&times;</button>
+                        <button class="delete-btn text-red-400 hover:text-red-300 font-bold text-xl leading-none" title="Delete this card">&times;</button>
                     </div>
                     <input type="text" value="${sanitize(data.instruction || '')}" class="custom-instructions-input bg-gray-800 text-sm border border-gray-600 rounded-md px-2 py-1 w-full my-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Custom generation instructions...">
                     <div class="chip-container custom-scrollbar flex flex-wrap gap-2 bg-gray-800 rounded-md p-2 w-full border border-gray-600 overflow-y-auto" style="height: 150px;">
@@ -484,7 +493,6 @@
                         <button class="select-all-btn bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold py-2 px-3 rounded-md">Select All</button>
                         <button class="batch-delete-btn bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-3 rounded-md">Delete Selected</button>
                     </div>`;
-                return card;
             },
             createPlaceholderCategory() {
                 const placeholderWrapper = document.createElement('div');
@@ -537,19 +545,49 @@
         // --- MAIN APPLICATION MODULE (CONTROLLER)
         // =================================================================================
         const App = {
+            draggedPath: null,
             init() {
                 UI.init();
                 State.init();
                 UI.renderAll();
                 this.bindEventListeners();
                 this.debouncedSearch = debounce(this.handleSearch, Config.SEARCH_DEBOUNCE_DELAY);
+                this.loadApiKeysFromEnv();
+            },
+            async loadApiKeysFromEnv() {
+                try {
+                    const geminiResponse = await fetch('API_GEMINI.ENV');
+                    if (geminiResponse.ok) {
+                        const geminiKey = (await geminiResponse.text()).trim();
+                        document.getElementById('gemini-api-key').value = geminiKey;
+                        localStorage.setItem(Config.API_KEY_GEMINI, geminiKey);
+                    } else {
+                        console.error('Failed to load Gemini API key from ENV file');
+                    }
+                } catch (error) {
+                    console.error('Error fetching Gemini API key:', error);
+                }
+
+                try {
+                    const openRouterResponse = await fetch('API_OPENROUTER.ENV');
+                    if (openRouterResponse.ok) {
+                        const openRouterKey = (await openRouterResponse.text()).trim();
+                        document.getElementById('openrouter-api-key').value = openRouterKey;
+                        localStorage.setItem(Config.API_KEY_OPENROUTER, openRouterKey);
+                        State.initializeModelSelector();
+                    } else {
+                        console.error('Failed to load OpenRouter API key from ENV file');
+                    }
+                } catch (error) {
+                    console.error('Error fetching OpenRouter API key:', error);
+                }
             },
             bindEventListeners() {
                 UI.elements.globalPrompt.addEventListener('input', e => { State.appState.systemPrompt = e.target.value; State.saveState(); });
                 UI.elements.geminiApiKey.addEventListener('input', e => localStorage.setItem(Config.API_KEY_GEMINI, e.target.value.trim()));
                 UI.elements.openrouterApiKey.addEventListener('input', e => {
                     localStorage.setItem(Config.API_KEY_OPENROUTER, e.target.value.trim());
-                    State.initializeModelSelector(); // Re-fetch models if key changes
+                    State.initializeModelSelector();
                 });
 
                 document.querySelectorAll('.toggle-api-key-visibility').forEach(button => {
@@ -575,15 +613,29 @@
                 document.getElementById('undo-btn').addEventListener('click', this.handleUndo.bind(this));
                 document.getElementById('redo-btn').addEventListener('click', this.handleRedo.bind(this));
                 document.getElementById('help-btn').addEventListener('click', this.handleHelp);
-                document.getElementById('reset-btn').addEventListener('click', this.handleReset);
-                UI.elements.container.addEventListener('click', this.handleContainerClick.bind(this));
-                UI.elements.container.addEventListener('input', e => { if (e.target.matches('.custom-instructions-input')) { const path = e.target.closest('[data-path]').dataset.path; this.getObjectByPath(path).instruction = e.target.value; State.saveState(); } });
-                UI.elements.container.addEventListener('keydown', e => { if (e.key === 'Enter') { if (e.target.matches('.add-wildcard-input')) { e.preventDefault(); e.target.nextElementSibling.click(); } if (e.target.matches('[contenteditable="true"]')) { e.preventDefault(); e.target.blur(); } } });
-                UI.elements.container.addEventListener('blur', e => { if (e.target.matches('[contenteditable="true"]')) this.handleContentEditableBlur(e.target); }, true);
+                document.getElementById('reset-btn').addEventListener('click', () => State.resetState());
+                
+                const container = UI.elements.container;
+                container.addEventListener('click', this.handleContainerClick.bind(this));
+                container.addEventListener('input', e => { if (e.target.matches('.custom-instructions-input')) { const path = e.target.closest('[data-path]').dataset.path; this.getObjectByPath(path).instruction = e.target.value; State.saveState(); } });
+                container.addEventListener('keydown', e => { if (e.key === 'Enter') { if (e.target.matches('.add-wildcard-input')) { e.preventDefault(); e.target.nextElementSibling.click(); } if (e.target.matches('[contenteditable="true"]')) { e.preventDefault(); e.target.blur(); } } });
+                container.addEventListener('blur', e => { if (e.target.matches('[contenteditable="true"]')) this.handleContentEditableBlur(e.target); }, true);
+
+                // Drag and Drop Listeners
+                container.addEventListener('dragstart', this.handleDragStart.bind(this));
+                container.addEventListener('dragover', this.handleDragOver.bind(this));
+                container.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                container.addEventListener('drop', this.handleDrop.bind(this));
+                container.addEventListener('dragend', this.handleDragEnd.bind(this));
             },
             getObjectByPath(path) {
                 if (!path) return undefined;
                 return path.split('/').reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : undefined, State.appState.wildcards);
+            },
+            getParentObjectByPath(path) {
+                if (!path || !path.includes('/')) return State.appState.wildcards;
+                const parentPath = path.substring(0, path.lastIndexOf('/'));
+                return this.getObjectByPath(parentPath);
             },
             handleKeyboardShortcuts(e) {
                 if (e.ctrlKey || e.metaKey) {
@@ -601,19 +653,23 @@
 
                 const path = pathElement.dataset.path;
                 
-                if (target.closest('.add-subcategory-btn')) { this.handleAddSubCategory(path); return; }
+                if (target.closest('.add-subcategory-btn')) { e.preventDefault(); this.handleAddSubCategory(path); return; }
+                if (target.closest('.delete-btn')) { e.preventDefault(); this.handleDelete(path); return; }
                 if (target.closest('.generate-btn')) this.handleGenerate(target.closest('.generate-btn'), path);
                 if (target.closest('.copy-btn')) this.handleCopy(path);
                 if (target.closest('.add-wildcard-btn')) this.handleAddWildcard(pathElement, path);
                 if (target.closest('.batch-delete-btn')) this.handleBatchDelete(pathElement, path);
-                if (target.closest('.delete-subcategory-btn')) this.handleDelete(pathElement, path);
                 if (target.closest('.select-all-btn')) this.handleSelectAll(pathElement, target.closest('.select-all-btn'));
             },
             handleContentEditableBlur(target) {
-                const chip = target.closest('.chip');
-                if (chip) { // It's a wildcard
-                    const path = chip.closest('[data-path]').dataset.path;
-                    const index = parseInt(chip.dataset.index, 10);
+                const element = target.closest('[data-path]');
+                if (!element) return;
+
+                const path = element.dataset.path;
+                const isChip = target.closest('.chip');
+                
+                if (isChip) {
+                    const index = parseInt(isChip.dataset.index, 10);
                     const dataObject = this.getObjectByPath(path);
                     const originalText = dataObject.wildcards[index];
                     const newText = target.textContent.trim();
@@ -624,8 +680,29 @@
                     } else {
                         target.textContent = originalText;
                     }
-                } else { // It's a category/sub-category title
-                    // This logic needs to be implemented if renaming is desired
+                } else { // It's a category/card title
+                    const parentObject = this.getParentObjectByPath(path);
+                    const oldKey = path.split('/').pop();
+                    const oldText = oldKey.replace(/_/g, ' ');
+                    const newText = target.textContent.trim();
+                    const newKey = newText.replace(/\s+/g, '_');
+
+                    if (newText && newText !== oldText) {
+                        if (parentObject[newKey]) {
+                            UI.showNotification(`An item named "${newText}" already exists here.`);
+                            target.textContent = oldText;
+                            return;
+                        }
+                        State.saveStateToHistory();
+                        const data = parentObject[oldKey];
+                        delete parentObject[oldKey];
+                        parentObject[newKey] = data;
+                        State.saveState(true);
+                        UI.renderAll();
+                        UI.announce(`Renamed "${oldText}" to "${newText}".`);
+                    } else {
+                        target.textContent = oldText;
+                    }
                 }
             },
             async handleGenerate(btn, path) {
@@ -633,10 +710,7 @@
                 UI.toggleGenerateButton(btn, true);
                 try {
                     const dataObject = this.getObjectByPath(path);
-                    const pathParts = path.split('/');
-                    const subCategoryName = pathParts[pathParts.length - 1];
-                    const categoryName = pathParts[0];
-                    const newWildcards = await Api.generateWildcards(State.appState.systemPrompt, categoryName, subCategoryName, dataObject.wildcards, dataObject.instruction);
+                    const newWildcards = await Api.generateWildcards(State.appState.systemPrompt, path, dataObject.wildcards, dataObject.instruction);
                     if (newWildcards) {
                         State.saveStateToHistory();
                         const existingSet = new Set(dataObject.wildcards);
@@ -665,22 +739,15 @@
                 dataObject.wildcards = dataObject.wildcards.filter((_, i) => !indicesToDelete.includes(i));
                 State.saveState(true); UI.updateCardByPath(path); UI.announce(`Deleted ${indicesToDelete.length} wildcards.`);
             },
-            handleDelete(element, path) {
-                const pathParts = path.split('/');
-                const nameToDelete = pathParts.pop().replace(/_/g, ' ');
-                const parentPath = pathParts.join('/');
-                const parentObject = this.getObjectByPath(parentPath);
-
-                UI.showNotification(`Delete "${nameToDelete}"?`, true, () => {
+            handleDelete(path) {
+                const keyToDelete = path.split('/').pop();
+                const parentObject = this.getParentObjectByPath(path);
+                UI.showNotification(`Delete "${keyToDelete.replace(/_/g, ' ')}"?`, true, () => {
                     State.saveStateToHistory();
-                    if (pathParts.length === 0) { // Top-level
-                        delete State.appState.wildcards[nameToDelete.replace(/ /g, '_')];
-                    } else {
-                        delete parentObject[nameToDelete.replace(/ /g, '_')];
-                    }
+                    delete parentObject[keyToDelete];
                     State.saveState(true);
-                    element.remove();
-                    UI.announce(`"${nameToDelete}" deleted.`);
+                    UI.renderAll();
+                    UI.announce(`Item deleted.`);
                 });
             },
             handleSelectAll(card, button) { const checkboxes = card.querySelectorAll('.batch-select'); const isSelectAll = button.textContent === 'Select All'; checkboxes.forEach(cb => cb.checked = isSelectAll); button.textContent = isSelectAll ? 'Deselect All' : 'Select All'; },
@@ -696,24 +763,150 @@
             handleAddSubCategory(path) {
                 const parentObject = this.getObjectByPath(path);
                 const parentName = path.split('/').pop().replace(/_/g, ' ');
-                UI.showNotification(`Add to "${parentName}"? Enter name:`, true, (name) => {
+                UI.showNotification(`Add new item to "${parentName}"? Enter name:`, true, (name) => {
                     if (name && name.trim()) {
                         const sanitizedName = name.trim().replace(/\s+/g, '_');
                         if (parentObject[sanitizedName]) { UI.showNotification(`"${sanitizedName}" already exists here.`); return; }
                         State.saveStateToHistory();
-                        // Add as a wildcard list by default
-                        parentObject[sanitizedName] = { instruction: '', wildcards: [] };
-                        State.saveState(true); UI.renderAll();
+                        UI.showNotification('Is this a category folder or a wildcard list?', true, (type) => {
+                             if (type === 'folder') {
+                                parentObject[sanitizedName] = {};
+                             } else {
+                                parentObject[sanitizedName] = { instruction: '', wildcards: [] };
+                             }
+                             State.saveState(true); UI.renderAll();
+                        }, false); // This is a simplified prompt. A better UI would use radio buttons. For now, any input other than 'folder' creates a list.
                     }
                 }, true);
             },
-            handleSearch(searchTerm) { /* Search logic needs update for recursive structure */ },
+            handleSearch(searchTerm) {
+                const term = searchTerm.toLowerCase().trim();
+                const container = UI.elements.container;
+
+                container.querySelectorAll('[data-path]').forEach(el => el.style.display = 'block');
+                container.querySelectorAll('.highlight').forEach(el => el.outerHTML = el.innerHTML);
+
+                if (!term) return;
+
+                const matchedPaths = new Set();
+                
+                function recursiveSearch(data, path) {
+                    let hasMatchInBranch = false;
+                    const isLeaf = Array.isArray(data.wildcards);
+
+                    if (isLeaf) {
+                        const matchingWildcards = data.wildcards.filter(wc => wc.toLowerCase().includes(term));
+                        if (matchingWildcards.length > 0) {
+                            hasMatchInBranch = true;
+                            matchedPaths.add(path);
+                        }
+                    } else {
+                        for (const key in data) {
+                            if (recursiveSearch(data[key], `${path}/${key}`)) {
+                                hasMatchInBranch = true;
+                            }
+                        }
+                    }
+                    return hasMatchInBranch;
+                }
+
+                recursiveSearch(State.appState.wildcards, '');
+
+                container.querySelectorAll('[data-path]').forEach(el => {
+                    const path = el.dataset.path;
+                    let isMatch = false;
+                    for (const matchedPath of matchedPaths) {
+                        if (matchedPath.startsWith(path)) {
+                            isMatch = true;
+                            break;
+                        }
+                    }
+
+                    if (isMatch) {
+                        el.style.display = 'block';
+                        if (el.tagName === 'DETAILS') {
+                            el.open = true;
+                        }
+                        if(matchedPaths.has(path)) { // It's a direct match, highlight wildcards
+                            el.querySelectorAll('.chip span').forEach(span => {
+                                const originalText = span.textContent;
+                                if (originalText.toLowerCase().includes(term)) {
+                                    const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                                    span.innerHTML = sanitize(originalText).replace(regex, '<span class="highlight">$1</span>');
+                                }
+                            });
+                        }
+                    } else {
+                        el.style.display = 'none';
+                    }
+                });
+            },
+            handleDragStart(e) {
+                const target = e.target.closest('[data-path]');
+                if (target) {
+                    this.draggedPath = target.dataset.path;
+                    e.dataTransfer.setData('text/plain', this.draggedPath);
+                    e.dataTransfer.effectAllowed = 'move';
+                    setTimeout(() => target.classList.add('dragging'), 0);
+                }
+            },
+            handleDragOver(e) {
+                e.preventDefault();
+                const target = e.target.closest('.content-wrapper');
+                if (target) {
+                    target.classList.add('drag-over');
+                }
+            },
+            handleDragLeave(e) {
+                const target = e.target.closest('.content-wrapper');
+                if (target) {
+                    target.classList.remove('drag-over');
+                }
+            },
+            handleDrop(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const dropZone = e.target.closest('.content-wrapper');
+                if (!dropZone || !this.draggedPath) return;
+                
+                dropZone.classList.remove('drag-over');
+                const dropPath = dropZone.parentElement.dataset.path;
+
+                if (this.draggedPath === dropPath || dropPath.startsWith(this.draggedPath + '/')) {
+                    console.warn("Cannot drop an item into itself or its descendant.");
+                    return;
+                }
+
+                const draggedKey = this.draggedPath.split('/').pop();
+                const draggedObject = this.getObjectByPath(this.draggedPath);
+                const sourceObject = this.getParentObjectByPath(this.draggedPath);
+                const destinationObject = this.getObjectByPath(dropPath);
+
+                if (destinationObject[draggedKey]) {
+                    UI.showNotification(`An item named "${draggedKey.replace(/_/g, ' ')}" already exists in the destination.`);
+                    return;
+                }
+                
+                State.saveStateToHistory();
+                delete sourceObject[draggedKey];
+                destinationObject[draggedKey] = draggedObject;
+                State.saveState(true);
+                UI.renderAll();
+            },
+            handleDragEnd(e) {
+                this.draggedPath = null;
+                const draggingElement = document.querySelector('.dragging');
+                if (draggingElement) draggingElement.classList.remove('dragging');
+            },
             handleDownloadZip() {
                 const zip = new JSZip();
                 const addFilesToZip = (data, path) => {
-                    if (data && Array.isArray(data.wildcards)) {
-                        zip.file(`${path.replace(/\//g, '__')}.txt`, data.wildcards.join('\n'));
+                    const isLeaf = data && Array.isArray(data.wildcards);
+                    if (isLeaf) {
+                        const fileName = path.replace(/\//g, '__') + '.txt';
+                        zip.file(fileName, data.wildcards.join('\n'));
                     } else if (data && typeof data === 'object') {
+                        zip.folder(path);
                         for (const key in data) {
                             addFilesToZip(data[key], `${path}/${key}`);
                         }
@@ -724,10 +917,9 @@
             },
             handleExportState() { const stateString = JSON.stringify(State.appState, null, 2); const blob = new Blob([stateString], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "wildcard_generator_state.json"; a.click(); URL.revokeObjectURL(a.href); UI.showNotification('Application state exported.'); },
             handleImportState() { const input = document.createElement('input'); input.type = 'file'; input.accept = '.json'; input.onchange = e => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = re => { try { const importedState = JSON.parse(re.target.result); if (importedState.systemPrompt && importedState.wildcards) { State.appState = importedState; State.saveState(true); State.clearHistory(); State.saveStateToHistory(); UI.renderAll(); UI.showNotification('State imported successfully.'); } else { UI.showNotification('Invalid state file format.'); } } catch (error) { UI.showNotification(`Error importing: ${error.message}`); } }; reader.readAsText(file); }; input.click(); },
-            handleUndo() { const openPaths = [...UI.elements.container.querySelectorAll('details[open]')].map(d => d.dataset.path); if (State.undo()) { UI.renderAll(); openPaths.forEach(path => { const el = UI.elements.container.querySelector(`details[data-path="${path}"]`); if (el) el.open = true; }); UI.announce("Undo complete."); } },
-            handleRedo() { const openPaths = [...UI.elements.container.querySelectorAll('details[open]')].map(d => d.dataset.path); if (State.redo()) { UI.renderAll(); openPaths.forEach(path => { const el = UI.elements.container.querySelector(`details[data-path="${path}"]`); if (el) el.open = true; }); UI.announce("Redo complete."); } },
-            handleReset() { UI.showNotification('Reset all categories to default? This cannot be undone.', true, () => { State.resetState(); UI.renderAll(); UI.showNotification('All categories have been reset.'); }); },
-            handleHelp() { UI.showNotification(`Welcome!\n\nKey Features:\n- Global Settings: Set API keys and choose your provider.\n- Recursive Categories: Add nested categories for better organization.\n- Generate More: Use AI to create new wildcards for any list.\n- Export/Import: Save and load your entire setup.\n- Undo/Redo: Revert or re-apply changes.`); }
+            handleUndo() { if (State.undo()) { UI.renderAll(); UI.announce("Undo complete."); } },
+            handleRedo() { if (State.redo()) { UI.renderAll(); UI.announce("Redo complete."); } },
+            handleHelp() { UI.showNotification(`Welcome!\n\nKey Features:\n- Global Settings: Set API keys and choose your provider.\n- Recursive Categories: Add nested categories for better organization.\n- Drag & Drop: Reorder items by dragging them into category folders.\n- Inline Renaming: Click any title to rename it.\n- Generate More: Use AI to create new wildcards for any list.\n- Export/Import: Save and load your entire setup.\n- Undo/Redo: Revert or re-apply changes.`); }
         };
 
         document.addEventListener('DOMContentLoaded', () => App.init());
