@@ -101,13 +101,24 @@
                     <div>
                         <label for="api-endpoint" class="block text-lg font-semibold text-indigo-300 mb-2">API Endpoint</label>
                         <select id="api-endpoint" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="gemini" selected>Gemini API (Default)</option>
-                            <option value="openrouter">OpenRouter API</option>
+                            <option value="gemini">Gemini API</option>
+                            <option value="openrouter" selected>OpenRouter API (Default)</option>
                         </select>
                     </div>
                     <div id="model-selector-container">
                         <label for="model-selector" class="block text-lg font-semibold text-indigo-300 mb-2">Model Name</label>
-                        <input type="text" id="model-selector" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., gemini-2.0-flash, openai/gpt-4o" value="gemini-2.0-flash">
+                        <input type="text" id="model-selector" list="model-list" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., gemini-2.0-flash, openai/gpt-4o" value="">
+                        <datalist id="model-list">
+                            <!-- Dynamically populated with OpenRouter models -->
+                        </datalist>
+                        <p id="model-loading-indicator" class="text-xs text-gray-400 mt-1 hidden">Loading models...</p>
+                        <p id="model-error-indicator" class="text-xs text-red-400 mt-1 hidden"></p>
+                        <div class="flex items-center mt-2">
+                            <input type="checkbox" id="filter-free-models" class="bg-gray-700 border-gray-500 text-indigo-600 focus:ring-indigo-500 mr-2" checked>
+                            <label for="filter-free-models" class="text-sm text-gray-300">Show only free models</label>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Need an API key? <a href="https://openrouter.ai/settings/keys" target="_blank" class="text-indigo-400 hover:text-indigo-300 underline">Create a free account at OpenRouter</a>.</p>
+                        <p class="text-xs text-yellow-300 font-semibold mt-1">Important: To optimize JSON output, select models supporting the 'response_format' parameter. Visit <a href="https://openrouter.ai/models?fmt=cards&supported_parameters=response_format" class="underline hover:text-yellow-100" target="_blank">OpenRouter Models</a> for compatible options.</p>
                     </div>
                 </div>
             </details>
@@ -141,8 +152,8 @@
             HISTORY_LIMIT: 20,
             AUTOSAVE_INTERVAL: 500,
             SEARCH_DEBOUNCE_DELAY: 300,
-            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a main category, a sub-category, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the sub-category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings.`,
-            INITIAL_WILDCARD_DATA: { "0_PROMPT_META_&_GLOBAL": { "AspectRatio": { instruction: "", wildcards: ["1:1", "4:5", "3:2", "16:9", "9:16", "2.39:1", "panorama", "tiny-planet"] }, "Resolution": { instruction: "", wildcards: ["4K", "8K", "12K", "IMAX"] }, "Orientation": { instruction: "", wildcards: ["portrait", "landscape", "square", "panorama"] }, "Negative-Prompt_Tokens": { instruction: "", wildcards: ["(blurry:1.6)", "watermark", "text", "low-res", "jpeg artefacts", "duplicate limbs", "flat lighting"] }, "Sampler_Style_Tokens": { instruction: "", wildcards: ["Euler a", "DPM++ 2M Karras", "“analog style”", "“vivid”", "“cinematic”"] }, "Seed_CFG_Place-holders": { instruction: "", wildcards: ["seed-###", "cfg-##"] } }, "1_SUBJECT_&_CONTENT": { "PEOPLE": { instruction: "age (infant-elder) - ethnicity (Han, Maasai, Sámi…) - gender (masc, femme, androgynous…)", wildcards: [] }, "CREATURES_&_BEINGS": { instruction: "mammals, birds, reptiles, amphibians, fish, insects…", wildcards: [] }, "OBJECTS_&_ITEMS": { instruction: "smartphone, ray-gun, teleporter…", wildcards: [] }, "ABSTRACT_&_CONCEPTS": { instruction: "geometric (fractal, tesseract) - ethereal (soul, dream) - emotions personified (hope, despair…)", wildcards: [] }, "HISTORICAL_ERAS_&_CULTURES": { instruction: "prehistoric, medieval, victorian, 1980s neon, Y2K…", wildcards: [] } }, "2_ACTION_POSE_&_EMOTION": { "Dynamic_Actions": { instruction: "locomotion - combat - interaction", wildcards: [] }, "Static_Poses": { instruction: "standing - sitting - reclining - hand poses", wildcards: [] }, "Facial_Expressions": { instruction: "", wildcards: ["pensive", "ecstatic", "enraged"] }, "Group_Interactions": { instruction: "", wildcards: ["duelling", "embracing", "rallying crowd"] }, "Micro-Gestures": { instruction: "", wildcards: ["subtle smile", "eyebrow raise", "hair flip"] } }, "3_ENVIRONMENT_&_SETTING": { "Location": { instruction: "Interior, Exterior Man-Made, Exterior Natural", wildcards: [] }, "Time_&_Weather": { instruction: "Time of Day, Weather, Celestial, Season", wildcards: [] }, "Architecture": { instruction: "Style, Materials, Vernacular", wildcards: [] }, "Flora_&_Fauna_Details": { instruction: "", wildcards: ["glowing moss", "flock of birds"] }, "Natural_Phenomena": { instruction: "", wildcards: ["super-cell tornado", "bioluminescent tide"] } }, "4_COMPOSITION_&_CINEMATOGRAPHY": { "Shot_&_Framing": { instruction: "", wildcards: ["establishing", "POV", "extreme close-up"] }, "Angle_&_Perspective": { instruction: "", wildcards: ["dutch angle", "bird’s-eye", "forced perspective"] }, "Focus_&_Depth": { instruction: "", wildcards: ["deep focus", "bokeh", "motion blur"] }, "Aspect_&_Canvas": { instruction: "", wildcards: ["square", "4:5", "21:9", "triptych"] }, "Movement_Techniques": { instruction: "", wildcards: ["long-exposure trails", "bullet-time freeze"] } }, "5_STYLE_&_AESTHETICS": { "Art_Movements": { instruction: "", wildcards: ["surrealism", "pop art", "futurism"] }, "Medium_&_Technique": { instruction: "digital (3D render, glitch art) - traditional (oil paint, woodcut)…", wildcards: [] }, "Aesthetic_Genres": { instruction: "", wildcards: ["cyberpunk", "ghibli-esque", "vaporwave"] }, "Color_Schemes": { instruction: "", wildcards: ["monochromatic", "neon", "earthy"] }, "Textures_&_Patterns": { instruction: "", wildcards: ["celtic knot", "rusted metal", "polka dots"] }, "Mood_&_Atmosphere": { instruction: "", wildcards: ["ethereal", "ominous", "whimsical"] }, "In-Camera_Film_Techniques": { instruction: "", wildcards: ["infra-red", "double exposure", "cyanotype"] }, "Post-Processing_FX": { instruction: "", wildcards: ["glitch overlay", "VHS static", "halation"] }, "Cultural_Motifs": { instruction: "", wildcards: ["Maori kōwhaiwhai", "Islamic arabesque", "Swiss paper-cut"] } }, "6_TECHNICAL_ATTRIBUTES_&_RENDERING": { "Lighting": { instruction: "", wildcards: ["volumetric", "rim", "candlelight", "RGB strips"] }, "Detail_&_Quality": { instruction: "", wildcards: ["photorealistic", "minimalist", "hyper-real"] }, "Camera_&_Film": { instruction: "Type, Lens Effects, Film Stock, Sensor/Format, Focal Length, Aperture/DoF, Shutter Speed", wildcards: [] }, "Rendering_Engines": { instruction: "", wildcards: ["Octane", "Unreal 5", "Arnold", "Redshift"] }, "File_Aesthetics": { instruction: "", wildcards: ["Sketchfab preview", "album-cover crop", "trading-card border"] } }, "7_SPECIAL_FX_&_PARTICLES": { "Elements": { instruction: "", wildcards: ["sparks", "snow particles", "falling petals"] }, "Fluid_Energy": { instruction: "", wildcards: ["smoke plume", "plasma whip", "water splash crown"] }, "Destruction": { instruction: "", wildcards: ["shattered glass", "debris field", "ground fissures"] } }, "8_NARRATIVE_&_THEME": { "Genres": { instruction: "", wildcards: ["coming-of-age", "cosmic horror", "space opera"] }, "Emotional_Themes": { instruction: "", wildcards: ["triumph", "melancholy", "yearning"] }, "Moral_Tone": { instruction: "", wildcards: ["utopian", "dystopian", "anti-heroic"] }, "Story_Devices": { instruction: "", wildcards: ["foreshadowing symbol", "Chekhov’s gun", "cliff-hanger"] } } }
+            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a main category, a sub-category, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the sub-category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the sub-category provided.`,
+            INITIAL_WILDCARD_DATA: { "1_SUBJECT_&_CONTENT": { "PEOPLE": { instruction: "age (infant-elder) - ethnicity (Han, Maasai, Sámi…) - gender (masc, femme, androgynous…)", wildcards: [] }, "CREATURES_&_BEINGS": { instruction: "mammals, birds, reptiles, amphibians, fish, insects…", wildcards: [] }, "OBJECTS_&_ITEMS": { instruction: "smartphone, ray-gun, teleporter…", wildcards: [] }, "ABSTRACT_&_CONCEPTS": { instruction: "geometric (fractal, tesseract) - ethereal (soul, dream) - emotions personified (hope, despair…)", wildcards: [] }, "HISTORICAL_ERAS_&_CULTURES": { instruction: "prehistoric, medieval, victorian, 1980s neon, Y2K…", wildcards: [] } }, "2_ACTION_POSE_&_EMOTION": { "Dynamic_Actions": { instruction: "locomotion - combat - interaction", wildcards: [] }, "Static_Poses": { instruction: "standing - sitting - reclining - hand poses", wildcards: [] }, "Facial_Expressions": { instruction: "", wildcards: ["pensive", "ecstatic", "enraged"] }, "Group_Interactions": { instruction: "", wildcards: ["duelling", "embracing", "rallying crowd"] }, "Micro-Gestures": { instruction: "", wildcards: ["subtle smile", "eyebrow raise", "hair flip"] } }, "3_ENVIRONMENT_&_SETTING": { "Location": { instruction: "Interior, Exterior Man-Made, Exterior Natural", wildcards: [] }, "Time_&_Weather": { instruction: "Time of Day, Weather, Celestial, Season", wildcards: [] }, "Architecture": { instruction: "Style, Materials, Vernacular", wildcards: [] }, "Flora_&_Fauna_Details": { instruction: "", wildcards: ["glowing moss", "flock of birds"] }, "Natural_Phenomena": { instruction: "", wildcards: ["super-cell tornado", "bioluminescent tide"] } }, "4_COMPOSITION_&_CINEMATOGRAPHY": { "Shot_&_Framing": { instruction: "", wildcards: ["establishing", "POV", "extreme close-up"] }, "Angle_&_Perspective": { instruction: "", wildcards: ["dutch angle", "bird’s-eye", "forced perspective"] }, "Focus_&_Depth": { instruction: "", wildcards: ["deep focus", "bokeh", "motion blur"] }, "Aspect_&_Canvas": { instruction: "", wildcards: ["square", "4:5", "21:9", "triptych"] }, "Movement_Techniques": { instruction: "", wildcards: ["long-exposure trails", "bullet-time freeze"] } }, "5_STYLE_&_AESTHETICS": { "Art_Movements": { instruction: "", wildcards: ["surrealism", "pop art", "futurism"] }, "Medium_&_Technique": { instruction: "digital (3D render, glitch art) - traditional (oil paint, woodcut)…", wildcards: [] }, "Aesthetic_Genres": { instruction: "", wildcards: ["cyberpunk", "ghibli-esque", "vaporwave"] }, "Color_Schemes": { instruction: "", wildcards: ["monochromatic", "neon", "earthy"] }, "Textures_&_Patterns": { instruction: "", wildcards: ["celtic knot", "rusted metal", "polka dots"] }, "Mood_&_Atmosphere": { instruction: "", wildcards: ["ethereal", "ominous", "whimsical"] }, "In-Camera_Film_Techniques": { instruction: "", wildcards: ["infra-red", "double exposure", "cyanotype"] }, "Post-Processing_FX": { instruction: "", wildcards: ["glitch overlay", "VHS static", "halation"] }, "Cultural_Motifs": { instruction: "", wildcards: ["Maori kōwhaiwhai", "Islamic arabesque", "Swiss paper-cut"] } }, "6_TECHNICAL_ATTRIBUTES_&_RENDERING": { "Lighting": { instruction: "", wildcards: ["volumetric", "rim", "candlelight", "RGB strips"] }, "Detail_&_Quality": { instruction: "", wildcards: ["photorealistic", "minimalist", "hyper-real"] }, "Camera_&_Film": { instruction: "Type, Lens Effects, Film Stock, Sensor/Format, Focal Length, Aperture/DoF, Shutter Speed", wildcards: [] }, "Rendering_Engines": { instruction: "", wildcards: ["Octane", "Unreal 5", "Arnold", "Redshift"] }, "File_Aesthetics": { instruction: "", wildcards: ["Sketchfab preview", "album-cover crop", "trading-card border"] } }, "7_SPECIAL_FX_&_PARTICLES": { "Elements": { instruction: "", wildcards: ["sparks", "snow particles", "falling petals"] }, "Fluid_Energy": { instruction: "", wildcards: ["smoke plume", "plasma whip", "water splash crown"] }, "Destruction": { instruction: "", wildcards: ["shattered glass", "debris field", "ground fissures"] } }, "8_NARRATIVE_&_THEME": { "Genres": { instruction: "", wildcards: ["coming-of-age", "cosmic horror", "space opera"] }, "Emotional_Themes": { instruction: "", wildcards: ["triumph", "melancholy", "yearning"] }, "Moral_Tone": { instruction: "", wildcards: ["utopian", "dystopian", "anti-heroic"] }, "Story_Devices": { instruction: "", wildcards: ["foreshadowing symbol", "Chekhov’s gun", "cliff-hanger"] } } }
         };
 
         // =================================================================================
@@ -185,7 +196,102 @@
             history: [],
             historyIndex: -1,
             _debounceTimeout: null,
-            init() { this.loadHistory(); this.loadState(); },
+            init() { this.loadHistory(); this.loadState(); this.initializeModelSelector(); },
+            initializeModelSelector() {
+                const endpointSelect = document.getElementById('api-endpoint');
+                const modelInput = document.getElementById('model-selector');
+                const modelList = document.getElementById('model-list');
+                const loadingIndicator = document.getElementById('model-loading-indicator');
+                const errorIndicator = document.getElementById('model-error-indicator');
+                
+                endpointSelect.addEventListener('change', () => {
+                    if (endpointSelect.value === 'openrouter') {
+                        modelInput.value = ':free';
+                        this.fetchOpenRouterModels(modelList, loadingIndicator, errorIndicator);
+                    } else {
+                        modelInput.value = 'gemini-2.0-flash';
+                        modelList.innerHTML = '';
+                        loadingIndicator.classList.add('hidden');
+                        errorIndicator.classList.add('hidden');
+                    }
+                });
+                
+                // Fetch models if OpenRouter is already selected
+                if (endpointSelect.value === 'openrouter') {
+                    modelInput.value = ':free';
+                    this.fetchOpenRouterModels(modelList, loadingIndicator, errorIndicator);
+                }
+                
+                // Add event listener for the filter checkbox
+                const filterCheckbox = document.getElementById('filter-free-models');
+                filterCheckbox.addEventListener('change', () => {
+                    if (filterCheckbox.checked) {
+                        modelInput.value = ':free';
+                    } else {
+                        modelInput.value = '';
+                    }
+                    this.fetchOpenRouterModels(modelList, loadingIndicator, errorIndicator);
+                });
+                
+                // Add event listener for input changes to update checkbox
+                modelInput.addEventListener('input', () => {
+                    if (modelInput.value.includes(':free')) {
+                        filterCheckbox.checked = true;
+                    } else {
+                        filterCheckbox.checked = false;
+                    }
+                });
+            },
+            async fetchOpenRouterModels(modelList, loadingIndicator, errorIndicator) {
+                const apiKey = document.getElementById('api-key').value.trim();
+                if (!apiKey) {
+                    errorIndicator.textContent = 'Please enter an API key to load models.';
+                    errorIndicator.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden');
+                    return;
+                }
+                
+                loadingIndicator.classList.remove('hidden');
+                errorIndicator.classList.add('hidden');
+                
+                try {
+                    const response = await fetch('https://openrouter.ai/api/v1/models', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch models: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    modelList.innerHTML = '';
+                    
+                    if (data.data && data.data.length > 0) {
+                        // Sort models alphabetically by id
+                        data.data.sort((a, b) => a.id.localeCompare(b.id));
+                        const filterCheckbox = document.getElementById('filter-free-models');
+                        const filteredModels = filterCheckbox.checked 
+                            ? data.data.filter(model => model.id.includes(':free'))
+                            : data.data;
+                        filteredModels.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            modelList.appendChild(option);
+                        });
+                    } else {
+                        errorIndicator.textContent = 'No models available.';
+                        errorIndicator.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    errorIndicator.textContent = `Error: ${error.message}`;
+                    errorIndicator.classList.remove('hidden');
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            },
             loadState() {
                 try {
                     const savedState = localStorage.getItem(Config.STORAGE_KEY);
@@ -245,16 +351,24 @@
                 this.activeController = new AbortController();
                 try {
                     const { url, payload, headers } = this._prepareRequest(globalPrompt, categoryName, subCategoryName, existingWords, customInstructions);
-                    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: this.activeController.signal });
+                    // Set a timeout of 30 seconds for the request
+                    const timeoutSignal = AbortSignal.timeout(30000);
+                    const combinedSignal = AbortSignal.any([this.activeController.signal, timeoutSignal]);
+                    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: combinedSignal });
                     if (!response.ok) {
                         const errorText = await response.text();
                         throw new Error(`API request failed: ${response.status} - ${errorText}`);
                     }
                     return this._parseResponse(await response.json());
                 } catch (error) {
-                    if (error.name === 'AbortError') return null;
-                    console.error("Error calling LLM API:", error); throw error;
-                } finally { this.activeController = null; }
+                    if (error.name === 'AbortError') {
+                        throw new Error("Request timed out or was aborted. Please check your internet connection and try again.");
+                    }
+                    console.error("Error calling LLM API:", error);
+                    throw error;
+                } finally {
+                    this.activeController = null;
+                }
             },
             _prepareRequest(globalPrompt, categoryName, subCategoryName, existingWords, customInstructions) {
                 const apiKey = document.getElementById('api-key').value.trim();
@@ -280,18 +394,40 @@
             _parseResponse(result) {
                 const endpoint = document.getElementById('api-endpoint').value;
                 try {
-                    if (endpoint === 'gemini') return JSON.parse(result.candidates[0].content.parts[0].text);
+                    if (endpoint === 'gemini') {
+                        return JSON.parse(result.candidates[0].content.parts[0].text);
+                    }
                     if (endpoint === 'openrouter') {
                         let contentStr = result.choices[0].message.content;
+                        // Attempt to extract JSON from code blocks if present
                         const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
-                        if (match) contentStr = match[1];
-                        const content = JSON.parse(contentStr);
-                        return Array.isArray(content) ? content : content.wildcards || [];
+                        if (match) {
+                            contentStr = match[1];
+                        }
+                        // Try to parse the content as JSON
+                        try {
+                            const content = JSON.parse(contentStr);
+                            return Array.isArray(content) ? content : content.wildcards || [];
+                        } catch (innerError) {
+                            console.error("Failed to parse JSON from content:", contentStr, innerError);
+                            // Check if contentStr already looks like an array of strings
+                            if (contentStr.trim().startsWith('[') && contentStr.trim().endsWith(']')) {
+                                try {
+                                    const possibleArray = JSON.parse(contentStr);
+                                    if (Array.isArray(possibleArray) && possibleArray.every(item => typeof item === 'string')) {
+                                        return possibleArray;
+                                    }
+                                } catch (arrayError) {
+                                    console.error("Content looks like an array but parsing failed:", arrayError);
+                                }
+                            }
+                            throw new Error(`Failed to parse response as JSON. Content received: "${contentStr.substring(0, 100)}..."`);
+                        }
                     }
                     return [];
                 } catch (e) {
                     console.error("Failed to parse AI response:", result, e);
-                    throw new Error("The AI returned a malformed response.");
+                    throw new Error(`The AI returned a malformed response. Error: ${e.message}`);
                 }
             }
         };
@@ -476,8 +612,18 @@
                         State.saveState(true); UI.updateSubCategory(category, subCategory);
                         UI.announce(`Added ${uniqueNew.length} new wildcards.`);
                     }
-                } catch (error) { UI.showNotification(`Error: ${error.message}`); }
-                finally { if (!Api.activeController) UI.toggleGenerateButton(btn, false); }
+                } catch (error) {
+                    console.error("Generation error:", error);
+                    let errorMessage = error.message || "An unknown error occurred.";
+                    if (errorMessage.includes("API key")) {
+                        errorMessage = "API key issue detected. Please verify your API key is correct and active.";
+                    } else if (errorMessage.includes("timed out")) {
+                        errorMessage = "Request timed out. Please check your internet connection and try again.";
+                    }
+                    UI.showNotification(`Error: ${errorMessage}`);
+                } finally {
+                    if (!Api.activeController) UI.toggleGenerateButton(btn, false);
+                }
             },
             handleCopy(category, subCategory) { const content = State.appState.wildcards[category][subCategory].wildcards.join('\n'); navigator.clipboard.writeText(content).then(() => UI.showNotification('Copied!')).catch(() => UI.showNotification('Failed to copy.')); },
             handleAddWildcard(card, category, subCategory) {
