@@ -96,14 +96,22 @@
                     </div>
                     <div>
                         <label for="api-key" class="block text-lg font-semibold text-indigo-300 mb-2">API Key</label>
-                        <input type="password" id="api-key" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter your API key" autocomplete="off">
+                        <div class="relative">
+                            <input type="password" id="api-key" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter your API key" autocomplete="off">
+                            <button id="toggle-api-key-visibility" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100 focus:outline-none" title="Toggle API Key visibility">
+                                <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7-1.274-4.057.564-8.311 4.021-9.543 3.457-1.232 7.191.564 9.543 4.021 2.352 3.457.564 8.191-2.951 10.326l.901 1.886A11.943 11.943 0 0019.392 7.616C17.36 3.49 13.333 1 8.616 1 3.882 1-.145 3.49-2.177 7.616a11.946 11.946 0 002.459 9.177 11.946 11.946 0 009.214 4.736 11.94 11.94 0 004.683-1.01l-.848-1.912z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12a4 4 0 100-8 4 4 0 000 8z" />
+                                </svg>
+                            </button>
+                        </div>
                         <p class="text-xs text-yellow-400 mt-2">⚠️ For your security, this key is stored in your browser's local storage. Avoid using this tool on public or shared computers.</p>
                     </div>
                     <div>
                         <label for="api-endpoint" class="block text-lg font-semibold text-indigo-300 mb-2">API Endpoint</label>
                         <select id="api-endpoint" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="gemini">Gemini API</option>
-                            <option value="openrouter" selected>OpenRouter API (Default)</option>
+                            <option value="gemini" selected>Gemini API (Default)</option>
+                            <option value="openrouter">OpenRouter API</option>
                         </select>
                     </div>
                     <div id="model-selector-container">
@@ -128,9 +136,8 @@
                 <label for="search-wildcards" class="block text-lg font-semibold text-indigo-300 mb-2">Search Wildcards</label>
                 <input type="text" id="search-wildcards" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Search for wildcards...">
             </div>
-            <div class="mt-6 flex flex-wrap justify-center items-center gap-4">
-                <button id="add-category-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Add New Category</button>
-                <button id="download-all-zip" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Download All (.zip)</button>
+                <div class="mt-6 flex flex-wrap justify-center items-center gap-4">
+                    <button id="download-all-zip" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Download All (.zip)</button>
                 <button id="export-state" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Export State</button>
                 <button id="import-state" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Import State</button>
                 <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Undo (Ctrl+Z)</button>
@@ -153,8 +160,7 @@
             HISTORY_LIMIT: 20,
             AUTOSAVE_INTERVAL: 500,
             SEARCH_DEBOUNCE_DELAY: 300,
-            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a main category, a sub-category, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the sub-category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the sub-category provided.`,
-            INITIAL_WILDCARD_DATA: { "1_SUBJECT_&_CONTENT": { "PEOPLE": { instruction: "age (infant-elder) - ethnicity (Han, Maasai, Sámi…) - gender (masc, femme, androgynous…)", wildcards: [] }, "CREATURES_&_BEINGS": { instruction: "mammals, birds, reptiles, amphibians, fish, insects…", wildcards: [] }, "OBJECTS_&_ITEMS": { instruction: "smartphone, ray-gun, teleporter…", wildcards: [] }, "ABSTRACT_&_CONCEPTS": { instruction: "geometric (fractal, tesseract) - ethereal (soul, dream) - emotions personified (hope, despair…)", wildcards: [] }, "HISTORICAL_ERAS_&_CULTURES": { instruction: "prehistoric, medieval, victorian, 1980s neon, Y2K…", wildcards: [] } }, "2_ACTION_POSE_&_EMOTION": { "Dynamic_Actions": { instruction: "locomotion - combat - interaction", wildcards: [] }, "Static_Poses": { instruction: "standing - sitting - reclining - hand poses", wildcards: [] }, "Facial_Expressions": { instruction: "", wildcards: ["pensive", "ecstatic", "enraged"] }, "Group_Interactions": { instruction: "", wildcards: ["duelling", "embracing", "rallying crowd"] }, "Micro-Gestures": { instruction: "", wildcards: ["subtle smile", "eyebrow raise", "hair flip"] } }, "3_ENVIRONMENT_&_SETTING": { "Location": { instruction: "Interior, Exterior Man-Made, Exterior Natural", wildcards: [] }, "Time_&_Weather": { instruction: "Time of Day, Weather, Celestial, Season", wildcards: [] }, "Architecture": { instruction: "Style, Materials, Vernacular", wildcards: [] }, "Flora_&_Fauna_Details": { instruction: "", wildcards: ["glowing moss", "flock of birds"] }, "Natural_Phenomena": { instruction: "", wildcards: ["super-cell tornado", "bioluminescent tide"] } }, "4_COMPOSITION_&_CINEMATOGRAPHY": { "Shot_&_Framing": { instruction: "", wildcards: ["establishing", "POV", "extreme close-up"] }, "Angle_&_Perspective": { instruction: "", wildcards: ["dutch angle", "bird’s-eye", "forced perspective"] }, "Focus_&_Depth": { instruction: "", wildcards: ["deep focus", "bokeh", "motion blur"] }, "Aspect_&_Canvas": { instruction: "", wildcards: ["square", "4:5", "21:9", "triptych"] }, "Movement_Techniques": { instruction: "", wildcards: ["long-exposure trails", "bullet-time freeze"] } }, "5_STYLE_&_AESTHETICS": { "Art_Movements": { instruction: "", wildcards: ["surrealism", "pop art", "futurism"] }, "Medium_&_Technique": { instruction: "digital (3D render, glitch art) - traditional (oil paint, woodcut)…", wildcards: [] }, "Aesthetic_Genres": { instruction: "", wildcards: ["cyberpunk", "ghibli-esque", "vaporwave"] }, "Color_Schemes": { instruction: "", wildcards: ["monochromatic", "neon", "earthy"] }, "Textures_&_Patterns": { instruction: "", wildcards: ["celtic knot", "rusted metal", "polka dots"] }, "Mood_&_Atmosphere": { instruction: "", wildcards: ["ethereal", "ominous", "whimsical"] }, "In-Camera_Film_Techniques": { instruction: "", wildcards: ["infra-red", "double exposure", "cyanotype"] }, "Post-Processing_FX": { instruction: "", wildcards: ["glitch overlay", "VHS static", "halation"] }, "Cultural_Motifs": { instruction: "", wildcards: ["Maori kōwhaiwhai", "Islamic arabesque", "Swiss paper-cut"] } }, "6_TECHNICAL_ATTRIBUTES_&_RENDERING": { "Lighting": { instruction: "", wildcards: ["volumetric", "rim", "candlelight", "RGB strips"] }, "Detail_&_Quality": { instruction: "", wildcards: ["photorealistic", "minimalist", "hyper-real"] }, "Camera_&_Film": { instruction: "Type, Lens Effects, Film Stock, Sensor/Format, Focal Length, Aperture/DoF, Shutter Speed", wildcards: [] }, "Rendering_Engines": { instruction: "", wildcards: ["Octane", "Unreal 5", "Arnold", "Redshift"] }, "File_Aesthetics": { instruction: "", wildcards: ["Sketchfab preview", "album-cover crop", "trading-card border"] } }, "7_SPECIAL_FX_&_PARTICLES": { "Elements": { instruction: "", wildcards: ["sparks", "snow particles", "falling petals"] }, "Fluid_Energy": { instruction: "", wildcards: ["smoke plume", "plasma whip", "water splash crown"] }, "Destruction": { instruction: "", wildcards: ["shattered glass", "debris field", "ground fissures"] } }, "8_NARRATIVE_&_THEME": { "Genres": { instruction: "", wildcards: ["coming-of-age", "cosmic horror", "space opera"] }, "Emotional_Themes": { instruction: "", wildcards: ["triumph", "melancholy", "yearning"] }, "Moral_Tone": { instruction: "", wildcards: ["utopian", "dystopian", "anti-heroic"] }, "Story_Devices": { instruction: "", wildcards: ["foreshadowing symbol", "Chekhov’s gun", "cliff-hanger"] } } }
+            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a main category, a sub-category, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the sub-category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the sub-category provided.`
         };
 
         // =================================================================================
@@ -303,9 +309,22 @@
                         }
                     }
                 } catch (error) { console.error("Failed to load state, using defaults.", error); }
-                this.appState.wildcards = JSON.parse(JSON.stringify(Config.INITIAL_WILDCARD_DATA));
+                // Default to empty object until data is loaded
+                this.appState.wildcards = {};
                 this.appState.systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
                 this.saveState(true);
+                // Fetch initial data from external JSON file
+                fetch('initial-data.json')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to load initial data');
+                        return response.json();
+                    })
+                    .then(data => {
+                        this.appState.wildcards = data;
+                        this.saveState(true);
+                        UI.renderAll();
+                    })
+                    .catch(error => console.error("Failed to load initial data:", error));
             },
             saveState(immediate = false) {
                 if (immediate) {
@@ -467,6 +486,8 @@
                 for (const category in wildcards) {
                     fragment.appendChild(this.createCategory(category, wildcards[category]));
                 }
+                // Append placeholder category for adding new categories
+                fragment.appendChild(this.createPlaceholderCategory());
                 this.elements.container.appendChild(fragment);
             },
             createCategory(categoryName, subCategories) {
@@ -478,7 +499,7 @@
                     <details class="group">
                         <summary class="flex justify-between items-center p-4 cursor-pointer">
                             <div class="flex items-center gap-3">
-                                <h2 class="text-xl sm:text-2xl font-semibold text-indigo-400">${sanitize(categoryName.replace(/_/g, ' '))} <span class="text-indigo-200 text-sm ml-2">(${totalWildcards})</span></h2>
+                                <h2 class="text-xl sm:text-2xl font-semibold text-indigo-400"><span contenteditable="true" class="outline-none focus:bg-indigo-400/50 rounded px-1">${sanitize(categoryName.replace(/_/g, ' '))}</span> <span class="text-indigo-200 text-sm ml-2">(${totalWildcards})</span></h2>
                                 <button class="add-subcategory-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 text-sm rounded-md" title="Add new sub-category">+</button>
                             </div>
                             <span class="arrow-down transition-transform duration-300 text-indigo-400"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
@@ -489,11 +510,22 @@
                     </details>`;
                 return categoryWrapper;
             },
+            createPlaceholderCategory() {
+                const placeholderWrapper = document.createElement('div');
+                placeholderWrapper.className = 'bg-gray-800 rounded-lg shadow-md mt-4';
+                placeholderWrapper.dataset.categoryName = 'placeholder';
+                placeholderWrapper.innerHTML = `
+                    <div class="p-4 flex justify-between items-center">
+                        <h2 class="text-xl sm:text-2xl font-semibold text-indigo-400">Add New Category</h2>
+                        <button id="add-category-placeholder-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md" title="Add new category">+</button>
+                    </div>`;
+                return placeholderWrapper;
+            },
             createSubCategoryCard(categoryName, subCategoryName, subCategoryData) {
                 return `
                     <div class="bg-gray-700/50 p-4 rounded-lg flex flex-col" data-category="${categoryName}" data-sub-category="${subCategoryName}">
                         <div class="flex justify-between items-center mb-2">
-                            <h3 class="font-bold text-lg text-gray-100">${sanitize(subCategoryName.replace(/_/g, ' '))} <span class="text-gray-400 text-sm ml-2">(${(subCategoryData.wildcards || []).length})</span></h3>
+                            <h3 class="font-bold text-lg text-gray-100"><span contenteditable="true" class="outline-none focus:bg-indigo-400/50 rounded px-1">${sanitize(subCategoryName.replace(/_/g, ' '))}</span> <span class="text-gray-400 text-sm ml-2">(${(subCategoryData.wildcards || []).length})</span></h3>
                             <button class="delete-subcategory-btn text-red-400 hover:text-red-300 font-bold text-xl leading-none" title="Delete sub-category">&times;</button>
                         </div>
                         <input type="text" value="${sanitize(subCategoryData.instruction || '')}" class="custom-instructions-input bg-gray-800 text-sm border border-gray-600 rounded-md px-2 py-1 w-full my-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Custom generation instructions...">
@@ -563,9 +595,24 @@
             bindEventListeners() {
                 UI.elements.globalPrompt.addEventListener('input', e => { State.appState.systemPrompt = e.target.value; State.saveState(); });
                 UI.elements.apiKeyInput.addEventListener('input', e => localStorage.setItem('temp_api_key', e.target.value.trim()));
+                
+                // Add event listener for API Key visibility toggle
+                const toggleVisibilityButton = document.getElementById('toggle-api-key-visibility');
+                const apiKeyInput = document.getElementById('api-key');
+                const eyeIcon = document.getElementById('eye-icon');
+                
+                toggleVisibilityButton.addEventListener('click', () => {
+                    if (apiKeyInput.type === 'password') {
+                        apiKeyInput.type = 'text';
+                        eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" />';
+                    } else {
+                        apiKeyInput.type = 'password';
+                        eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17L7 7" />';
+                    }
+                });
                 UI.elements.search.addEventListener('input', e => this.debouncedSearch(e.target.value));
                 document.addEventListener('keydown', this.handleKeyboardShortcuts.bind(this));
-                document.getElementById('add-category-btn').addEventListener('click', this.handleAddNewCategory.bind(this));
+                document.getElementById('add-category-placeholder-btn').addEventListener('click', this.handleAddNewCategory.bind(this));
                 document.getElementById('download-all-zip').addEventListener('click', this.handleDownloadZip);
                 document.getElementById('export-state').addEventListener('click', this.handleExportState);
                 document.getElementById('import-state').addEventListener('click', this.handleImportState);
@@ -576,7 +623,71 @@
                 UI.elements.container.addEventListener('click', this.handleContainerClick.bind(this));
                 UI.elements.container.addEventListener('input', e => { if (e.target.matches('.custom-instructions-input')) { const { category, subCategory } = e.target.closest('[data-category]').dataset; State.appState.wildcards[category][subCategory].instruction = e.target.value; State.saveState(); } });
                 UI.elements.container.addEventListener('keydown', e => { if (e.key === 'Enter') { if (e.target.matches('.add-wildcard-input')) { e.preventDefault(); e.target.nextElementSibling.click(); } if (e.target.matches('[contenteditable="true"]')) { e.preventDefault(); e.target.blur(); } } });
-                UI.elements.container.addEventListener('blur', e => { if (e.target.matches('[contenteditable="true"]')) { const chip = e.target.closest('.chip'); const { category, subCategory } = chip.closest('[data-category]').dataset; const index = parseInt(chip.dataset.index, 10); const originalText = State.appState.wildcards[category][subCategory].wildcards[index]; const newText = e.target.textContent.trim(); if (newText && newText !== originalText) { State.saveStateToHistory(); State.appState.wildcards[category][subCategory].wildcards[index] = newText; State.saveState(); } else { e.target.textContent = originalText; } } }, true);
+                UI.elements.container.addEventListener('blur', e => { 
+                    if (e.target.matches('[contenteditable="true"]')) { 
+                        const chip = e.target.closest('.chip'); 
+                        if (chip) {
+                            const { category, subCategory } = chip.closest('[data-category]').dataset; 
+                            const index = parseInt(chip.dataset.index, 10); 
+                            const originalText = State.appState.wildcards[category][subCategory].wildcards[index]; 
+                            const newText = e.target.textContent.trim(); 
+                            if (newText && newText !== originalText) { 
+                                State.saveStateToHistory(); 
+                                State.appState.wildcards[category][subCategory].wildcards[index] = newText; 
+                                State.saveState(); 
+                            } else { 
+                                e.target.textContent = originalText; 
+                            }
+                        } else {
+                            const categoryWrapper = e.target.closest('[data-category-name]');
+                            if (categoryWrapper) {
+                                const originalName = categoryWrapper.dataset.categoryName;
+                                const newNameText = e.target.textContent.trim();
+                                if (newNameText && newNameText !== originalName.replace(/_/g, ' ')) {
+                                    const newName = newNameText.replace(/\s+/g, '_');
+                                    if (State.appState.wildcards[newName] && newName !== originalName) {
+                                        UI.showNotification(`Category "${newName}" already exists.`);
+                                        e.target.textContent = originalName.replace(/_/g, ' ');
+                                    } else {
+                                        State.saveStateToHistory();
+                                        const categoryData = State.appState.wildcards[originalName];
+                                        delete State.appState.wildcards[originalName];
+                                        State.appState.wildcards[newName] = categoryData;
+                                        categoryWrapper.dataset.categoryName = newName;
+                                        State.saveState(true);
+                                        UI.announce(`Category renamed to ${newNameText}.`);
+                                    }
+                                } else {
+                                    e.target.textContent = originalName.replace(/_/g, ' ');
+                                }
+                            } else {
+                                const card = e.target.closest('[data-category][data-sub-category]');
+                                if (card) {
+                                    const { category, subCategory } = card.dataset;
+                                    const newNameText = e.target.textContent.trim();
+                                    if (newNameText && newNameText !== subCategory.replace(/_/g, ' ')) {
+                                        const newName = newNameText.replace(/\s+/g, '_');
+                                        if (State.appState.wildcards[category][newName] && newName !== subCategory) {
+                                            UI.showNotification(`Sub-category "${newName}" already exists in this category.`);
+                                            e.target.textContent = subCategory.replace(/_/g, ' ');
+                                        } else {
+                                            State.saveStateToHistory();
+                                            const subCategoryData = State.appState.wildcards[category][subCategory];
+                                            delete State.appState.wildcards[category][subCategory];
+                                            State.appState.wildcards[category][newName] = subCategoryData;
+                                            card.dataset.subCategory = newName;
+                                            card.querySelectorAll('[data-sub-category]').forEach(el => el.dataset.subCategory = newName);
+                                            State.saveState(true);
+                                            UI.announce(`Sub-category renamed to ${newNameText}.`);
+                                        }
+                                    } else {
+                                        e.target.textContent = subCategory.replace(/_/g, ' ');
+                                    }
+                                }
+                            }
+                        }
+                    } 
+                }, true);
             },
             handleKeyboardShortcuts(e) {
                 if (e.ctrlKey || e.metaKey) {
