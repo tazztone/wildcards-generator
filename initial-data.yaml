@@ -1,0 +1,1704 @@
+0_PROMPT_META_&_GLOBAL:
+  Aspect_Ratio:
+    instruction: "Define the image dimensions and orientation"
+    wildcards:
+    - '1:1'
+    - '4:5'
+    - '3:2'
+    - '16:9'
+    - '9:16'
+    - '2.39:1'
+    - panorama
+    - tiny-planet
+  Resolution:
+    instruction: "Image quality and detail level"
+    wildcards:
+    - 4K
+    - 8K
+    - 12K
+    - IMAX
+    - HD
+    - UHD
+    - cinema quality
+  Orientation:
+    instruction: "Image layout orientation"
+    wildcards:
+    - portrait
+    - landscape
+    - square
+    - panorama
+  Negative_Prompt_Tokens:
+    instruction: "Elements to avoid in generation"
+    wildcards:
+    - blurry
+    - low quality
+    - watermark
+    - text
+    - low-res
+    - jpeg artifacts
+    - duplicate limbs
+    - flat lighting
+  Style_Tokens:
+    instruction: "Global style modifiers"
+    wildcards:
+    - analog style
+    - vivid
+    - cinematic
+    - artistic
+    - photorealistic
+    - hyperrealistic
+'1_SUBJECT_&_CONTENT':
+  PEOPLE:
+    Demographics:
+      instruction: "Human diversity characteristics"
+      wildcards:
+      - infant
+      - toddler
+      - child
+      - teenager
+      - young adult
+      - middle-aged
+      - elderly
+      - Han Chinese
+      - Maasai
+      - Sámi
+      - Quechua
+      - Celtic
+      - Nordic
+      - masculine
+      - feminine
+      - androgynous
+      - non-binary
+    Archetypes:
+      instruction: "Character roles and personality types"
+      wildcards:
+      - hero
+      - innocent
+      - sage
+      - explorer
+      - rebel
+      - lover
+      - creator
+      - ruler
+      - jester
+      - caregiver
+      - magician
+      - outlaw
+      - mentor
+      - warrior
+      - mystic
+    Occupations:
+      Modern:
+        instruction: "Contemporary professions"
+        wildcards:
+        - astronaut
+        - doctor
+        - programmer
+        - CEO
+        - DJ
+        - influencer
+        - scientist
+        - urban explorer
+        - chef
+        - firefighter
+        - barista
+        - urban farmer
+        - artist
+        - engineer
+        - teacher
+      Historical_Fantasy:
+        instruction: "Period and fantasy roles"
+        wildcards:
+        - knight
+        - samurai
+        - pharaoh
+        - gladiator
+        - shaman
+        - alchemist
+        - scribe
+        - blacksmith
+        - viking
+        - pirate
+        - musketeer
+        - court jester
+        - monk
+        - bard
+        - ranger
+    Physical_Attributes:
+      instruction: "Physical appearance characteristics"
+      wildcards:
+      - athletic
+      - slender
+      - muscular
+      - curvaceous
+      - petite
+      - towering
+      - strong jawline
+      - soft features
+      - high cheekbones
+      - amber eyes
+      - violet eyes
+      - steel gray eyes
+      - almond eyes
+      - round eyes
+      - crimson hair
+      - silver hair
+      - ombre hair
+      - braids
+      - dreadlocks
+      - mohawk
+      - undercut
+      - freckles
+      - scars
+      - wrinkles
+      - vitiligo
+      - tattoos
+      - piercings
+      - cyber-implants
+    Clothing_Fashion:
+      instruction: "Attire and fashion styles"
+      wildcards:
+      - avant-garde
+      - boho
+      - casual
+      - formal
+      - goth
+      - punk
+      - steampunk
+      - solarpunk
+      - vintage
+      - techwear
+      - haute couture
+      - streetwear
+      - crown
+      - helmet
+      - fedora
+      - beanie
+      - hood
+      - armor
+      - cloak
+      - hoodie
+      - corset
+      - jeans
+      - skirt
+      - trousers
+      - boots
+      - sneakers
+      - sandals
+      - jewelry
+      - goggles
+      - gloves
+      - scarf
+  CREATURES_&_BEINGS:
+    Animals_by_Class:
+      instruction: "Biological classification groups"
+      wildcards:
+      - mammals
+      - birds
+      - reptiles
+      - amphibians
+      - fish
+      - insects
+      - arachnids
+      - crustaceans
+      - mollusks
+      - cnidarians
+    Animals_by_Biome:
+      instruction: "Environment-specific animals"
+      wildcards:
+      - polar bear
+      - arctic fox
+      - camel
+      - fennec fox
+      - bear
+      - deer
+      - tiger
+      - monkey
+      - whale
+      - octopus
+      - lion
+      - elephant
+      - penguin
+      - shark
+      - eagle
+      - wolf
+    Mythical_Fantasy:
+      instruction: "Legendary and fantasy creatures"
+      wildcards:
+      - dragon
+      - griffin
+      - unicorn
+      - fairy
+      - goblin
+      - troll
+      - gargoyle
+      - phoenix
+      - basilisk
+      - kitsune
+      - naga
+      - kirin
+      - tengu
+      - wendigo
+      - djinn
+      - golem
+      - chimera
+      - hydra
+      - sphinx
+    Robots_Cyborgs:
+      instruction: "Artificial and hybrid beings"
+      wildcards:
+      - android
+      - gynoid
+      - mech
+      - drone
+      - steampunk automaton
+      - biomechanical
+      - nanobot swarm
+      - AI construct
+      - powered exosuit
+      - cyborg
+    Mounts_Companions:
+      instruction: "Rideable creatures and animal companions"
+      wildcards:
+      - griffin mount
+      - cyber-horse
+      - dire wolf steed
+      - dragon mount
+      - mechanical spider
+      - hover-bike creature
+      - giant eagle
+      - war elephant
+  OBJECTS_&_ITEMS:
+    Technology:
+      instruction: "Modern and futuristic devices"
+      wildcards:
+      - smartphone
+      - drone
+      - VR headset
+      - holographic projector
+      - ray gun
+      - holocron
+      - FTL drive
+      - teleporter
+      - hoverboard
+      - neural interface
+      - quantum computer
+      - fusion reactor
+    Weapons_Armor:
+      instruction: "Combat equipment and protection"
+      wildcards:
+      - katana
+      - longsword
+      - axe
+      - dagger
+      - spear
+      - war hammer
+      - bow
+      - crossbow
+      - pistol
+      - rifle
+      - plasma cannon
+      - shield
+      - helmet
+      - gauntlets
+      - full plate
+      - powered exosuit
+      - energy sword
+      - force field
+    Vehicles_Transportation:
+      Terrestrial:
+        instruction: "Land-based vehicles"
+        wildcards:
+        - sports car
+        - cybertruck
+        - steam locomotive
+        - motorcycle
+        - tank
+        - hovercraft
+        - mech walker
+        - armored vehicle
+      Aerial:
+        instruction: "Flying vehicles"
+        wildcards:
+        - biplane
+        - dirigible
+        - ornithopter
+        - jetpack
+        - helicopter
+        - fighter jet
+        - flying car
+        - airship
+      Nautical:
+        instruction: "Water vehicles"
+        wildcards:
+        - pirate ship
+        - submarine
+        - hydrofoil
+        - venetian gondola
+        - yacht
+        - aircraft carrier
+        - hovercraft
+      Space:
+        instruction: "Spacecraft and space vehicles"
+        wildcards:
+        - starfighter
+        - generation ship
+        - space station
+        - warp gate
+        - orbital platform
+        - moon base
+        - asteroid mining ship
+    Buildings_Structures:
+      instruction: "Architectural subjects and landmarks"
+      wildcards:
+      - lighthouse
+      - pagoda
+      - skyscraper
+      - floating castle
+      - space elevator
+      - pyramid
+      - cathedral
+      - fortress
+      - tower
+      - bridge
+      - monument
+      - temple
+      - palace
+    Containers_Vessels:
+      instruction: "Storage and containment objects"
+      wildcards:
+      - potion bottle
+      - ornate chest
+      - scroll case
+      - ancient vase
+      - canopic jar
+      - satchel
+      - treasure chest
+      - crystal vial
+      - magical tome
+      - jewelry box
+    Tools_Instruments:
+      instruction: "Implements and equipment"
+      wildcards:
+      - sextant
+      - telescope
+      - abacus
+      - crystal ball
+      - mortar and pestle
+      - lute
+      - violin
+      - compass
+      - magnifying glass
+      - pocket watch
+      - astrolabe
+      - microscope
+    Food_Drink:
+      instruction: "Consumables and beverages"
+      wildcards:
+      - exotic fruit
+      - steaming stew
+      - magical potion
+      - elixir
+      - intricate cake
+      - glowing mushroom
+      - healing herb
+      - enchanted wine
+      - mystical tea
+      - energy drink
+  ABSTRACT_&_CONCEPTS:
+    Geometric:
+      instruction: "Mathematical and geometric forms"
+      wildcards:
+      - fractal
+      - tessellation
+      - mandala
+      - mobius strip
+      - tesseract
+      - fibonacci spiral
+      - platonic solid
+      - impossible geometry
+      - sacred geometry
+      - crystal lattice
+    Ethereal:
+      instruction: "Intangible and spiritual concepts"
+      wildcards:
+      - soul
+      - aura
+      - spirit
+      - dream
+      - memory
+      - time
+      - chaos
+      - order
+      - consciousness
+      - infinity
+      - void
+      - essence
+      - energy
+      - harmony
+    Emotions_Personified:
+      instruction: "Emotions as visual entities"
+      wildcards:
+      - hope
+      - despair
+      - joy
+      - sorrow
+      - love
+      - hatred
+      - fear
+      - courage
+      - wisdom
+      - ignorance
+      - peace
+      - war
+      - creation
+      - destruction
+  HISTORICAL_ERAS_&_CULTURES:
+    Time_Periods:
+      instruction: "Historical time periods and eras"
+      wildcards:
+      - prehistoric
+      - stone age
+      - bronze age
+      - iron age
+      - classical antiquity
+      - medieval
+      - renaissance
+      - baroque
+      - victorian
+      - edwardian
+      - art deco
+      - 1920s
+      - 1950s
+      - 1960s psychedelia
+      - 1980s neon
+      - 1990s grunge
+      - Y2K
+      - cyberpunk future
+      - post-apocalyptic
+    Civilizations_Regions:
+      instruction: "Cultural and geographical origins"
+      wildcards:
+      - ancient Egypt
+      - ancient Greece
+      - Roman Empire
+      - Aztec
+      - Mayan
+      - Inca
+      - Edo Japan
+      - Tang Dynasty
+      - Ottoman Empire
+      - Byzantine
+      - Celtic
+      - Nordic
+      - Polynesian
+      - Maasai
+      - Inuit
+      - Aboriginal Australian
+      - Native American
+      - Persian
+      - Mesopotamian
+      - Indian Subcontinent
+'2_ACTION_POSE_&_EMOTION':
+  Dynamic_Actions:
+    Locomotion:
+      instruction: "Movement and travel actions"
+      wildcards:
+      - leaping
+      - crouching
+      - crawling
+      - sneaking
+      - sprinting
+      - soaring
+      - diving
+      - climbing
+      - swimming
+      - flying
+      - teleporting
+      - phasing
+    Combat:
+      instruction: "Fighting and battle actions"
+      wildcards:
+      - parrying
+      - dodging
+      - casting spell
+      - aiming
+      - lunging
+      - striking
+      - blocking
+      - charging
+      - retreating
+      - flanking
+      - dueling
+      - defending
+    Interaction:
+      instruction: "Social and environmental interactions"
+      wildcards:
+      - offering
+      - beckoning
+      - commanding
+      - conspiring
+      - reaching out
+      - embracing
+      - teaching
+      - healing
+      - crafting
+      - performing
+      - negotiating
+      - discovering
+  Static_Poses:
+    Standing:
+      instruction: "Upright stationary positions"
+      wildcards:
+      - arms crossed
+      - akimbo
+      - looking over shoulder
+      - at attention
+      - casual stance
+      - heroic pose
+      - contemplative
+      - guard position
+      - presentation pose
+    Sitting:
+      instruction: "Seated positions"
+      wildcards:
+      - on throne
+      - lotus position
+      - cross-legged
+      - lounging
+      - perched
+      - meditation pose
+      - formal sitting
+      - casual sitting
+      - edge sitting
+    Reclining:
+      instruction: "Lying down positions"
+      wildcards:
+      - lying on back
+      - fetal position
+      - sunbathing
+      - sprawled out
+      - side-lying
+      - floating
+      - resting
+      - sleeping
+      - dreaming pose
+    Hand_Gestures:
+      instruction: "Hand and arm positions"
+      wildcards:
+      - pointing
+      - clenched fist
+      - open palm
+      - peace sign
+      - holding object
+      - prayer hands
+      - thumbs up
+      - finger guns
+      - magical gestures
+      - blessing gesture
+  Facial_Expressions:
+    instruction: "Emotional expressions and facial features"
+    wildcards:
+    - pensive
+    - determined
+    - awestruck
+    - smirking
+    - frowning
+    - enraged
+    - ecstatic
+    - serene
+    - bored
+    - wistful
+    - mysterious
+    - confident
+    - vulnerable
+    - stern
+    - playful
+    - melancholic
+    - intense
+    - peaceful
+    - suspicious
+    - amazed
+  Group_Interactions:
+    instruction: "Multi-person social dynamics"
+    wildcards:
+    - duelling
+    - embracing
+    - rallying crowd
+    - teaching circle
+    - dance formation
+    - ritual ceremony
+    - battle formation
+    - celebration
+    - mourning
+    - council meeting
+    - protest march
+    - performance ensemble
+  Micro_Gestures:
+    instruction: "Subtle body language and small movements"
+    wildcards:
+    - subtle smile
+    - eyebrow raise
+    - hair flip
+    - wink
+    - head tilt
+    - shoulder shrug
+    - lip bite
+    - eye roll
+    - finger tap
+    - nervous fidget
+    - confident smirk
+    - knowing glance
+'3_ENVIRONMENT_&_SETTING':
+  Location:
+    Interior:
+      instruction: "Indoor environments and spaces"
+      wildcards:
+      - abandoned asylum
+      - grand ballroom
+      - "alchemist's laboratory"
+      - starship bridge
+      - cozy hobbit hole
+      - data center
+      - "necromancer's lair"
+      - library
+      - cathedral
+      - laboratory
+      - throne room
+      - dungeon
+      - workshop
+      - hospital
+      - space station interior
+      - underground bunker
+      - magical academy
+      - courtroom
+      - observatory
+      - control room
+    Exterior_Man_Made:
+      instruction: "Outdoor constructed environments"
+      wildcards:
+      - dystopian megalopolis
+      - rooftop garden
+      - abandoned theme park
+      - bustling marketplace
+      - ancient ruins
+      - highway overpass
+      - space colony
+      - floating city
+      - mining facility
+      - fortress walls
+      - harbor
+      - industrial complex
+      - urban sprawl
+      - suburban neighborhood
+      - construction site
+      - airport
+      - stadium
+      - bridge
+      - monument plaza
+    Exterior_Natural:
+      instruction: "Natural outdoor environments"
+      wildcards:
+      - volcanic caldera
+      - bioluminescent cave
+      - crystal forest
+      - glacial fjord
+      - oasis
+      - giant mushroom forest
+      - petrified forest
+      - coral reef
+      - mountain peak
+      - desert dunes
+      - tropical beach
+      - arctic tundra
+      - bamboo grove
+      - waterfall
+      - canyon
+      - meadow
+      - swamp
+      - hot springs
+      - geyser field
+  Time_Weather:
+    Time_of_Day:
+      instruction: "Temporal lighting conditions"
+      wildcards:
+      - sunrise
+      - golden hour
+      - high noon
+      - blue hour
+      - twilight
+      - dead of night
+      - witching hour
+      - dawn
+      - dusk
+      - midnight
+      - pre-dawn
+      - late afternoon
+      - early morning
+      - overcast day
+      - stormy evening
+    Weather_Conditions:
+      instruction: "Atmospheric and weather phenomena"
+      wildcards:
+      - torrential rain
+      - blinding blizzard
+      - sandstorm
+      - gentle snowfall
+      - heat haze
+      - eerie fog
+      - thunderstorm
+      - drizzle
+      - hail
+      - tornado
+      - hurricane
+      - aurora
+      - rainbow
+      - mist
+      - clear skies
+      - cloudy
+      - windy
+      - calm
+      - humid
+    Celestial_Events:
+      instruction: "Astronomical and sky phenomena"
+      wildcards:
+      - aurora borealis
+      - solar eclipse
+      - meteor shower
+      - two moons
+      - planetary rings visible
+      - nebula in sky
+      - comet
+      - shooting star
+      - constellation
+      - milky way
+      - blood moon
+      - supernova
+      - cosmic storm
+      - alien sky
+      - multiple suns
+    Seasonal_Changes:
+      instruction: "Season-specific environmental elements"
+      wildcards:
+      - cherry blossom spring
+      - summer solstice
+      - autumn harvest
+      - winter freeze
+      - monsoon season
+      - dry season
+      - blooming flowers
+      - falling leaves
+      - snow-covered landscape
+      - ice formation
+      - spring thaw
+      - summer heat
+      - autumn colors
+      - winter stillness
+  Architecture:
+    Architectural_Styles:
+      instruction: "Building design and architectural movements"
+      wildcards:
+      - art deco
+      - art nouveau
+      - baroque
+      - brutalist
+      - deconstructivist
+      - gothic
+      - minimalist
+      - soviet
+      - bauhaus
+      - renaissance
+      - victorian
+      - modern
+      - postmodern
+      - futuristic
+      - classical
+      - romanesque
+      - byzantine
+      - moorish
+      - tudor
+      - colonial
+    Building_Materials:
+      instruction: "Construction materials and textures"
+      wildcards:
+      - marble
+      - adobe
+      - rusted metal
+      - polished chrome
+      - bamboo
+      - obsidian
+      - sandstone
+      - granite
+      - steel
+      - glass
+      - concrete
+      - wood
+      - brick
+      - stone
+      - crystal
+      - bio-organic
+      - energy constructs
+      - plasma
+      - holographic
+      - living wood
+    Vernacular_Styles:
+      instruction: "Regional and traditional architectural forms"
+      wildcards:
+      - chalet
+      - tulou
+      - riads
+      - pueblo adobe
+      - ryokan
+      - pagoda
+      - igloo
+      - yurt
+      - longhouse
+      - stilt house
+      - mud brick
+      - thatched roof
+      - log cabin
+      - cliff dwelling
+      - tree house
+      - floating home
+      - underground dwelling
+      - ice castle
+      - crystal palace
+  Flora_Fauna_Details:
+    instruction: "Environmental life and natural elements"
+    wildcards:
+    - overgrown ivy
+    - weeping willows
+    - alien plants
+    - carnivorous plants
+    - glowing moss
+    - ancient trees
+    - flowering vines
+    - flock of birds
+    - swarm of insects
+    - school of fish
+    - distant herd
+    - butterfly migration
+    - nocturnal creatures
+    - bioluminescent organisms
+    - parasitic plants
+    - symbiotic life
+    - microscopic ecosystem
+    - giant flora
+    - crystalline plants
+  Natural_Phenomena:
+    instruction: "Natural events and environmental effects"
+    wildcards:
+    - super-cell tornado
+    - bioluminescent tide
+    - volcanic eruption
+    - earthquake
+    - avalanche
+    - flash flood
+    - wildfire
+    - dust devil
+    - geyser eruption
+    - cave-in
+    - landslide
+    - tidal wave
+    - solar flare effects
+    - magnetic storm
+    - atmospheric anomaly
+    - gravity distortion
+    - time dilation zone
+    - dimensional rift
+    - energy vortex
+'4_COMPOSITION_&_CINEMATOGRAPHY':
+  Shot_Framing:
+    instruction: "Camera position and subject framing"
+    wildcards:
+    - establishing shot
+    - wide shot
+    - medium shot
+    - close-up
+    - extreme close-up
+    - cowboy shot
+    - two-shot
+    - group shot
+    - over-the-shoulder
+    - POV shot
+    - insert shot
+    - cutaway
+    - reaction shot
+    - master shot
+    - detail shot
+  Angle_Perspective:
+    instruction: "Camera angle and viewpoint"
+    wildcards:
+    - dutch angle
+    - low angle
+    - high angle
+    - "bird's-eye view"
+    - "worm's-eye view"
+    - eye level
+    - forced perspective
+    - one-point perspective
+    - two-point perspective
+    - three-point perspective
+    - atmospheric perspective
+    - isometric
+    - oblique
+    - orthographic
+    - fish-eye perspective
+  Focus_Depth:
+    instruction: "Focus techniques and depth effects"
+    wildcards:
+    - deep focus
+    - shallow depth of field
+    - bokeh
+    - motion blur
+    - radial blur
+    - tilt-shift
+    - soft focus
+    - rack focus
+    - split focus
+    - macro focus
+    - infinite focus
+    - selective focus
+    - focus pulling
+    - hyperfocal distance
+    - zone focusing
+  Aspect_Canvas:
+    instruction: "Image format and canvas arrangements"
+    wildcards:
+    - square
+    - '4:5 portrait'
+    - '3:2 classic'
+    - '16:9 widescreen'
+    - '21:9 ultrawide'
+    - '2.39:1 cinemascope'
+    - vertical panorama
+    - horizontal panorama
+    - triptych
+    - diptych
+    - circular frame
+    - oval frame
+    - keyhole view
+    - split screen
+    - multiple panels
+  Movement_Techniques:
+    instruction: "Motion capture and dynamic effects"
+    wildcards:
+    - long-exposure trails
+    - bullet-time freeze
+    - time-lapse
+    - slow motion
+    - stop motion
+    - multiple exposure
+    - light painting
+    - kinetic blur
+    - panning
+    - tilting
+    - tracking
+    - dolly zoom
+    - whip pan
+    - freeze frame
+    - motion ghosting
+'5_STYLE_&_AESTHETICS':
+  Art_Movements:
+    instruction: "Historical and contemporary art styles"
+    wildcards:
+    - abstract expressionism
+    - impressionism
+    - cubism
+    - surrealism
+    - pop art
+    - minimalism
+    - dadaism
+    - futurism
+    - rococo
+    - romanticism
+    - realism
+    - fauvism
+    - expressionism
+    - constructivism
+    - bauhaus
+    - art nouveau
+    - art deco
+    - hyperrealism
+    - photorealism
+    - conceptual art
+  Medium_Technique:
+    Digital:
+      instruction: "Digital art creation methods"
+      wildcards:
+      - 3D render
+      - digital painting
+      - pixel art
+      - vector art
+      - matte painting
+      - photomanipulation
+      - glitch art
+      - generative art
+      - procedural art
+      - AI-assisted
+      - voxel art
+      - low-poly
+      - high-poly
+      - wireframe
+      - holographic display
+    Traditional:
+      instruction: "Classic art mediums and techniques"
+      wildcards:
+      - oil painting
+      - watercolor
+      - acrylic
+      - gouache
+      - tempera
+      - fresco
+      - ink wash
+      - charcoal
+      - pencil sketch
+      - pastel
+      - woodcut
+      - engraving
+      - lithograph
+      - screen print
+      - collage
+      - mixed media
+      - sculpture
+      - relief carving
+      - intaglio
+      - monotype
+  Aesthetic_Genres:
+    instruction: "Visual style genres and movements"
+    wildcards:
+    - cyberpunk
+    - steampunk
+    - dieselpunk
+    - biopunk
+    - solarpunk
+    - atompunk
+    - clockpunk
+    - vaporwave
+    - synthwave
+    - cottagecore
+    - dark academia
+    - light academia
+    - goth
+    - grunge
+    - kawaii
+    - brutalist
+    - maximalist
+    - afrofuturism
+    - retrofuturism
+    - post-apocalyptic
+  Color_Schemes:
+    instruction: "Color theory and palette arrangements"
+    wildcards:
+    - monochromatic
+    - analogous
+    - complementary
+    - triadic
+    - tetradic
+    - split-complementary
+    - vibrant
+    - muted
+    - pastel
+    - neon
+    - earthy
+    - jewel tones
+    - metallic
+    - iridescent
+    - desaturated
+    - high contrast
+    - low contrast
+    - warm palette
+    - cool palette
+    - neutral palette
+  Textures_Patterns:
+    instruction: "Surface qualities and decorative elements"
+    wildcards:
+    - smooth
+    - rough
+    - glossy
+    - matte
+    - metallic
+    - organic
+    - geometric
+    - celtic knots
+    - islamic patterns
+    - aztec motifs
+    - art deco patterns
+    - tribal designs
+    - floral patterns
+    - abstract patterns
+    - wood grain
+    - marble veining
+    - rust patina
+    - cracked paint
+    - fabric weave
+    - stone texture
+  Mood_Atmosphere:
+    instruction: "Emotional and atmospheric qualities"
+    wildcards:
+    - ethereal
+    - ominous
+    - melancholic
+    - nostalgic
+    - serene
+    - sublime
+    - tense
+    - tranquil
+    - whimsical
+    - majestic
+    - mysterious
+    - dramatic
+    - peaceful
+    - chaotic
+    - harmonious
+    - foreboding
+    - uplifting
+    - somber
+    - energetic
+    - contemplative
+  Film_Techniques:
+    instruction: "Photography and film processing effects"
+    wildcards:
+    - infrared
+    - ultraviolet
+    - double exposure
+    - multiple exposure
+    - cross-processing
+    - bleach bypass
+    - push processing
+    - pull processing
+    - solarization
+    - posterization
+    - color separation
+    - high key
+    - low key
+    - chiaroscuro
+    - rembrandt lighting
+  Post_Processing:
+    instruction: "Digital enhancement and effects"
+    wildcards:
+    - HDR
+    - tone mapping
+    - color grading
+    - film grain
+    - vignetting
+    - chromatic aberration
+    - lens distortion
+    - bloom
+    - god rays
+    - lens flares
+    - glitch effects
+    - VHS artifacts
+    - film scratches
+    - dust
+    - light leaks
+    - halation
+    - desaturation
+    - oversaturation
+    - contrast boost
+  Cultural_Motifs:
+    instruction: "Traditional and cultural design elements"
+    wildcards:
+    - Maori kowhaiwhai
+    - Islamic arabesque
+    - Celtic knotwork
+    - Norse runes
+    - Egyptian hieroglyphs
+    - Chinese dragons
+    - Japanese cherry blossoms
+    - Indian mandala
+    - African geometric patterns
+    - Native American totems
+    - Aztec calendar
+    - Greek key patterns
+    - Roman mosaics
+    - Byzantine iconography
+    - Gothic tracery
+'6_TECHNICAL_ATTRIBUTES_&_RENDERING':
+  Lighting:
+    Lighting_Types:
+      instruction: "Different lighting techniques and sources"
+      wildcards:
+      - natural light
+      - artificial light
+      - studio lighting
+      - practical lighting
+      - volumetric lighting
+      - ambient lighting
+      - directional lighting
+      - point lighting
+      - spot lighting
+      - area lighting
+      - rim lighting
+      - backlighting
+      - side lighting
+      - top lighting
+      - bottom lighting
+      - bounce lighting
+      - fill lighting
+      - key lighting
+      - mood lighting
+      - candlelight
+    Lighting_Quality:
+      instruction: "Characteristics of light appearance"
+      wildcards:
+      - soft light
+      - hard light
+      - diffused light
+      - dramatic lighting
+      - even lighting
+      - harsh shadows
+      - subtle shadows
+      - no shadows
+      - colored lighting
+      - warm light
+      - cool light
+      - neutral light
+      - flickering light
+      - steady light
+      - pulsing light
+      - strobing light
+      - gradient lighting
+      - god rays
+      - caustics
+      - lens flares
+    Named_Lighting:
+      instruction: "Specific lighting styles and techniques"
+      wildcards:
+      - chiaroscuro
+      - rembrandt lighting
+      - butterfly lighting
+      - split lighting
+      - loop lighting
+      - broad lighting
+      - short lighting
+      - high key lighting
+      - low key lighting
+      - silhouette lighting
+      - contre-jour
+      - golden hour lighting
+      - blue hour lighting
+      - magic hour
+      - twilight lighting
+  Detail_Quality:
+    instruction: "Level of detail and rendering quality"
+    wildcards:
+    - highly detailed
+    - intricate
+    - minimalist
+    - photorealistic
+    - hyperrealistic
+    - stylized
+    - abstract
+    - simplified
+    - ornate
+    - complex
+    - refined
+    - rough
+    - polished
+    - raw
+    - finished
+    - sketch-like
+    - concept art style
+    - production ready
+    - ultra-detailed
+    - macro detail
+  Camera_Film:
+    Camera_Types:
+      instruction: "Different camera systems and formats"
+      wildcards:
+      - DSLR
+      - mirrorless
+      - medium format
+      - large format
+      - instant camera
+      - film camera
+      - digital camera
+      - professional camera
+      - vintage camera
+      - disposable camera
+      - pinhole camera
+      - toy camera
+      - action camera
+      - security camera
+      - drone camera
+      - 360 camera
+      - thermal camera
+      - night vision
+      - microscope
+      - telescope
+    Lens_Effects:
+      instruction: "Optical effects and lens characteristics"
+      wildcards:
+      - lens flare
+      - chromatic aberration
+      - vignetting
+      - barrel distortion
+      - pincushion distortion
+      - fisheye distortion
+      - anamorphic streaks
+      - bokeh
+      - starburst
+      - ghosting
+      - fringing
+      - soft focus
+      - sharp focus
+      - macro
+      - telephoto compression
+      - wide-angle distortion
+      - tilt-shift
+      - focus falloff
+      - depth of field
+    Film_Stocks:
+      instruction: "Film types and photographic mediums"
+      wildcards:
+      - Kodachrome
+      - Fujifilm
+      - Ilford
+      - Agfa
+      - Polaroid
+      - 35mm film
+      - 120 film
+      - 4x5 film
+      - 8x10 film
+      - slide film
+      - negative film
+      - black and white film
+      - color film
+      - infrared film
+      - cross-processed
+      - expired film
+      - high ISO
+      - low ISO
+      - film grain
+      - digital sensor
+    Technical_Specs:
+      instruction: "Camera settings and technical parameters"
+      wildcards:
+      - 14mm ultra-wide
+      - 24mm wide
+      - 35mm standard
+      - 50mm portrait
+      - 85mm short tele
+      - 135mm medium tele
+      - 200mm telephoto
+      - 400mm super tele
+      - f/1.2 shallow
+      - f/1.4 portrait
+      - f/2.8 standard
+      - f/5.6 landscape
+      - f/8 sharp
+      - f/11 deep
+      - f/16 maximum
+      - 1/1000 freeze
+      - 1/60 handheld
+      - 1/15 motion
+      - 30s long exposure
+  Rendering_Engines:
+    instruction: "3D rendering software and techniques"
+    wildcards:
+    - Octane Render
+    - V-Ray
+    - Arnold
+    - Redshift
+    - Cycles
+    - Blender
+    - Maya
+    - 3ds Max
+    - Cinema 4D
+    - Houdini
+    - KeyShot
+    - Substance
+    - Marmoset
+    - Unreal Engine
+    - Unity
+    - Godot
+    - ray tracing
+    - path tracing
+    - rasterization
+    - real-time rendering
+  File_Aesthetics:
+    instruction: "Digital file formats and presentation styles"
+    wildcards:
+    - RAW format
+    - JPEG compression
+    - PNG transparency
+    - TIFF lossless
+    - WebP modern
+    - HEIF efficient
+    - DNG standard
+    - PSD layered
+    - AI vector
+    - SVG scalable
+    - GIF animated
+    - MP4 video
+    - ProRes codec
+    - H.264 standard
+    - screen capture
+    - mobile format
+    - web optimized
+    - print ready
+    - high resolution
+    - low resolution
+'7_SPECIAL_FX_&_PARTICLES':
+  Elements:
+    instruction: "Basic particle and environmental effects"
+    wildcards:
+    - sparks
+    - embers
+    - ash
+    - dust particles
+    - snow flakes
+    - rain drops
+    - water droplets
+    - steam
+    - smoke wisps
+    - fog
+    - mist
+    - vapor
+    - pollen
+    - petals
+    - leaves
+    - paper scraps
+    - debris
+    - sand grains
+    - crystal fragments
+    - energy orbs
+  Fluid_Energy:
+    instruction: "Liquid and energy-based effects"
+    wildcards:
+    - water splash
+    - blood splatter
+    - ink drops
+    - paint drips
+    - lava flow
+    - plasma streams
+    - electricity arcs
+    - lightning bolts
+    - energy beams
+    - laser rays
+    - fire tongues
+    - flame jets
+    - smoke plumes
+    - gas clouds
+    - liquid mercury
+    - molten metal
+    - magical energy
+    - force fields
+    - solar winds
+    - cosmic rays
+  Destruction:
+    instruction: "Breaking and destruction effects"
+    wildcards:
+    - shattered glass
+    - broken concrete
+    - crumbling stone
+    - splintered wood
+    - torn fabric
+    - bent metal
+    - scattered debris
+    - rubble pile
+    - dust clouds
+    - explosion fragments
+    - bullet holes
+    - slash marks
+    - burn marks
+    - corrosion
+    - rust
+    - decay
+    - erosion
+    - weathering
+    - battle damage
+    - impact craters
+  Atmospheric:
+    instruction: "Environmental and atmospheric effects"
+    wildcards:
+    - god rays
+    - sun beams
+    - moonbeams
+    - starlight
+    - aurora
+    - rainbow
+    - prism effects
+    - lens flares
+    - light streaks
+    - particle beams
+    - energy waves
+    - shock waves
+    - heat shimmer
+    - mirage
+    - distortion
+    - refraction
+    - reflection
+    - shadows
+    - silhouettes
+    - backlighting
+  Magical_Supernatural:
+    instruction: "Fantasy and supernatural effects"
+    wildcards:
+    - magical sparkles
+    - fairy dust
+    - glowing runes
+    - spell circles
+    - portals
+    - dimensional rifts
+    - ghostly wisps
+    - spirit orbs
+    - ectoplasm
+    - shadow tendrils
+    - dark energy
+    - holy light
+    - divine rays
+    - cursed aura
+    - blessed glow
+    - necromantic mist
+    - elemental forces
+    - psychic waves
+    - astral projection
+    - soul fragments
+'8_NARRATIVE_&_THEME':
+  Story_Genres:
+    instruction: "Narrative categories and story types"
+    wildcards:
+    - adventure
+    - mystery
+    - romance
+    - thriller
+    - horror
+    - comedy
+    - drama
+    - tragedy
+    - epic
+    - fantasy
+    - science fiction
+    - historical
+    - biographical
+    - documentary
+    - experimental
+    - surreal
+    - psychological
+    - political
+    - social
+    - philosophical
+  Narrative_Arcs:
+    instruction: "Story structure and character development"
+    wildcards:
+    - "hero's journey"
+    - coming of age
+    - redemption
+    - revenge
+    - sacrifice
+    - transformation
+    - discovery
+    - conquest
+    - survival
+    - rebellion
+    - restoration
+    - fall from grace
+    - rise to power
+    - star-crossed lovers
+    - quest
+    - pursuit
+    - escape
+    - return
+    - awakening
+    - prophecy
+  Emotional_Themes:
+    instruction: "Core emotional and thematic elements"
+    wildcards:
+    - love
+    - loss
+    - hope
+    - despair
+    - courage
+    - fear
+    - wisdom
+    - ignorance
+    - freedom
+    - oppression
+    - justice
+    - injustice
+    - truth
+    - deception
+    - loyalty
+    - betrayal
+    - forgiveness
+    - revenge
+    - sacrifice
+    - redemption
+    - triumph
+    - defeat
+    - peace
+    - war
+    - order
+    - chaos
+  Moral_Philosophical:
+    instruction: "Ethical and philosophical perspectives"
+    wildcards:
+    - good vs evil
+    - right vs wrong
+    - duty vs desire
+    - individual vs society
+    - tradition vs progress
+    - nature vs nurture
+    - fate vs free will
+    - order vs chaos
+    - idealism vs realism
+    - materialism vs spiritualism
+    - collectivism vs individualism
+    - authority vs freedom
+    - knowledge vs ignorance
+    - civilization vs wilderness
+    - technology vs humanity
+  Cultural_Social:
+    instruction: "Social and cultural commentary themes"
+    wildcards:
+    - class struggle
+    - racial equality
+    - gender identity
+    - generational conflict
+    - cultural clash
+    - immigration
+    - colonialism
+    - imperialism
+    - revolution
+    - evolution
+    - environmental
+    - technological
+    - religious
+    - secular
+    - urban vs rural
+    - modern vs traditional
+    - global vs local
+    - rich vs poor
+    - powerful vs powerless
+    - connected vs isolated
+  Symbolic_Metaphorical:
+    instruction: "Symbolic meanings and metaphorical elements"
+    wildcards:
+    - light and darkness
+    - seasons
+    - journey
+    - bridge
+    - door
+    - key
+    - mirror
+    - mask
+    - sword
+    - shield
+    - crown
+    - ring
+    - tower
+    - mountain
+    - ocean
+    - desert
+    - forest
+    - fire
+    - water
+    - earth
+    - air
+    - phoenix
+    - dragon
+    - wolf
+    - eagle
+    - serpent
