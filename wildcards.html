@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Powered Wildcard Generator (v2)</title>
+    <title>AI-Powered Wildcard Generator (v2.2)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -98,34 +98,32 @@
                 </summary>
                 <div class="p-4 border-t border-gray-700 space-y-6">
                     <div>
-                        <label for="global-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Global System Prompt</label>
+                        <label for="global-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Global System Prompt (for Wildcard Generation)</label>
                         <textarea id="global-prompt" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 custom-scrollbar" rows="4"></textarea>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Gemini Settings -->
                         <div class="space-y-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
                             <h3 class="text-lg font-semibold text-indigo-300">Gemini API</h3>
                             <div>
                                 <label for="gemini-api-key" class="block text-sm font-medium text-gray-300 mb-1">API Key</label>
                                 <div class="relative">
                                     <input type="password" id="gemini-api-key" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter Gemini API key" autocomplete="off">
-                                    <button class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100" title="Toggle API Key visibility">
-                                        <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" /><path class="eye-slash" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17L7 7" /></svg>
+                                    <button class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100" title="Show API Key">
+                                        <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" /><path class="eye-slash" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17L7 7" style="display: block;"/></svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- OpenRouter Settings -->
                         <div class="space-y-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
                             <h3 class="text-lg font-semibold text-indigo-300">OpenRouter API</h3>
                             <div>
                                 <label for="openrouter-api-key" class="block text-sm font-medium text-gray-300 mb-1">API Key</label>
                                 <div class="relative">
                                     <input type="password" id="openrouter-api-key" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter OpenRouter API key" autocomplete="off">
-                                    <button class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100" title="Toggle API Key visibility">
-                                        <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" /><path class="eye-slash" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17L7 7" /></svg>
+                                    <button class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100" title="Show API Key">
+                                        <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" /><path class="eye-slash" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17L7 7" style="display: block;" /></svg>
                                     </button>
                                 </div>
                             </div>
@@ -178,7 +176,8 @@
             HISTORY_LIMIT: 20,
             AUTOSAVE_INTERVAL: 500,
             SEARCH_DEBOUNCE_DELAY: 300,
-            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the category provided.`
+            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the category provided.`,
+            SUGGEST_CATEGORY_PROMPT: `You are a creative assistant helping to organize a collection of wildcards for AI image generation. Based on the provided list of existing top-level categories, please suggest 5 more diverse but related categories that would complement them. Do not repeat any from the existing list. Format the names to be suitable as file names (e.g., use underscores instead of spaces). Return ONLY the new categories as a JSON array of strings. Example of expected output format: ["new_category_1", "new_category_2", "new_category_3"]`
         };
 
         // =================================================================================
@@ -310,8 +309,9 @@
                     })
                     .then(data => performReset(data))
                     .catch(error => {
-                        console.error("Failed to load initial-data.json:", error);
-                        if (notify) UI.showNotification("Error: Could not load default data.");
+                        console.error("Failed to load initial-data.json, resetting to an empty state:", error);
+                        performReset({}); // Fallback to an empty object
+                        if (notify) UI.showNotification("Could not load default data. Resetting to a blank slate.");
                     });
             },
             saveStateToHistory() {
@@ -344,7 +344,12 @@
                 if (this.activeController) this.activeController.abort();
                 this.activeController = new AbortController();
                 try {
-                    const { url, payload, headers } = this._prepareRequest(globalPrompt, categoryPath, existingWords, customInstructions);
+                    const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
+                    const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+                    const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
+                    
+                    const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
+                    
                     const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)]) });
                     if (!response.ok) {
                         const errorText = await response.text();
@@ -359,24 +364,60 @@
                     this.activeController = null;
                 }
             },
-            _prepareRequest(globalPrompt, categoryPath, existingWords, customInstructions) {
+            async suggestCategories(existingCategories) {
+                if (this.activeController) this.activeController.abort();
+                this.activeController = new AbortController();
+                try {
+                    const globalPrompt = Config.SUGGEST_CATEGORY_PROMPT;
+                    const userPrompt = `Existing Categories: ${existingCategories.join(', ')}`;
+                    const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
+
+                    const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
+
+                    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)]) });
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`API request failed: ${response.status} - ${errorText}`);
+                    }
+                    return this._parseResponse(await response.json());
+                } catch (error) {
+                    if (error.name === 'AbortError') throw new Error("Request timed out or was aborted.");
+                    console.error("Error calling LLM API for suggestions:", error);
+                    throw error;
+                } finally {
+                    this.activeController = null;
+                }
+            },
+            _prepareRequest(globalPrompt, userPrompt, generationConfig = {}) {
                 const endpoint = document.getElementById('api-endpoint').value;
-                const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
-                const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
                 let apiKey, url, payload, headers = { 'Content-Type': 'application/json' };
 
                 if (endpoint === 'gemini') {
                     apiKey = document.getElementById('gemini-api-key').value.trim();
                     if (!apiKey) throw new Error("Gemini API key is not provided.");
                     url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                    payload = { contents: [{ role: "user", parts: [{ text: globalPrompt }] }, { role: "model", parts: [{ text: "Understood." }] }, { role: "user", parts: [{ text: userPrompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } } };
+                    payload = {
+                        contents: [
+                            { role: "user", parts: [{ text: globalPrompt }] },
+                            { role: "model", parts: [{ text: "Understood." }] },
+                            { role: "user", parts: [{ text: userPrompt }] }
+                        ],
+                        generationConfig: generationConfig
+                    };
                 } else if (endpoint === 'openrouter') {
                     apiKey = document.getElementById('openrouter-api-key').value.trim();
                     if (!apiKey) throw new Error("OpenRouter API key is not provided.");
                     const model = document.getElementById('model-selector').value.trim() || "openai/gpt-4o";
                     url = `https://openrouter.ai/api/v1/chat/completions`;
                     headers['Authorization'] = `Bearer ${apiKey}`;
-                    payload = { model, messages: [{ role: "system", content: globalPrompt }, { role: "user", content: userPrompt }], response_format: { type: "json_object" } };
+                    payload = {
+                        model,
+                        messages: [
+                            { role: "system", content: globalPrompt },
+                            { role: "user", content: userPrompt }
+                        ],
+                        response_format: { type: "json_object" }
+                    };
                 } else {
                     throw new Error("Invalid API endpoint.");
                 }
@@ -391,7 +432,7 @@
                         const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
                         if (match) contentStr = match[1];
                         const content = JSON.parse(contentStr);
-                        return Array.isArray(content) ? content : content.wildcards || [];
+                        return Array.isArray(content) ? content : content.wildcards || content.categories || [];
                     }
                     return [];
                 } catch (e) {
@@ -402,7 +443,7 @@
         };
 
         // =================================================================================
-        // --- UI MODULE (with Recursive Rendering)
+        // --- UI MODULE (with Refactored Rendering)
         // =================================================================================
         const UI = {
             elements: {},
@@ -440,11 +481,7 @@
                 const sortedKeys = Object.keys(wildcards).sort();
                 
                 sortedKeys.forEach((key, index) => {
-                    const colorClass = `category-tint-${(index % 10) + 1}`;
-                    const element = this.buildRecursiveHtml(key, wildcards[key], 0, key);
-                    if (element.tagName === 'DETAILS') {
-                        element.classList.add(colorClass);
-                    }
+                    const element = this.createCategoryElement(key, wildcards[key], 0, key, index);
                     fragment.appendChild(element);
                 });
                 fragment.appendChild(this.createPlaceholderCategory());
@@ -455,47 +492,59 @@
                     if (el) el.open = true;
                 });
             },
-            buildRecursiveHtml(name, data, level, path) {
-                const isLeaf = data && typeof data === 'object' && Array.isArray(data.wildcards);
-                const element = isLeaf ? document.createElement('div') : document.createElement('details');
-                
-                element.className = isLeaf 
-                    ? `bg-gray-700/50 p-4 rounded-lg flex flex-col`
-                    : `bg-gray-800 rounded-lg shadow-md group ${level > 0 ? 'ml-4 mt-2' : ''}`;
-                
+            createCategoryElement(name, data, level, path, index) {
+                const element = document.createElement('details');
+                element.className = `bg-gray-800 rounded-lg shadow-md group ${level > 0 ? 'ml-4 mt-2' : ''}`;
+                if (level === 0) {
+                     element.classList.add(`category-tint-${(index % 10) + 1}`);
+                }
                 element.dataset.path = path;
                 element.draggable = true;
-
-                if (isLeaf) {
-                    element.innerHTML = this.getWildcardCardHtml(name, data, path);
+                
+                element.innerHTML = this.getCategoryFolderHtml(name, path);
+                const contentWrapper = element.querySelector('.content-wrapper');
+                
+                const sortedKeys = Object.keys(data).sort();
+                if (sortedKeys.length === 0) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'text-gray-500 text-center p-4 italic';
+                    placeholder.textContent = 'This category is empty. Drag items here or add a new one.';
+                    contentWrapper.appendChild(placeholder);
                     return element;
-                } else {
-                    element.innerHTML = this.getCategoryFolderHtml(name, path);
-                    const contentWrapper = element.querySelector('.content-wrapper');
-                    const sortedKeys = Object.keys(data).sort();
-                    const leafNodes = [];
-                    const nonLeafNodes = [];
-                    
-                    for (const key of sortedKeys) {
-                        const childData = data[key];
-                        const childIsLeaf = childData && typeof childData === 'object' && Array.isArray(childData.wildcards);
-                        const childElement = this.buildRecursiveHtml(key, childData, level + 1, `${path}/${key}`);
-                        if (childIsLeaf) {
-                            leafNodes.push(childElement);
-                        } else {
-                            nonLeafNodes.push(childElement);
-                        }
-                    }
-                    
-                    nonLeafNodes.forEach(node => contentWrapper.appendChild(node));
-                    
-                    if (leafNodes.length > 0) {
-                        const gridWrapper = document.createElement('div');
-                        gridWrapper.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full';
-                        leafNodes.forEach(node => gridWrapper.appendChild(node));
-                        contentWrapper.appendChild(gridWrapper);
+                }
+
+                const leafNodes = [];
+                const nonLeafNodes = [];
+
+                for (const key of sortedKeys) {
+                    const childData = data[key];
+                    const childIsLeaf = childData && typeof childData === 'object' && Array.isArray(childData.wildcards);
+                    const childPath = `${path}/${key}`;
+
+                    if (childIsLeaf) {
+                        leafNodes.push(this.createWildcardCardElement(key, childData, level + 1, childPath));
+                    } else {
+                        nonLeafNodes.push(this.createCategoryElement(key, childData, level + 1, childPath, 0));
                     }
                 }
+
+                nonLeafNodes.forEach(node => contentWrapper.appendChild(node));
+                
+                if (leafNodes.length > 0) {
+                    const gridWrapper = document.createElement('div');
+                    gridWrapper.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full';
+                    leafNodes.forEach(node => gridWrapper.appendChild(node));
+                    contentWrapper.appendChild(gridWrapper);
+                }
+                
+                return element;
+            },
+            createWildcardCardElement(name, data, level, path) {
+                const element = document.createElement('div');
+                element.className = `bg-gray-700/50 p-4 rounded-lg flex flex-col`;
+                element.dataset.path = path;
+                element.draggable = true;
+                element.innerHTML = this.getWildcardCardHtml(name, data, path);
                 return element;
             },
             getCategoryFolderHtml(name, path) {
@@ -535,9 +584,12 @@
                 const placeholderWrapper = document.createElement('div');
                 placeholderWrapper.className = 'bg-gray-800 rounded-lg shadow-md mt-4';
                 placeholderWrapper.innerHTML = `
-                    <div class="p-4 flex justify-between items-center">
+                    <div class="p-4 flex flex-wrap justify-between items-center gap-4">
                         <h2 class="text-xl sm:text-2xl font-semibold text-indigo-400">Add New Top-Level Category</h2>
-                        <button id="add-category-placeholder-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md" title="Add new category">+</button>
+                        <div class="flex items-center gap-2">
+                            <button id="suggest-categories-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md" title="Suggest new categories using AI">Suggest</button>
+                            <button id="add-category-placeholder-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md" title="Add new category">+</button>
+                        </div>
                     </div>`;
                 return placeholderWrapper;
             },
@@ -552,17 +604,27 @@
             },
             showNotification(message, isConfirmation = false, onConfirm = null, withInput = false) {
                 this.elements.dialogMessage.innerHTML = '';
-                const p = document.createElement('p'); p.textContent = message; this.elements.dialogMessage.appendChild(p);
                 let inputElement = null;
+
+                if (message.trim().startsWith('<')) {
+                    this.elements.dialogMessage.innerHTML = message;
+                } else {
+                    const p = document.createElement('p');
+                    p.textContent = message;
+                    this.elements.dialogMessage.appendChild(p);
+                }
+
                 if (withInput) {
-                    inputElement = document.createElement('input'); inputElement.type = 'text';
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'text';
                     inputElement.className = 'bg-gray-900 border border-gray-600 rounded-md p-2 text-sm w-full mt-4';
                     this.elements.dialogMessage.appendChild(inputElement);
+                    inputElement.focus();
                 }
+                
                 this.elements.dialogConfirmButtons.classList.toggle('hidden', !isConfirmation);
                 this.elements.dialogClose.classList.toggle('hidden', isConfirmation);
                 this.elements.dialog.showModal();
-                if (withInput) inputElement.focus();
                 
                 this.elements.dialogConfirm.onclick = () => { if (onConfirm) onConfirm(inputElement ? inputElement.value : null); this.elements.dialog.close('confirm'); };
                 this.elements.dialogCancel.onclick = () => this.elements.dialog.close('cancel');
@@ -599,10 +661,10 @@
                         document.getElementById('gemini-api-key').value = geminiKey;
                         localStorage.setItem(Config.API_KEY_GEMINI, geminiKey);
                     } else {
-                        console.error('Failed to load Gemini API key from ENV file');
+                        console.info('API_GEMINI.ENV not found. Using localStorage.');
                     }
                 } catch (error) {
-                    console.error('Error fetching Gemini API key:', error);
+                    console.info('Could not fetch Gemini API key:', error);
                 }
 
                 try {
@@ -613,10 +675,10 @@
                         localStorage.setItem(Config.API_KEY_OPENROUTER, openRouterKey);
                         State.initializeModelSelector();
                     } else {
-                        console.error('Failed to load OpenRouter API key from ENV file');
+                         console.info('API_OPENROUTER.ENV not found. Using localStorage.');
                     }
                 } catch (error) {
-                    console.error('Error fetching OpenRouter API key:', error);
+                    console.info('Could not fetch OpenRouter API key:', error);
                 }
             },
             bindEventListeners() {
@@ -631,34 +693,35 @@
                     button.addEventListener('click', () => {
                         const input = button.previousElementSibling;
                         const eyeSlash = button.querySelector('.eye-slash');
-                        if (input.type === 'password') {
-                            input.type = 'text';
-                            eyeSlash.style.display = 'none';
-                        } else {
-                            input.type = 'password';
-                            eyeSlash.style.display = 'block';
-                        }
+                        const isHidden = input.type === 'password';
+                        input.type = isHidden ? 'text' : 'password';
+                        eyeSlash.style.display = isHidden ? 'none' : 'block';
+                        button.title = isHidden ? 'Hide API Key' : 'Show API Key';
                     });
                 });
 
                 UI.elements.search.addEventListener('input', e => this.debouncedSearch(e.target.value));
                 document.addEventListener('keydown', this.handleKeyboardShortcuts.bind(this));
-                document.getElementById('add-category-placeholder-btn').addEventListener('click', this.handleAddNewCategory.bind(this));
-                document.getElementById('download-all-zip').addEventListener('click', this.handleDownloadZip);
-                document.getElementById('export-state').addEventListener('click', this.handleExportState);
-                document.getElementById('import-state').addEventListener('click', this.handleImportState);
-                document.getElementById('undo-btn').addEventListener('click', this.handleUndo.bind(this));
-                document.getElementById('redo-btn').addEventListener('click', this.handleRedo.bind(this));
-                document.getElementById('help-btn').addEventListener('click', this.handleHelp);
-                document.getElementById('reset-btn').addEventListener('click', () => State.resetState());
+                
+                // Delegated event listeners for dynamic content
+                document.addEventListener('click', e => {
+                    if (e.target.matches('#add-category-placeholder-btn')) this.handleAddNewCategory();
+                    if (e.target.matches('#suggest-categories-btn')) this.handleSuggestCategories();
+                    if (e.target.matches('#download-all-zip')) this.handleDownloadZip();
+                    if (e.target.matches('#export-state')) this.handleExportState();
+                    if (e.target.matches('#import-state')) this.handleImportState();
+                    if (e.target.matches('#undo-btn')) this.handleUndo();
+                    if (e.target.matches('#redo-btn')) this.handleRedo();
+                    if (e.target.matches('#help-btn')) this.handleHelp();
+                    if (e.target.matches('#reset-btn')) State.resetState();
+                });
+
+                UI.elements.container.addEventListener('click', this.handleContainerClick.bind(this));
+                UI.elements.container.addEventListener('input', e => { if (e.target.matches('.custom-instructions-input')) { const path = e.target.closest('[data-path]').dataset.path; this.getObjectByPath(path).instruction = e.target.value; State.saveState(); } });
+                UI.elements.container.addEventListener('keydown', e => { if (e.key === 'Enter') { if (e.target.matches('.add-wildcard-input')) { e.preventDefault(); e.target.nextElementSibling.click(); } if (e.target.matches('[contenteditable="true"]')) { e.preventDefault(); e.target.blur(); } } });
+                UI.elements.container.addEventListener('blur', e => { if (e.target.matches('[contenteditable="true"]')) this.handleContentEditableBlur(e.target); }, true);
                 
                 const container = UI.elements.container;
-                container.addEventListener('click', this.handleContainerClick.bind(this));
-                container.addEventListener('input', e => { if (e.target.matches('.custom-instructions-input')) { const path = e.target.closest('[data-path]').dataset.path; this.getObjectByPath(path).instruction = e.target.value; State.saveState(); } });
-                container.addEventListener('keydown', e => { if (e.key === 'Enter') { if (e.target.matches('.add-wildcard-input')) { e.preventDefault(); e.target.nextElementSibling.click(); } if (e.target.matches('[contenteditable="true"]')) { e.preventDefault(); e.target.blur(); } } });
-                container.addEventListener('blur', e => { if (e.target.matches('[contenteditable="true"]')) this.handleContentEditableBlur(e.target); }, true);
-
-                // Drag and Drop Listeners
                 container.addEventListener('dragstart', this.handleDragStart.bind(this));
                 container.addEventListener('dragover', this.handleDragOver.bind(this));
                 container.addEventListener('dragleave', this.handleDragLeave.bind(this));
@@ -686,13 +749,22 @@
             handleContainerClick(e) {
                 const target = e.target;
                 const pathElement = target.closest('[data-path]');
-                if (!pathElement) return;
-
-                const path = pathElement.dataset.path;
                 
-                if (target.closest('.add-subcategory-btn')) { e.preventDefault(); this.handleAddSubCategory(path); return; }
-                if (target.closest('.delete-btn')) { e.preventDefault(); this.handleDelete(path); return; }
-                if (target.closest('.generate-btn')) this.handleGenerate(target.closest('.generate-btn'), path);
+                if (target.closest('.add-subcategory-btn')) { e.preventDefault(); this.handleAddSubCategory(pathElement.dataset.path); return; }
+                if (target.closest('.delete-btn')) { e.preventDefault(); this.handleDelete(pathElement.dataset.path); return; }
+                
+                if (!pathElement) return;
+                const path = pathElement.dataset.path;
+
+                if (target.closest('.generate-btn')) {
+                    const endpoint = document.getElementById('api-endpoint').value;
+                    const key = endpoint === 'gemini' ? UI.elements.geminiApiKey.value : UI.elements.openrouterApiKey.value;
+                    if (!key.trim()) {
+                        UI.showNotification(`Please add an API key for ${endpoint === 'gemini' ? 'Gemini' : 'OpenRouter'} in the Global Settings to use this feature.`);
+                        return;
+                    }
+                    this.handleGenerate(target.closest('.generate-btn'), path);
+                }
                 if (target.closest('.copy-btn')) this.handleCopy(path);
                 if (target.closest('.add-wildcard-btn')) this.handleAddWildcard(pathElement, path);
                 if (target.closest('.batch-delete-btn')) this.handleBatchDelete(pathElement, path);
@@ -722,24 +794,25 @@
                     const oldKey = path.split('/').pop();
                     const oldText = oldKey.replace(/_/g, ' ');
                     const newText = target.textContent.trim();
+                    
+                    if (!newText || newText === oldText) {
+                         target.textContent = oldText; // Revert if empty or unchanged
+                         return;
+                    }
                     const newKey = newText.replace(/\s+/g, '_');
 
-                    if (newText && newText !== oldText) {
-                        if (parentObject[newKey]) {
-                            UI.showNotification(`An item named "${newText}" already exists here.`);
-                            target.textContent = oldText;
-                            return;
-                        }
-                        State.saveStateToHistory();
-                        const data = parentObject[oldKey];
-                        delete parentObject[oldKey];
-                        parentObject[newKey] = data;
-                        State.saveState(true);
-                        UI.renderAll();
-                        UI.announce(`Renamed "${oldText}" to "${newText}".`);
-                    } else {
+                    if (parentObject[newKey]) {
+                        UI.showNotification(`An item named "${newText}" already exists here.`);
                         target.textContent = oldText;
+                        return;
                     }
+                    State.saveStateToHistory();
+                    const data = parentObject[oldKey];
+                    delete parentObject[oldKey];
+                    parentObject[newKey] = data;
+                    State.saveState(true);
+                    UI.renderAll();
+                    UI.announce(`Renamed "${oldText}" to "${newText}".`);
                 }
             },
             async handleGenerate(btn, path) {
@@ -761,6 +834,66 @@
                     UI.showNotification(`Error: ${error.message || "An unknown error occurred."}`);
                 } finally {
                     if (!Api.activeController) UI.toggleGenerateButton(btn, false);
+                }
+            },
+            async handleSuggestCategories() {
+                const endpoint = document.getElementById('api-endpoint').value;
+                const key = endpoint === 'gemini' ? UI.elements.geminiApiKey.value : UI.elements.openrouterApiKey.value;
+                if (!key.trim()) {
+                    UI.showNotification(`Please add an API key for ${endpoint === 'gemini' ? 'Gemini' : 'OpenRouter'} in the Global Settings to use this feature.`);
+                    return;
+                }
+
+                const existingCategories = Object.keys(State.appState.wildcards);
+                if (existingCategories.length === 0) {
+                    UI.showNotification('Please add at least one category before asking for suggestions.');
+                    return;
+                }
+
+                UI.showNotification('Asking AI for category suggestions...');
+                
+                try {
+                    const suggestions = await Api.suggestCategories(existingCategories);
+                    if (!suggestions || suggestions.length === 0) {
+                        UI.showNotification('The AI did not return any suggestions. Please try again.');
+                        return;
+                    }
+
+                    const suggestionHtml = `
+                        <p class="mb-4 text-left">Here are some suggested categories. Select the ones you want to add:</p>
+                        <div id="suggestion-list" class="space-y-2 text-left max-h-60 overflow-y-auto custom-scrollbar p-2 bg-gray-900 rounded-md border border-gray-600">
+                            ${suggestions.map((s, i) => `
+                                <label for="suggestion-${i}" class="flex items-center p-2 rounded-md hover:bg-gray-700 cursor-pointer">
+                                    <input type="checkbox" id="suggestion-${i}" value="${sanitize(s)}" class="suggestion-checkbox h-4 w-4 bg-gray-700 border-gray-500 text-indigo-600 focus:ring-indigo-500 rounded mr-3" checked>
+                                    <span>${sanitize(s)}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+
+                    UI.showNotification(suggestionHtml, true, () => {
+                        const selected = Array.from(document.querySelectorAll('.suggestion-checkbox:checked')).map(cb => cb.value);
+                        if (selected.length > 0) {
+                            State.saveStateToHistory();
+                            let addedCount = 0;
+                            selected.forEach(name => {
+                                const sanitizedName = name.trim().replace(/\s+/g, '_');
+                                if (sanitizedName && !State.appState.wildcards[sanitizedName]) {
+                                    State.appState.wildcards[sanitizedName] = {};
+                                    addedCount++;
+                                }
+                            });
+                            if (addedCount > 0) {
+                                State.saveState(true);
+                                UI.renderAll();
+                                UI.announce(`${addedCount} new categories added.`);
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    console.error("Suggestion error:", error);
+                    UI.showNotification(`Error: ${error.message || "An unknown error occurred."}`);
                 }
             },
             handleCopy(path) { const content = this.getObjectByPath(path).wildcards.join('\n'); navigator.clipboard.writeText(content).then(() => UI.showNotification('Copied!')).catch(() => UI.showNotification('Failed to copy.')); },
@@ -800,19 +933,20 @@
             handleAddSubCategory(path) {
                 const parentObject = this.getObjectByPath(path);
                 const parentName = path.split('/').pop().replace(/_/g, ' ');
-                UI.showNotification(`Add new item to "${parentName}"? Enter name:`, true, (name) => {
+                UI.showNotification(`Add new item to "${parentName}".\nEnter name:`, true, (name) => {
                     if (name && name.trim()) {
                         const sanitizedName = name.trim().replace(/\s+/g, '_');
                         if (parentObject[sanitizedName]) { UI.showNotification(`"${sanitizedName}" already exists here.`); return; }
-                        State.saveStateToHistory();
-                        UI.showNotification('Is this a category folder or a wildcard list?', true, (type) => {
-                             if (type === 'folder') {
+                        
+                        UI.showNotification(`Is "${name}" a category folder or a wildcard list?\nType 'folder' or 'list'.`, true, (type) => {
+                             State.saveStateToHistory();
+                             if (type && type.trim().toLowerCase() === 'folder') {
                                 parentObject[sanitizedName] = {};
                              } else {
                                 parentObject[sanitizedName] = { instruction: '', wildcards: [] };
                              }
                              State.saveState(true); UI.renderAll();
-                        }, false); // This is a simplified prompt. A better UI would use radio buttons. For now, any input other than 'folder' creates a list.
+                        }, true);
                     }
                 }, true);
             },
@@ -820,51 +954,45 @@
                 const term = searchTerm.toLowerCase().trim();
                 const container = UI.elements.container;
 
+                container.querySelectorAll('.highlight').forEach(el => {
+                    el.outerHTML = el.textContent;
+                });
                 container.querySelectorAll('[data-path]').forEach(el => el.style.display = 'block');
-                container.querySelectorAll('.highlight').forEach(el => el.outerHTML = el.innerHTML);
-
+                
                 if (!term) return;
 
                 const matchedPaths = new Set();
                 
-                function recursiveSearch(data, path) {
-                    let hasMatchInBranch = false;
-                    const isLeaf = Array.isArray(data.wildcards);
+                function findVisiblePaths(obj, currentPath) {
+                    Object.keys(obj).forEach(key => {
+                        const newPath = currentPath ? `${currentPath}/${key}` : key;
+                        const data = obj[key];
+                        const isLeaf = Array.isArray(data.wildcards);
 
-                    if (isLeaf) {
-                        const matchingWildcards = data.wildcards.filter(wc => wc.toLowerCase().includes(term));
-                        if (matchingWildcards.length > 0) {
-                            hasMatchInBranch = true;
-                            matchedPaths.add(path);
-                        }
-                    } else {
-                        for (const key in data) {
-                            if (recursiveSearch(data[key], `${path}/${key}`)) {
-                                hasMatchInBranch = true;
+                        if (isLeaf) {
+                            if (data.wildcards.some(wc => wc.toLowerCase().includes(term))) {
+                                matchedPaths.add(newPath);
+                            }
+                        } else {
+                            if (findVisiblePaths(data, newPath)) {
+                                matchedPaths.add(newPath);
                             }
                         }
-                    }
-                    return hasMatchInBranch;
+                    });
+                    return Array.from(matchedPaths).some(p => p.startsWith(currentPath));
                 }
-
-                recursiveSearch(State.appState.wildcards, '');
+                
+                findVisiblePaths(State.appState.wildcards, '');
 
                 container.querySelectorAll('[data-path]').forEach(el => {
                     const path = el.dataset.path;
-                    let isMatch = false;
-                    for (const matchedPath of matchedPaths) {
-                        if (matchedPath.startsWith(path)) {
-                            isMatch = true;
-                            break;
-                        }
-                    }
+                    const isAncestorOrMatch = Array.from(matchedPaths).some(p => p.startsWith(path));
 
-                    if (isMatch) {
+                    if (isAncestorOrMatch) {
                         el.style.display = 'block';
-                        if (el.tagName === 'DETAILS') {
-                            el.open = true;
-                        }
-                        if(matchedPaths.has(path)) { // It's a direct match, highlight wildcards
+                        if (el.tagName === 'DETAILS') el.open = true;
+                        
+                        if(matchedPaths.has(path)) {
                             el.querySelectorAll('.chip span').forEach(span => {
                                 const originalText = span.textContent;
                                 if (originalText.toLowerCase().includes(term)) {
@@ -889,10 +1017,16 @@
             },
             handleDragOver(e) {
                 e.preventDefault();
-                const target = e.target.closest('.content-wrapper');
-                if (target) {
-                    target.classList.add('drag-over');
+                const dropZone = e.target.closest('.content-wrapper');
+                if (!dropZone || !this.draggedPath) return;
+
+                const dropPath = dropZone.parentElement.dataset.path;
+
+                if (this.draggedPath === dropPath || dropPath.startsWith(this.draggedPath + '/')) {
+                    dropZone.classList.remove('drag-over');
+                    return;
                 }
+                dropZone.classList.add('drag-over');
             },
             handleDragLeave(e) {
                 const target = e.target.closest('.content-wrapper');
@@ -938,16 +1072,18 @@
             handleDownloadZip() {
                 const zip = new JSZip();
                 const addFilesToZip = (data, path) => {
-                    const isLeaf = data && Array.isArray(data.wildcards);
-                    if (isLeaf) {
-                        const fileName = path.replace(/\//g, '__') + '.txt';
-                        zip.file(fileName, data.wildcards.join('\n'));
-                    } else if (data && typeof data === 'object') {
-                        zip.folder(path);
-                        for (const key in data) {
-                            addFilesToZip(data[key], `${path}/${key}`);
+                    Object.keys(data).forEach(key => {
+                        const currentData = data[key];
+                        const currentPath = path ? `${path}/${key}` : key;
+                        const isLeaf = Array.isArray(currentData.wildcards);
+
+                        if (isLeaf) {
+                            const fileName = currentPath.replace(/\//g, '__') + '.txt';
+                            zip.file(fileName, currentData.wildcards.join('\n'));
+                        } else {
+                            addFilesToZip(currentData, currentPath);
                         }
-                    }
+                    });
                 };
                 addFilesToZip(State.appState.wildcards, '');
                 zip.generateAsync({ type:"blob" }).then(content => { const a = document.createElement('a'); a.href = URL.createObjectURL(content); a.download = "wildcard_collection.zip"; a.click(); URL.revokeObjectURL(a.href); });
@@ -956,7 +1092,7 @@
             handleImportState() { const input = document.createElement('input'); input.type = 'file'; input.accept = '.json'; input.onchange = e => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = re => { try { const importedState = JSON.parse(re.target.result); if (importedState.systemPrompt && importedState.wildcards) { State.appState = importedState; State.saveState(true); State.clearHistory(); State.saveStateToHistory(); UI.renderAll(); UI.showNotification('State imported successfully.'); } else { UI.showNotification('Invalid state file format.'); } } catch (error) { UI.showNotification(`Error importing: ${error.message}`); } }; reader.readAsText(file); }; input.click(); },
             handleUndo() { if (State.undo()) { UI.renderAll(); UI.announce("Undo complete."); } },
             handleRedo() { if (State.redo()) { UI.renderAll(); UI.announce("Redo complete."); } },
-            handleHelp() { UI.showNotification(`Welcome!\n\nKey Features:\n- Global Settings: Set API keys and choose your provider.\n- Recursive Categories: Add nested categories for better organization.\n- Drag & Drop: Reorder items by dragging them into category folders.\n- Inline Renaming: Click any title to rename it.\n- Generate More: Use AI to create new wildcards for any list.\n- Export/Import: Save and load your entire setup.\n- Undo/Redo: Revert or re-apply changes.`); }
+            handleHelp() { UI.showNotification(`Welcome!\n\nKey Features:\n- Global Settings: Set API keys and choose your provider.\n- Recursive Categories: Add nested categories for better organization.\n- Drag & Drop: Reorder items by dragging them into category folders.\n- Inline Renaming: Click any title to rename it.\n- Generate More: Use AI to create new wildcards for any list.\n- Suggest Categories: Use AI to get ideas for new top-level categories.\n- Export/Import: Save and load your entire setup.\n- Undo/Redo: Revert or re-apply changes.`); }
         };
 
         document.addEventListener('DOMContentLoaded', () => App.init());
