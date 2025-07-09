@@ -1,57 +1,6 @@
-0_PROMPT_META_&_GLOBAL: # instruction: Keywords that control the overall image generation parameters, not the content itself.
-  Aspect_Ratio:
-    instruction: "Define the image dimensions and orientation"
-    wildcards:
-    - '1:1'
-    - '4:5'
-    - '3:2'
-    - '16:9'
-    - '9:16'
-    - '2.39:1'
-    - panorama
-    - tiny-planet
-  Resolution:
-    instruction: "Image quality and detail level"
-    wildcards:
-    - 4K
-    - 8K
-    - 12K
-    - IMAX
-    - HD
-    - UHD
-    - cinema quality
-  Orientation:
-    instruction: "Image layout orientation"
-    wildcards:
-    - portrait
-    - landscape
-    - square
-    - panorama
-  Negative_Prompt_Tokens:
-    instruction: "Elements to avoid in generation"
-    wildcards:
-    - blurry
-    - low quality
-    - watermark
-    - text
-    - low-res
-    - jpeg artifacts
-    - duplicate limbs
-    - flat lighting
-  Style_Tokens:
-    instruction: "Global style modifiers"
-    wildcards:
-    - analog style
-    - vivid
-    - cinematic
-    - artistic
-    - photorealistic
-    - hyperrealistic
-'1_SUBJECT_&_CONTENT': # instruction: The main focus of the image. What the picture is 'of'.
+1_SUBJECT_&_CONTENT: # instruction: The main focus of the image. What the picture is of.
   PEOPLE: # instruction: Human subjects, their characteristics, roles, and attire.
-    Demographics:
-      instruction: "Human diversity characteristics"
-      wildcards:
+    Demographics: # instruction: Human diversity characteristics
       - infant
       - toddler
       - child
@@ -69,9 +18,7 @@
       - feminine
       - androgynous
       - non-binary
-    Archetypes:
-      instruction: "Character roles and personality types"
-      wildcards:
+    Archetypes: # instruction: Character roles and personality types
       - hero
       - innocent
       - sage
@@ -88,9 +35,7 @@
       - warrior
       - mystic
     Occupations: # instruction: Categorization of jobs and professions by time period.
-      Modern:
-        instruction: "Contemporary professions"
-        wildcards:
+      Modern: # instruction: Contemporary professions
         - astronaut
         - doctor
         - programmer
@@ -106,9 +51,7 @@
         - artist
         - engineer
         - teacher
-      Historical_Fantasy:
-        instruction: "Period and fantasy roles"
-        wildcards:
+      Historical_Fantasy: # instruction: Period and fantasy roles
         - knight
         - samurai
         - pharaoh
@@ -124,9 +67,7 @@
         - monk
         - bard
         - ranger
-    Physical_Attributes:
-      instruction: "Physical appearance characteristics"
-      wildcards:
+    Physical_Attributes: # instruction: Physical appearance characteristics
       - athletic
       - slender
       - muscular
@@ -155,9 +96,7 @@
       - tattoos
       - piercings
       - cyber-implants
-    Clothing_Fashion:
-      instruction: "Attire and fashion styles"
-      wildcards:
+    Clothing_Fashion: # instruction: Attire and fashion styles
       - avant-garde
       - boho
       - casual
@@ -190,9 +129,7 @@
       - gloves
       - scarf
   CREATURES_&_BEINGS: # instruction: Non-human subjects, including real animals, mythical beasts, and artificial life.
-    Animals_by_Class:
-      instruction: "Biological classification groups"
-      wildcards:
+    Animals_by_Class: # instruction: Biological classification groups
       - mammals
       - birds
       - reptiles
@@ -203,9 +140,7 @@
       - crustaceans
       - mollusks
       - cnidarians
-    Animals_by_Biome:
-      instruction: "Environment-specific animals"
-      wildcards:
+    Animals_by_Biome: # instruction: Environment-specific animals
       - polar bear
       - arctic fox
       - camel
@@ -222,9 +157,7 @@
       - shark
       - eagle
       - wolf
-    Mythical_Fantasy:
-      instruction: "Legendary and fantasy creatures"
-      wildcards:
+    Mythical_Fantasy: # instruction: Legendary and fantasy creatures
       - dragon
       - griffin
       - unicorn
@@ -244,9 +177,7 @@
       - chimera
       - hydra
       - sphinx
-    Robots_Cyborgs:
-      instruction: "Artificial and hybrid beings"
-      wildcards:
+    Robots_Cyborgs: # instruction: Artificial and hybrid beings
       - android
       - gynoid
       - mech
@@ -257,9 +188,7 @@
       - AI construct
       - powered exosuit
       - cyborg
-    Mounts_Companions:
-      instruction: "Rideable creatures and animal companions"
-      wildcards:
+    Mounts_Companions: # instruction: Rideable creatures and animal companions
       - griffin mount
       - cyber-horse
       - dire wolf steed
@@ -269,9 +198,7 @@
       - giant eagle
       - war elephant
   OBJECTS_&_ITEMS: # instruction: Inanimate objects, from everyday items to fantastical artifacts.
-    Technology:
-      instruction: "Modern and futuristic devices"
-      wildcards:
+    Technology: # instruction: Modern and futuristic devices
       - smartphone
       - drone
       - VR headset
@@ -284,9 +211,7 @@
       - neural interface
       - quantum computer
       - fusion reactor
-    Weapons_Armor:
-      instruction: "Combat equipment and protection"
-      wildcards:
+    Weapons_Armor: # instruction: Combat equipment and protection
       - katana
       - longsword
       - axe
@@ -306,9 +231,7 @@
       - energy sword
       - force field
     Vehicles_Transportation: # instruction: Modes of transport across different environments.
-      Terrestrial:
-        instruction: "Land-based vehicles"
-        wildcards:
+      Terrestrial: # instruction: Land-based vehicles
         - sports car
         - cybertruck
         - steam locomotive
@@ -317,9 +240,7 @@
         - hovercraft
         - mech walker
         - armored vehicle
-      Aerial:
-        instruction: "Flying vehicles"
-        wildcards:
+      Aerial: # instruction: Flying vehicles
         - biplane
         - dirigible
         - ornithopter
@@ -328,9 +249,7 @@
         - fighter jet
         - flying car
         - airship
-      Nautical:
-        instruction: "Water vehicles"
-        wildcards:
+      Nautical: # instruction: Water vehicles
         - pirate ship
         - submarine
         - hydrofoil
@@ -338,9 +257,7 @@
         - yacht
         - aircraft carrier
         - hovercraft
-      Space:
-        instruction: "Spacecraft and space vehicles"
-        wildcards:
+      Space: # instruction: Spacecraft and space vehicles
         - starfighter
         - generation ship
         - space station
@@ -348,9 +265,7 @@
         - orbital platform
         - moon base
         - asteroid mining ship
-    Buildings_Structures:
-      instruction: "Architectural subjects and landmarks"
-      wildcards:
+    Buildings_Structures: # instruction: Architectural subjects and landmarks
       - lighthouse
       - pagoda
       - skyscraper
@@ -364,9 +279,7 @@
       - monument
       - temple
       - palace
-    Containers_Vessels:
-      instruction: "Storage and containment objects"
-      wildcards:
+    Containers_Vessels: # instruction: Storage and containment objects
       - potion bottle
       - ornate chest
       - scroll case
@@ -377,9 +290,7 @@
       - crystal vial
       - magical tome
       - jewelry box
-    Tools_Instruments:
-      instruction: "Implements and equipment"
-      wildcards:
+    Tools_Instruments: # instruction: Implements and equipment
       - sextant
       - telescope
       - abacus
@@ -392,9 +303,7 @@
       - pocket watch
       - astrolabe
       - microscope
-    Food_Drink:
-      instruction: "Consumables and beverages"
-      wildcards:
+    Food_Drink: # instruction: Consumables and beverages
       - exotic fruit
       - steaming stew
       - magical potion
@@ -406,9 +315,7 @@
       - mystical tea
       - energy drink
   ABSTRACT_&_CONCEPTS: # instruction: Non-physical subjects, ideas, and emotions.
-    Geometric:
-      instruction: "Mathematical and geometric forms"
-      wildcards:
+    Geometric: # instruction: Mathematical and geometric forms
       - fractal
       - tessellation
       - mandala
@@ -419,9 +326,7 @@
       - impossible geometry
       - sacred geometry
       - crystal lattice
-    Ethereal:
-      instruction: "Intangible and spiritual concepts"
-      wildcards:
+    Ethereal: # instruction: Intangible and spiritual concepts
       - soul
       - aura
       - spirit
@@ -436,9 +341,7 @@
       - essence
       - energy
       - harmony
-    Emotions_Personified:
-      instruction: "Emotions as visual entities"
-      wildcards:
+    Emotions_Personified: # instruction: Emotions as visual entities
       - hope
       - despair
       - joy
@@ -454,9 +357,7 @@
       - creation
       - destruction
   HISTORICAL_ERAS_&_CULTURES: # instruction: Themes related to specific time periods and societies.
-    Time_Periods:
-      instruction: "Historical time periods and eras"
-      wildcards:
+    Time_Periods: # instruction: Historical time periods and eras
       - prehistoric
       - stone age
       - bronze age
@@ -476,9 +377,7 @@
       - Y2K
       - cyberpunk future
       - post-apocalyptic
-    Civilizations_Regions:
-      instruction: "Cultural and geographical origins"
-      wildcards:
+    Civilizations_Regions: # instruction: Cultural and geographical origins
       - ancient Egypt
       - ancient Greece
       - Roman Empire
@@ -499,11 +398,9 @@
       - Persian
       - Mesopotamian
       - Indian Subcontinent
-'2_ACTION_POSE_&_EMOTION': # instruction: Describes what the subject is doing, feeling, or how they are positioned.
+2_ACTION_POSE_&_EMOTION: # instruction: Describes what the subject is doing, feeling, or how they are positioned.
   Dynamic_Actions: # instruction: Actions involving significant movement or interaction.
-    Locomotion:
-      instruction: "Movement and travel actions"
-      wildcards:
+    Locomotion: # instruction: Movement and travel actions
       - leaping
       - crouching
       - crawling
@@ -516,9 +413,7 @@
       - flying
       - teleporting
       - phasing
-    Combat:
-      instruction: "Fighting and battle actions"
-      wildcards:
+    Combat: # instruction: Fighting and battle actions
       - parrying
       - dodging
       - casting spell
@@ -531,9 +426,7 @@
       - flanking
       - dueling
       - defending
-    Interaction:
-      instruction: "Social and environmental interactions"
-      wildcards:
+    Interaction: # instruction: Social and environmental interactions
       - offering
       - beckoning
       - commanding
@@ -547,9 +440,7 @@
       - negotiating
       - discovering
   Static_Poses: # instruction: Stationary positions for a subject.
-    Standing:
-      instruction: "Upright stationary positions"
-      wildcards:
+    Standing: # instruction: Upright stationary positions
       - arms crossed
       - akimbo
       - looking over shoulder
@@ -559,9 +450,7 @@
       - contemplative
       - guard position
       - presentation pose
-    Sitting:
-      instruction: "Seated positions"
-      wildcards:
+    Sitting: # instruction: Seated positions
       - on throne
       - lotus position
       - cross-legged
@@ -571,9 +460,7 @@
       - formal sitting
       - casual sitting
       - edge sitting
-    Reclining:
-      instruction: "Lying down positions"
-      wildcards:
+    Reclining: # instruction: Lying down positions
       - lying on back
       - fetal position
       - sunbathing
@@ -583,9 +470,7 @@
       - resting
       - sleeping
       - dreaming pose
-    Hand_Gestures:
-      instruction: "Hand and arm positions"
-      wildcards:
+    Hand_Gestures: # instruction: Hand and arm positions
       - pointing
       - clenched fist
       - open palm
@@ -596,9 +481,7 @@
       - finger guns
       - magical gestures
       - blessing gesture
-  Facial_Expressions:
-    instruction: "Emotional expressions and facial features"
-    wildcards:
+  Facial_Expressions: # instruction: Emotional expressions and facial features
     - pensive
     - determined
     - awestruck
@@ -619,9 +502,7 @@
     - peaceful
     - suspicious
     - amazed
-  Group_Interactions:
-    instruction: "Multi-person social dynamics"
-    wildcards:
+  Group_Interactions: # instruction: Multi-person social dynamics
     - duelling
     - embracing
     - rallying crowd
@@ -634,9 +515,7 @@
     - council meeting
     - protest march
     - performance ensemble
-  Micro_Gestures:
-    instruction: "Subtle body language and small movements"
-    wildcards:
+  Micro_Gestures: # instruction: Subtle body language and small movements
     - subtle smile
     - eyebrow raise
     - hair flip
@@ -649,18 +528,16 @@
     - nervous fidget
     - confident smirk
     - knowing glance
-'3_ENVIRONMENT_&_SETTING': # instruction: The background and world where the subject exists.
+3_ENVIRONMENT_&_SETTING: # instruction: The background and world where the subject exists.
   Location: # instruction: Specific types of indoor and outdoor settings.
-    Interior:
-      instruction: "Indoor environments and spaces"
-      wildcards:
+    Interior: # instruction: Indoor environments and spaces
       - abandoned asylum
       - grand ballroom
-      - "alchemist's laboratory"
+      - "alchemists laboratory"
       - starship bridge
       - cozy hobbit hole
       - data center
-      - "necromancer's lair"
+      - "necromancers lair"
       - library
       - cathedral
       - laboratory
@@ -674,9 +551,7 @@
       - courtroom
       - observatory
       - control room
-    Exterior_Man_Made:
-      instruction: "Outdoor constructed environments"
-      wildcards:
+    Exterior_Man_Made: # instruction: Outdoor constructed environments
       - dystopian megalopolis
       - rooftop garden
       - abandoned theme park
@@ -696,9 +571,7 @@
       - stadium
       - bridge
       - monument plaza
-    Exterior_Natural:
-      instruction: "Natural outdoor environments"
-      wildcards:
+    Exterior_Natural: # instruction: Natural outdoor environments
       - volcanic caldera
       - bioluminescent cave
       - crystal forest
@@ -719,9 +592,7 @@
       - hot springs
       - geyser field
   Time_Weather: # instruction: Atmospheric conditions and time of day.
-    Time_of_Day:
-      instruction: "Temporal lighting conditions"
-      wildcards:
+    Time_of_Day: # instruction: Temporal lighting conditions
       - sunrise
       - golden hour
       - high noon
@@ -737,9 +608,7 @@
       - early morning
       - overcast day
       - stormy evening
-    Weather_Conditions:
-      instruction: "Atmospheric and weather phenomena"
-      wildcards:
+    Weather_Conditions: # instruction: Atmospheric and weather phenomena
       - torrential rain
       - blinding blizzard
       - sandstorm
@@ -759,9 +628,7 @@
       - windy
       - calm
       - humid
-    Celestial_Events:
-      instruction: "Astronomical and sky phenomena"
-      wildcards:
+    Celestial_Events: # instruction: Astronomical and sky phenomena
       - aurora borealis
       - solar eclipse
       - meteor shower
@@ -777,9 +644,7 @@
       - cosmic storm
       - alien sky
       - multiple suns
-    Seasonal_Changes:
-      instruction: "Season-specific environmental elements"
-      wildcards:
+    Seasonal_Changes: # instruction: Season-specific environmental elements
       - cherry blossom spring
       - summer solstice
       - autumn harvest
@@ -795,9 +660,7 @@
       - autumn colors
       - winter stillness
   Architecture: # instruction: Building styles, materials, and types.
-    Architectural_Styles:
-      instruction: "Building design and architectural movements"
-      wildcards:
+    Architectural_Styles: # instruction: Building design and architectural movements
       - art deco
       - art nouveau
       - baroque
@@ -818,9 +681,7 @@
       - moorish
       - tudor
       - colonial
-    Building_Materials:
-      instruction: "Construction materials and textures"
-      wildcards:
+    Building_Materials: # instruction: Construction materials and textures
       - marble
       - adobe
       - rusted metal
@@ -841,9 +702,7 @@
       - plasma
       - holographic
       - living wood
-    Vernacular_Styles:
-      instruction: "Regional and traditional architectural forms"
-      wildcards:
+    Vernacular_Styles: # instruction: Regional and traditional architectural forms
       - chalet
       - tulou
       - riads
@@ -863,9 +722,7 @@
       - underground dwelling
       - ice castle
       - crystal palace
-  Flora_Fauna_Details: # instruction: Specific plants, animals, and natural details to populate the environment.
-    instruction: "Environmental life and natural elements"
-    wildcards:
+  Flora_Fauna_Details: # instruction: Environmental life and natural elements
     - overgrown ivy
     - weeping willows
     - alien plants
@@ -885,9 +742,7 @@
     - microscopic ecosystem
     - giant flora
     - crystalline plants
-  Natural_Phenomena: # instruction: Large-scale environmental events and occurrences.
-    instruction: "Natural events and environmental effects"
-    wildcards:
+  Natural_Phenomena: # instruction: Natural events and environmental effects
     - super-cell tornado
     - bioluminescent tide
     - volcanic eruption
@@ -907,10 +762,8 @@
     - time dilation zone
     - dimensional rift
     - energy vortex
-'4_COMPOSITION_&_CINEMATOGRAPHY': # instruction: How the scene is framed, shot, and composed, as if by a camera.
-  Shot_Framing:
-    instruction: "Camera position and subject framing"
-    wildcards:
+4_COMPOSITION_&_CINEMATOGRAPHY: # instruction: How the scene is framed, shot, and composed, as if by a camera.
+  Shot_Framing: # instruction: Camera position and subject framing
     - establishing shot
     - wide shot
     - medium shot
@@ -926,14 +779,12 @@
     - reaction shot
     - master shot
     - detail shot
-  Angle_Perspective:
-    instruction: "Camera angle and viewpoint"
-    wildcards:
+  Angle_Perspective: # instruction: Camera angle and viewpoint
     - dutch angle
     - low angle
     - high angle
-    - "bird's-eye view"
-    - "worm's-eye view"
+    - "birds-eye view"
+    - "worms-eye view"
     - eye level
     - forced perspective
     - one-point perspective
@@ -944,9 +795,7 @@
     - oblique
     - orthographic
     - fish-eye perspective
-  Focus_Depth:
-    instruction: "Focus techniques and depth effects"
-    wildcards:
+  Focus_Depth: # instruction: Focus techniques and depth effects
     - deep focus
     - shallow depth of field
     - bokeh
@@ -962,15 +811,13 @@
     - focus pulling
     - hyperfocal distance
     - zone focusing
-  Aspect_Canvas:
-    instruction: "Image format and canvas arrangements"
-    wildcards:
+  Aspect_Canvas: # instruction: Image format and canvas arrangements
     - square
-    - '4:5 portrait'
-    - '3:2 classic'
-    - '16:9 widescreen'
-    - '21:9 ultrawide'
-    - '2.39:1 cinemascope'
+    - 4:5 portrait
+    - 3:2 classic
+    - 16:9 widescreen
+    - 21:9 ultrawide
+    - 2.39:1 cinemascope
     - vertical panorama
     - horizontal panorama
     - triptych
@@ -980,9 +827,7 @@
     - keyhole view
     - split screen
     - multiple panels
-  Movement_Techniques:
-    instruction: "Motion capture and dynamic effects"
-    wildcards:
+  Movement_Techniques: # instruction: Motion capture and dynamic effects
     - long-exposure trails
     - bullet-time freeze
     - time-lapse
@@ -998,10 +843,8 @@
     - whip pan
     - freeze frame
     - motion ghosting
-'5_STYLE_&_AESTHETICS': # instruction: The overall visual style, art movement, and mood of the image.
-  Art_Movements:
-    instruction: "Historical and contemporary art styles"
-    wildcards:
+5_STYLE_&_AESTHETICS: # instruction: The overall visual style, art movement, and mood of the image.
+  Art_Movements: # instruction: Historical and contemporary art styles
     - abstract expressionism
     - impressionism
     - cubism
@@ -1023,9 +866,7 @@
     - photorealism
     - conceptual art
   Medium_Technique: # instruction: The artistic medium used, both digital and traditional.
-    Digital:
-      instruction: "Digital art creation methods"
-      wildcards:
+    Digital: # instruction: Digital art creation methods
       - 3D render
       - digital painting
       - pixel art
@@ -1041,9 +882,7 @@
       - high-poly
       - wireframe
       - holographic display
-    Traditional:
-      instruction: "Classic art mediums and techniques"
-      wildcards:
+    Traditional: # instruction: Classic art mediums and techniques
       - oil painting
       - watercolor
       - acrylic
@@ -1064,9 +903,7 @@
       - relief carving
       - intaglio
       - monotype
-  Aesthetic_Genres: # instruction: Popular and niche visual styles and subcultures.
-    instruction: "Visual style genres and movements"
-    wildcards:
+  Aesthetic_Genres: # instruction: Visual style genres and movements
     - cyberpunk
     - steampunk
     - dieselpunk
@@ -1087,9 +924,7 @@
     - afrofuturism
     - retrofuturism
     - post-apocalyptic
-  Color_Schemes:
-    instruction: "Color theory and palette arrangements"
-    wildcards:
+  Color_Schemes: # instruction: Color theory and palette arrangements
     - monochromatic
     - analogous
     - complementary
@@ -1110,9 +945,7 @@
     - warm palette
     - cool palette
     - neutral palette
-  Textures_Patterns: # instruction: Surface qualities and repeating visual motifs.
-    instruction: "Surface qualities and decorative elements"
-    wildcards:
+  Textures_Patterns: # instruction: Surface qualities and decorative elements
     - smooth
     - rough
     - glossy
@@ -1133,9 +966,7 @@
     - cracked paint
     - fabric weave
     - stone texture
-  Mood_Atmosphere: # instruction: The emotional tone and feeling of the image.
-    instruction: "Emotional and atmospheric qualities"
-    wildcards:
+  Mood_Atmosphere: # instruction: Emotional and atmospheric qualities
     - ethereal
     - ominous
     - melancholic
@@ -1156,9 +987,7 @@
     - somber
     - energetic
     - contemplative
-  Film_Techniques: # instruction: Effects and styles borrowed from photography and cinema.
-    instruction: "Photography and film processing effects"
-    wildcards:
+  Film_Techniques: # instruction: Photography and film processing effects
     - infrared
     - ultraviolet
     - double exposure
@@ -1174,9 +1003,7 @@
     - low key
     - chiaroscuro
     - rembrandt lighting
-  Post_Processing: # instruction: Digital effects applied after the 'shot' is taken.
-    instruction: "Digital enhancement and effects"
-    wildcards:
+  Post_Processing: # instruction: Digital enhancement and effects
     - HDR
     - tone mapping
     - color grading
@@ -1196,9 +1023,7 @@
     - desaturation
     - oversaturation
     - contrast boost
-  Cultural_Motifs: # instruction: Design elements and symbols from various world cultures.
-    instruction: "Traditional and cultural design elements"
-    wildcards:
+  Cultural_Motifs: # instruction: Traditional and cultural design elements
     - Maori kowhaiwhai
     - Islamic arabesque
     - Celtic knotwork
@@ -1214,11 +1039,9 @@
     - Roman mosaics
     - Byzantine iconography
     - Gothic tracery
-'6_TECHNICAL_ATTRIBUTES_&_RENDERING': # instruction: Technical details about the virtual camera, lens, and rendering process.
+6_TECHNICAL_ATTRIBUTES_&_RENDERING: # instruction: Technical details about the virtual camera, lens, and rendering process.
   Lighting: # instruction: All aspects of how the scene is illuminated.
-    Lighting_Types:
-      instruction: "Different lighting techniques and sources"
-      wildcards:
+    Lighting_Types: # instruction: Different lighting techniques and sources
       - natural light
       - artificial light
       - studio lighting
@@ -1239,9 +1062,7 @@
       - key lighting
       - mood lighting
       - candlelight
-    Lighting_Quality:
-      instruction: "Characteristics of light appearance"
-      wildcards:
+    Lighting_Quality: # instruction: Characteristics of light appearance
       - soft light
       - hard light
       - diffused light
@@ -1262,9 +1083,7 @@
       - god rays
       - caustics
       - lens flares
-    Named_Lighting:
-      instruction: "Specific lighting styles and techniques"
-      wildcards:
+    Named_Lighting: # instruction: Specific lighting styles and techniques
       - chiaroscuro
       - rembrandt lighting
       - butterfly lighting
@@ -1280,9 +1099,7 @@
       - blue hour lighting
       - magic hour
       - twilight lighting
-  Detail_Quality: # instruction: The level of fidelity and detail in the final image.
-    instruction: "Level of detail and rendering quality"
-    wildcards:
+  Detail_Quality: # instruction: Level of detail and rendering quality
     - highly detailed
     - intricate
     - minimalist
@@ -1304,9 +1121,7 @@
     - ultra-detailed
     - macro detail
   Camera_Film: # instruction: Specifics about the virtual camera, lens, and film type.
-    Camera_Types:
-      instruction: "Different camera systems and formats"
-      wildcards:
+    Camera_Types: # instruction: Different camera systems and formats
       - DSLR
       - mirrorless
       - medium format
@@ -1327,9 +1142,7 @@
       - night vision
       - microscope
       - telescope
-    Lens_Effects:
-      instruction: "Optical effects and lens characteristics"
-      wildcards:
+    Lens_Effects: # instruction: Optical effects and lens characteristics
       - lens flare
       - chromatic aberration
       - vignetting
@@ -1349,9 +1162,7 @@
       - tilt-shift
       - focus falloff
       - depth of field
-    Film_Stocks:
-      instruction: "Film types and photographic mediums"
-      wildcards:
+    Film_Stocks: # instruction: Film types and photographic mediums
       - Kodachrome
       - Fujifilm
       - Ilford
@@ -1372,9 +1183,7 @@
       - low ISO
       - film grain
       - digital sensor
-    Technical_Specs:
-      instruction: "Camera settings and technical parameters"
-      wildcards:
+    Technical_Specs: # instruction: Camera settings and technical parameters
       - 14mm ultra-wide
       - 24mm wide
       - 35mm standard
@@ -1394,9 +1203,7 @@
       - 1/60 handheld
       - 1/15 motion
       - 30s long exposure
-  Rendering_Engines: # instruction: Simulated 3D software used to create the image.
-    instruction: "3D rendering software and techniques"
-    wildcards:
+  Rendering_Engines: # instruction: 3D rendering software and techniques
     - Octane Render
     - V-Ray
     - Arnold
@@ -1417,9 +1224,7 @@
     - path tracing
     - rasterization
     - real-time rendering
-  File_Aesthetics: # instruction: The appearance of the image as a digital file type.
-    instruction: "Digital file formats and presentation styles"
-    wildcards:
+  File_Aesthetics: # instruction: Digital file formats and presentation styles
     - RAW format
     - JPEG compression
     - PNG transparency
@@ -1440,10 +1245,8 @@
     - print ready
     - high resolution
     - low resolution
-'7_SPECIAL_FX_&_PARTICLES': # instruction: Visual effects like smoke, fire, magic, and debris.
-  Elements: # instruction: Fundamental particle effects like dust, sparks, and rain.
-    instruction: "Basic particle and environmental effects"
-    wildcards:
+7_SPECIAL_FX_&_PARTICLES: # instruction: Visual effects like smoke, fire, magic, and debris.
+  Elements: # instruction: Basic particle and environmental effects
     - sparks
     - embers
     - ash
@@ -1464,9 +1267,7 @@
     - sand grains
     - crystal fragments
     - energy orbs
-  Fluid_Energy: # instruction: Effects involving liquids, gases, and energy forms.
-    instruction: "Liquid and energy-based effects"
-    wildcards:
+  Fluid_Energy: # instruction: Liquid and energy-based effects
     - water splash
     - blood splatter
     - ink drops
@@ -1487,9 +1288,7 @@
     - force fields
     - solar winds
     - cosmic rays
-  Destruction: # instruction: Visuals of damage, decay, and things breaking.
-    instruction: "Breaking and destruction effects"
-    wildcards:
+  Destruction: # instruction: Breaking and destruction effects
     - shattered glass
     - broken concrete
     - crumbling stone
@@ -1510,9 +1309,7 @@
     - weathering
     - battle damage
     - impact craters
-  Atmospheric: # instruction: Ambient environmental effects related to light and air.
-    instruction: "Environmental and atmospheric effects"
-    wildcards:
+  Atmospheric: # instruction: Environmental and atmospheric effects
     - god rays
     - sun beams
     - moonbeams
@@ -1533,9 +1330,7 @@
     - shadows
     - silhouettes
     - backlighting
-  Magical_Supernatural: # instruction: Supernatural and fantasy-based visual effects.
-    instruction: "Fantasy and supernatural effects"
-    wildcards:
+  Magical_Supernatural: # instruction: Fantasy and supernatural effects
     - magical sparkles
     - fairy dust
     - glowing runes
@@ -1556,10 +1351,8 @@
     - psychic waves
     - astral projection
     - soul fragments
-'8_NARRATIVE_&_THEME': # instruction: The underlying story, message, or theme of the image.
-  Story_Genres: # instruction: High-level narrative genres like sci-fi, fantasy, or horror.
-    instruction: "Narrative categories and story types"
-    wildcards:
+8_NARRATIVE_&_THEME: # instruction: The underlying story, message, or theme of the image.
+  Story_Genres: # instruction: Narrative categories and story types
     - adventure
     - mystery
     - romance
@@ -1580,10 +1373,8 @@
     - political
     - social
     - philosophical
-  Narrative_Arcs: # instruction: Common story structures and character journeys.
-    instruction: "Story structure and character development"
-    wildcards:
-    - "hero's journey"
+  Narrative_Arcs: # instruction: Story structure and character development
+    - "heros journey"
     - coming of age
     - redemption
     - revenge
@@ -1603,9 +1394,7 @@
     - return
     - awakening
     - prophecy
-  Emotional_Themes: # instruction: The core emotions the image is intended to evoke.
-    instruction: "Core emotional and thematic elements"
-    wildcards:
+  Emotional_Themes: # instruction: Core emotional and thematic elements
     - love
     - loss
     - hope
@@ -1632,9 +1421,7 @@
     - war
     - order
     - chaos
-  Moral_Philosophical: # instruction: Ideas and conflicts related to ethics and philosophy.
-    instruction: "Ethical and philosophical perspectives"
-    wildcards:
+  Moral_Philosophical: # instruction: Ethical and philosophical perspectives
     - good vs evil
     - right vs wrong
     - duty vs desire
@@ -1650,9 +1437,7 @@
     - knowledge vs ignorance
     - civilization vs wilderness
     - technology vs humanity
-  Cultural_Social: # instruction: Themes related to society and culture.
-    instruction: "Social and cultural commentary themes"
-    wildcards:
+  Cultural_Social: # instruction: Social and cultural commentary themes
     - class struggle
     - racial equality
     - gender identity
@@ -1673,9 +1458,7 @@
     - rich vs poor
     - powerful vs powerless
     - connected vs isolated
-  Symbolic_Metaphorical: # instruction: The use of objects or concepts to represent deeper meanings.
-    instruction: "Symbolic meanings and metaphorical elements"
-    wildcards:
+  Symbolic_Metaphorical: # instruction: Symbolic meanings and metaphorical elements
     - light and darkness
     - seasons
     - journey

@@ -509,7 +509,8 @@
                         return response.text();
                     })
                     .then(yamlText => {
-                        const data = jsyaml.load(yamlText);
+                        const processedYaml = this.preprocessYamlForImport(yamlText);
+                        const data = jsyaml.load(processedYaml);
                         const appData = App.convertYamlToState(data);
                         performReset(appData);
                     })
@@ -1004,6 +1005,10 @@
                 container.addEventListener('dragend', this.handleDragEnd.bind(this));
             },
             convertYamlToState(yamlObj) {
+                if (!yamlObj || typeof yamlObj !== 'object') {
+                    return {};
+                }
+
                 const stateObj = {};
                 if (yamlObj.instruction) {
                     stateObj.instruction = yamlObj.instruction;
@@ -1013,16 +1018,17 @@
                     if (key === 'instruction') continue;
 
                     const value = yamlObj[key];
-                    if (typeof value === 'object' && value !== null) {
+                    if (value && typeof value === 'object') {
                         if (value.hasOwnProperty('wildcards') && Array.isArray(value.wildcards)) {
                             stateObj[key] = {
                                 instruction: value.instruction || '',
-                                wildcards: value.wildcards.sort((a, b) => a.localeCompare(b))
+                                wildcards: value.wildcards.map(String).sort((a, b) => a.localeCompare(b))
                             };
                         } else {
                             stateObj[key] = this.convertYamlToState(value);
                         }
-                    } else {
+                    } else if (value !== null) {
+                        // Handle simple key: value pairs as a single-item wildcard list
                         stateObj[key] = { instruction: '', wildcards: [String(value)] };
                     }
                 }
