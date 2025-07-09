@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Powered Wildcard Generator (v2.6)</title>
+    <title>AI-Powered Wildcard Generator (v2.8)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
@@ -70,6 +70,125 @@
         }
         .dragging { opacity: 0.5; border: 2px dashed var(--accent-primary); }
         .drag-over { background-color: rgba(79, 70, 229, 0.3) !important; }
+        
+        /* Tab styling for dialog */
+        .tab-button {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+        }
+        .tab-button.active {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Suggestions Popup Styling */
+        dialog.suggest {
+            width: 100%;
+            max-width: 640px;
+            border: none;
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,.25);
+            font: 14px/1.4 system-ui, sans-serif;
+            background-color: var(--bg-secondary);
+        }
+
+        /* header & footer */
+        dialog.suggest header,
+        dialog.suggest footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            gap: 12px;
+        }
+
+        dialog.suggest header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .api-link {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        /* intro text */
+        dialog.suggest .intro {
+            padding: 20px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* suggestion grid */
+        .suggest-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            padding: 0 20px 20px;
+            list-style: none;
+            margin: 0;
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+
+        /* individual card */
+        .suggest-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: box-shadow .15s ease, border-color .15s ease;
+        }
+        .suggest-card:hover,
+        .suggest-card:focus {
+            box-shadow: 0 2px 6px rgba(0,0,0,.12);
+            border-color: var(--accent-primary);
+            outline: none;
+        }
+        .suggest-card[aria-checked="true"] {
+            border-color: var(--accent-primary);
+            background-color: rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, .5);
+        }
+        .suggest-card h3 {
+            margin: 0 0 4px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .suggest-card p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* buttons */
+        .btn {
+            padding: 6px 18px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn.primary {
+            background: var(--accent-primary);
+            color: #fff;
+            border: 0;
+        }
+        .btn.ghost {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -77,7 +196,7 @@
     <div id="aria-live-region" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <dialog id="notification-dialog">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-lg text-center">
             <div id="notification-message" class="text-white mb-4 whitespace-pre-wrap"></div>
             <div id="confirmation-buttons" class="hidden justify-center gap-4">
                  <button id="confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Confirm</button>
@@ -85,6 +204,21 @@
             </div>
             <button id="notification-close" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors" value="default">Close</button>
         </div>
+    </dialog>
+
+    <dialog id="suggestPopup" class="suggest" role="dialog" aria-labelledby="suggestTitle">
+        <header>
+            <h2 id="suggestTitle">Suggestions</h2>
+            <a href="#" class="api-link">API Details</a>
+        </header>
+        <p class="intro">Here are some suggested items. Select the ones you want to add:</p>
+        <ul class="suggest-list" id="suggestList">
+            <!-- Suggestions will be dynamically inserted here -->
+        </ul>
+        <footer>
+            <button id="confirmBtn" class="btn primary">Confirm</button>
+            <button id="cancelBtn" class="btn ghost">Cancel</button>
+        </footer>
     </dialog>
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -162,8 +296,8 @@
             </div>
             <div class="mt-6 flex flex-wrap justify-center items-center gap-4">
                 <button id="download-all-zip" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Download All (.zip)</button>
-                <button id="export-state" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Export State</button>
-                <button id="import-state" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Import State</button>
+                <button id="export-yaml" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Export YAML</button>
+                <button id="import-yaml" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Import YAML</button>
                 <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Undo (Ctrl+Z)</button>
                 <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Redo (Ctrl+Y)</button>
                 <button id="help-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Help</button>
@@ -179,17 +313,17 @@
         // --- CONFIGURATION & CONSTANTS
         // =================================================================================
         const Config = {
-            STORAGE_KEY: 'wildcardGeneratorState_v10',
-            API_KEY_GEMINI: 'gemini_api_key_v10',
-            API_KEY_OPENROUTER: 'openrouter_api_key_v10',
-            MODEL_NAME_GEMINI: 'gemini_model_name_v10',
-            MODEL_NAME_OPENROUTER: 'openrouter_model_name_v10',
-            HISTORY_KEY: 'wildcardGeneratorHistory_v10',
+            STORAGE_KEY: 'wildcardGeneratorState_v11',
+            API_KEY_GEMINI: 'gemini_api_key_v11',
+            API_KEY_OPENROUTER: 'openrouter_api_key_v11',
+            MODEL_NAME_GEMINI: 'gemini_model_name_v11',
+            MODEL_NAME_OPENROUTER: 'openrouter_model_name_v11',
+            HISTORY_KEY: 'wildcardGeneratorHistory_v11',
             HISTORY_LIMIT: 20,
             AUTOSAVE_INTERVAL: 500,
             SEARCH_DEBOUNCE_DELAY: 300,
             DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the category provided.`,
-            SUGGEST_ITEM_PROMPT: `You are a creative assistant helping to organize a collection of wildcards for AI image generation. You will be given a parent category path and a JSON object representing the entire existing category structure (excluding the wildcard lists themselves). Your task is to suggest 5 new, broad, and diverse item names (either sub-folders or wildcard lists) that would fit well inside the parent category: '{parentPath}'. Do not suggest items that already exist. Format the names to be suitable as file names (e.g., use underscores instead of spaces). Return ONLY the new names as a JSON array of strings. Example: ["new_item_1", "new_item_2"]`
+            SUGGEST_ITEM_PROMPT: `You are a creative assistant helping to organize a collection of wildcards for AI image generation. You will be given a parent category path and a JSON object representing the entire existing category structure (excluding the wildcard lists themselves). Your task is to suggest 5 new, broad, and diverse item names that would fit well inside the parent category: '{parentPath}'. For each name, also provide a short, helpful 'instruction' string that describes its purpose. Do not suggest items that already exist. Format the names to be suitable as file names (e.g., use underscores instead of spaces). Return ONLY a JSON array of objects. Each object must have 'name' and 'instruction' keys. Example: [{"name": "new_item_1", "instruction": "A brief description for item 1."}]`
         };
 
         // =================================================================================
@@ -219,23 +353,16 @@
             historyIndex: -1,
             _debounceTimeout: null,
             init() {
-                this.loadHistory();
                 this.loadState();
+                if (!localStorage.getItem(Config.STORAGE_KEY)) {
+                    this.resetState(false); 
+                }
+                this.loadHistory();
                 this.initializeModelSelector();
             },
             initializeModelSelector() {
-                const endpointSelect = document.getElementById('api-endpoint');
-                
-                const fetchModels = () => {
-                    if (endpointSelect.value === 'openrouter') {
-                       this.fetchOpenRouterModels();
-                    } else if (endpointSelect.value === 'gemini') {
-                       this.fetchGeminiModels();
-                    }
-                };
-
-                endpointSelect.addEventListener('change', fetchModels);
-                fetchModels(); // Initial fetch
+                this.fetchGeminiModels();
+                this.fetchOpenRouterModels();
             },
             async fetchGeminiModels() {
                 const modelList = document.getElementById('gemini-model-list');
@@ -324,12 +451,11 @@
                         const parsed = JSON.parse(savedState);
                         if (parsed.systemPrompt && parsed.wildcards) {
                             this.appState = parsed;
+                            UI.renderAll();
                             return;
                         }
                     }
                 } catch (error) { console.error("Failed to load state, falling back to default.", error); }
-                
-                this.resetState(false);
             },
             saveState(immediate = false) {
                 if (immediate) {
@@ -389,9 +515,8 @@
                         this.history = JSON.parse(savedHistory);
                         this.historyIndex = this.history.length - 1;
                     } else {
-                        // Don't save to history on initial load, wait for an action.
-                        this.history = [];
-                        this.historyIndex = -1;
+                        this.history = [JSON.stringify(this.appState)];
+                        this.historyIndex = 0;
                     }
                 } catch (e) {
                     console.error("Failed to load history", e);
@@ -467,7 +592,20 @@
                     const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
                     const globalPrompt = Config.SUGGEST_ITEM_PROMPT.replace('{parentPath}', readablePath);
                     const userPrompt = `This is the existing structure of all categories:\n${JSON.stringify(structure, null, 2)}\n\nPlease provide suggestions for the '${readablePath}' category based on this structure.`;
-                    const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
+                    const generationConfig = { 
+                        responseMimeType: "application/json", 
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    name: { type: "STRING" },
+                                    instruction: { type: "STRING" }
+                                },
+                                required: ["name", "instruction"]
+                            }
+                        } 
+                    };
 
                     const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
 
@@ -492,7 +630,7 @@
 
                 if (endpoint === 'gemini') {
                     apiKey = document.getElementById('gemini-api-key').value.trim();
-                    const model = document.getElementById('gemini-model-name').value.trim() || 'gemini-2.5-flash';
+                    const model = document.getElementById('gemini-model-name').value.trim() || 'gemini-1.5-flash';
                     if (!apiKey) throw new Error("Gemini API key is not provided.");
                     url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                     payload = {
@@ -505,7 +643,7 @@
                     };
                 } else if (endpoint === 'openrouter') {
                     apiKey = document.getElementById('openrouter-api-key').value.trim();
-                    const model = document.getElementById('openrouter-model-name').value.trim() || "openai/gpt-4o";
+                    const model = document.getElementById('openrouter-model-name').value.trim() || ":free";
                     if (!apiKey) throw new Error("OpenRouter API key is not provided.");
                     url = `https://openrouter.ai/api/v1/chat/completions`;
                     headers['Authorization'] = `Bearer ${apiKey}`;
@@ -575,8 +713,8 @@
                 this.elements.globalPrompt.value = systemPrompt || Config.DEFAULT_SYSTEM_PROMPT;
                 this.elements.geminiApiKey.value = localStorage.getItem(Config.API_KEY_GEMINI) || '';
                 this.elements.openrouterApiKey.value = localStorage.getItem(Config.API_KEY_OPENROUTER) || '';
-                this.elements.geminiModelName.value = localStorage.getItem(Config.MODEL_NAME_GEMINI) || 'gemini-2.5-flash';
-                this.elements.openrouterModelName.value = localStorage.getItem(Config.MODEL_NAME_OPENROUTER) || 'openai/gpt-4o';
+                this.elements.geminiModelName.value = localStorage.getItem(Config.MODEL_NAME_GEMINI) || 'gemini-1.5-flash';
+                this.elements.openrouterModelName.value = localStorage.getItem(Config.MODEL_NAME_OPENROUTER) || ':free';
                 
                 const openPaths = [...this.elements.container.querySelectorAll('details[open]')].map(d => d.dataset.path);
 
@@ -819,8 +957,8 @@
                     if (e.target.matches('#add-category-placeholder-btn')) this.handleAddNewCategory();
                     if (e.target.matches('#suggest-toplevel-btn')) this.handleSuggestItems(null, 'folder');
                     if (e.target.matches('#download-all-zip')) this.handleDownloadZip();
-                    if (e.target.matches('#export-state')) this.handleExportState();
-                    if (e.target.matches('#import-state')) this.handleImportState();
+                    if (e.target.matches('#export-yaml')) this.handleExportYaml();
+                    if (e.target.matches('#import-yaml')) this.handleImportYaml();
                     if (e.target.matches('#undo-btn')) State.undo();
                     if (e.target.matches('#redo-btn')) State.redo();
                     if (e.target.matches('#help-btn')) this.handleHelp();
@@ -1004,50 +1142,51 @@
                 UI.showNotification('Asking AI for suggestions...');
                 
                 try {
-                    const suggestions = await Api.suggestItems(path, structure);
+                    const { suggestions, request } = await Api.suggestItems(path, structure);
                     if (!suggestions || suggestions.length === 0) {
                         UI.showNotification('The AI did not return any suggestions. Please try again.');
                         return;
                     }
 
-                    const suggestionHtml = `
-                        <p class="mb-2 text-left">Here are some suggested items. Select the ones you want to add:</p>
-                        <div id="suggestion-list" class="text-left max-h-60 overflow-y-auto custom-scrollbar p-0 bg-gray-900 rounded-md border border-gray-600">
-                            ${suggestions.suggestions.map((s, i) => `<label for="suggestion-${i}" class="flex items-center p-0 m-0 rounded-md hover:bg-gray-700 cursor-pointer"><input type="checkbox" id="suggestion-${i}" value="${sanitize(s)}" class="suggestion-checkbox h-4 w-4 bg-gray-700 border-gray-500 text-indigo-600 focus:ring-indigo-500 rounded mr-1" checked><span>${sanitize(s.replace(/_/g, ' ').replace(/(\r\n|\n|\r)/gm, ' ').trim())}</span></label>`).join('')}
-                        </div>
-                        <details class="mt-2 text-left bg-gray-700 rounded-md">
-                            <summary class="p-2 cursor-pointer text-sm text-indigo-300">Show API Request Details</summary>
-                            <div class="p-2 text-xs text-gray-300 whitespace-pre-wrap">
-                                <strong>URL:</strong> ${sanitize(suggestions.request.url.split('?')[0])}<br>
-                                <strong>Headers:</strong> ${sanitize(JSON.stringify(suggestions.request.headers, null, 2))}<br>
-                                <strong>Payload:</strong> ${sanitize(JSON.stringify(suggestions.request.payload, null, 2))}
-                            </div>
-                        </details>
-                    `;
+                    // Clear existing suggestions
+                    const suggestList = document.getElementById('suggestList');
+                    suggestList.innerHTML = '';
 
-                    UI.showNotification(suggestionHtml, true, () => {
-                        const selected = Array.from(document.querySelectorAll('.suggestion-checkbox:checked')).map(cb => cb.value);
-                        if (selected.length > 0) {
-                            State.saveStateToHistory();
-                            let addedCount = 0;
-                            const parentObject = this.getObjectByPath(path);
-
-                            selected.forEach(name => {
-                                const sanitizedName = name.trim().replace(/\s+/g, '_');
-                                if (sanitizedName && !parentObject[sanitizedName]) {
-                                    // If suggesting for a specific type, use it, otherwise default to folder
-                                    parentObject[sanitizedName] = (type === 'list') ? { instruction: '', wildcards: [] } : {};
-                                    addedCount++;
-                                }
-                            });
-                            if (addedCount > 0) {
-                                State.saveState(true);
-                                UI.renderAll();
-                                UI.announce(`${addedCount} new items added.`);
-                            }
-                        }
+                    // Populate new suggestions and bind events
+                    suggestions.forEach(suggestion => {
+                        const li = document.createElement('li');
+                        li.className = 'suggest-card';
+                        li.setAttribute('role', 'checkbox');
+                        li.setAttribute('aria-checked', 'false');
+                        li.setAttribute('tabindex', '0');
+                        li.innerHTML = `
+                            <h3>${sanitize(suggestion.name.replace(/_/g, ' '))}</h3>
+                            <p>${sanitize(suggestion.instruction)}</p>
+                        `;
+                        li.dataset.name = sanitize(suggestion.name);
+                        li.dataset.instruction = sanitize(suggestion.instruction);
+                        // Bind events directly to each card
+                        li.addEventListener('click', toggle);
+                        li.addEventListener('keydown', e => {
+                            if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle.call(li); }
+                        });
+                        suggestList.appendChild(li);
                     });
 
+                    // Close the "Asking..." notification before showing the new popup
+                    UI.elements.dialog.close();
+
+                    // Show the suggestions popup
+                    const suggestPopup = document.getElementById('suggestPopup');
+                    suggestPopup.showModal();
+                    // Store the path for use in confirm action
+                    suggestPopup.dataset.currentPath = path;
+                    // Store request for API details link
+                    if (request) {
+                        suggestPopup.dataset.apiRequest = JSON.stringify(request, null, 2);
+                    } else {
+                        delete suggestPopup.dataset.apiRequest;
+                    }
                 } catch (error) {
                     console.error("Suggestion error:", error);
                     UI.showNotification(`Error: ${error.message || "An unknown error occurred."}`);
@@ -1117,7 +1256,10 @@
                 });
                 
                 if (!term) {
-                    container.querySelectorAll('[data-path], [data-parent-path]').forEach(el => el.style.display = 'block');
+                    container.querySelectorAll('[data-path], [data-parent-path]').forEach(el => {
+                        el.style.display = 'block';
+                        if(el.tagName === 'DETAILS') el.open = false;
+                    });
                     UI.elements.searchResultsCount.textContent = '';
                     return;
                 }
@@ -1156,7 +1298,7 @@
 
                 container.querySelectorAll('details, [data-path^=""], [data-parent-path]').forEach(el => {
                     const path = el.dataset.path || el.dataset.parentPath;
-                    if (!path && el.tagName !== 'DETAILS') { // Handle placeholder in empty category
+                    if (!path && el.tagName !== 'DETAILS') {
                          const parentDetails = el.closest('details');
                          if(parentDetails && matchedPaths.has(parentDetails.dataset.path)){
                              el.style.display = 'block';
@@ -1173,12 +1315,12 @@
                         if (el.tagName === 'DETAILS') {
                            el.open = true;
                         }
-                        if(el.dataset.path) { // only highlight wildcards in cards
+                        if(el.dataset.path) {
                             el.querySelectorAll('.chip span').forEach(span => {
                                 const originalText = span.textContent;
                                 if (originalText.toLowerCase().includes(term)) {
                                     const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                                    span.innerHTML = sanitize(originalText).replace(regex, '<span class="highlight">$1</span>');
+                                    span.innerHTML = sanitize(originalText).replace(regex, `<span class="highlight">$1</span>`);
                                 }
                             });
                         }
@@ -1273,33 +1415,59 @@
                 addFilesToZip(State.appState.wildcards, '');
                 zip.generateAsync({ type:"blob" }).then(content => { const a = document.createElement('a'); a.href = URL.createObjectURL(content); a.download = "wildcard_collection.zip"; a.click(); URL.revokeObjectURL(a.href); });
             },
-            handleExportState() { const stateString = JSON.stringify(State.appState, null, 2); const blob = new Blob([stateString], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "wildcard_generator_state.json"; a.click(); URL.revokeObjectURL(a.href); UI.showNotification('Application state exported.'); },
-            handleImportState() { 
+            convertStateToYamlObject(state) {
+                const yamlObject = {};
+                for (const key in state) {
+                    const value = state[key];
+                    if (value.hasOwnProperty('wildcards') && Array.isArray(value.wildcards)) {
+                        yamlObject[key] = {
+                            instruction: value.instruction || '',
+                            wildcards: value.wildcards
+                        };
+                    } else if (typeof value === 'object' && value !== null) {
+                        yamlObject[key] = this.convertStateToYamlObject(value);
+                    }
+                }
+                return yamlObject;
+            },
+            handleExportYaml() {
+                try {
+                    const yamlObject = this.convertStateToYamlObject(State.appState.wildcards);
+                    const yamlString = jsyaml.dump(yamlObject);
+                    const blob = new Blob([yamlString], { type: 'text/yaml' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = "wildcards.yaml";
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                    UI.showNotification('Wildcards exported as YAML.');
+                } catch (error) {
+                    UI.showNotification(`Error exporting YAML: ${error.message}`);
+                    console.error(error);
+                }
+            },
+            handleImportYaml() { 
                 const input = document.createElement('input'); 
                 input.type = 'file'; 
-                input.accept = '.json,.yaml,.yml'; 
+                input.accept = '.yaml,.yml'; 
                 input.onchange = e => { 
                     const file = e.target.files[0]; 
                     if (!file) return; 
                     const reader = new FileReader(); 
                     reader.onload = re => { 
                         try {
-                            let importedData;
-                            if (file.name.endsWith('.json')) {
-                                importedData = JSON.parse(re.target.result);
-                                if (!importedData.wildcards) throw new Error("Invalid JSON state file.");
-                                State.appState = importedData;
-                            } else {
-                                const yamlData = jsyaml.load(re.target.result);
-                                importedData = this.convertYamlToState(yamlData);
-                                State.appState.wildcards = importedData;
-                            }
+                            const yamlData = jsyaml.load(re.target.result);
+                            const importedData = this.convertYamlToState(yamlData);
                             
-                            State.saveState(true); 
-                            State.clearHistory(); 
-                            State.saveStateToHistory(); 
-                            UI.renderAll(); 
-                            UI.showNotification('State imported successfully.'); 
+                            UI.showNotification('Importing this file will overwrite your current collection. Are you sure?', true, () => {
+                                State.appState.wildcards = importedData;
+                                State.saveState(true); 
+                                State.clearHistory(); 
+                                State.saveStateToHistory(); 
+                                UI.renderAll(); 
+                                UI.showNotification('YAML file imported successfully.');
+                            });
+
                         } catch (error) { 
                             UI.showNotification(`Error importing: ${error.message}`); 
                             console.error(error);
@@ -1311,6 +1479,75 @@
             },
             handleHelp() { UI.showNotification(`Welcome!\n\nKey Features:\n- Global Settings: Set API keys and choose your provider.\n- Recursive Categories: Add nested categories for better organization.\n- Drag & Drop: Reorder items by dragging them into category folders.\n- Inline Renaming: Click any title to rename it.\n- Generate More: Use AI to create new wildcards for any list.\n- Suggest Categories: Use AI to get ideas for new top-level categories.\n- Export/Import: Save and load your entire setup.\n- Undo/Redo: Revert or re-apply changes.`); }
         };
+
+        // Suggestions Popup JavaScript
+        const dlg = document.getElementById('suggestPopup');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const cards = document.querySelectorAll('.suggest-card');
+
+        dlg.addEventListener('click', e => {
+            if (e.target.matches('.api-link')) {
+                e.preventDefault();
+                const requestData = dlg.dataset.apiRequest;
+                if (requestData) {
+                    const formattedRequest = `<pre class="text-left text-xs whitespace-pre-wrap custom-scrollbar" style="max-height: 400px; overflow-y: auto; background-color: var(--bg-primary); padding: 1rem;">${sanitize(requestData)}</pre>`;
+                    UI.showNotification(`<strong>API Request Details:</strong>${formattedRequest}`);
+                } else {
+                    UI.showNotification('No API request details available.');
+                }
+            }
+        });
+
+        /* close */
+        cancelBtn.addEventListener('click', () => dlg.close());
+        dlg.addEventListener('cancel', e => e.preventDefault()); // block Esc default so footer handles it
+
+        /* card selection */
+        function bindCardEvents() {
+            const currentCards = document.querySelectorAll('.suggest-card');
+            currentCards.forEach(card => {
+                card.addEventListener('click', toggle);
+                card.addEventListener('keydown', e => {
+                    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle.call(card); }
+                });
+            });
+        }
+
+        function toggle() {
+            const selected = this.getAttribute('aria-checked') === 'true';
+            this.setAttribute('aria-checked', !selected);
+        }
+
+        /* confirm */
+        confirmBtn.addEventListener('click', () => {
+            const path = dlg.dataset.currentPath;
+            const parentObject = App.getObjectByPath(path);
+            const chosenCards = Array.from(document.querySelectorAll('.suggest-card[aria-checked="true"]'));
+            if (chosenCards.length > 0) {
+                State.saveStateToHistory();
+                let addedCount = 0;
+                chosenCards.forEach(card => {
+                    const name = card.dataset.name;
+                    const instruction = card.dataset.instruction;
+                    const sanitizedName = name.trim().replace(/\s+/g, '_');
+                    if (sanitizedName && !parentObject[sanitizedName]) {
+                        parentObject[sanitizedName] = { instruction: instruction, wildcards: [] };
+                        addedCount++;
+                    }
+                });
+                if (addedCount > 0) {
+                    State.saveState(true);
+                    UI.renderAll();
+                    UI.announce(`${addedCount} new items added.`);
+                }
+            }
+            dlg.close();
+        });
+
+        // Function to bind events to cards (though now bound directly in handleSuggestItems)
+        // Kept for potential future use or reference
+        bindCardEvents();
 
         document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
