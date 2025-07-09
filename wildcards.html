@@ -236,6 +236,10 @@
                         <label for="global-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Global System Prompt (for Wildcard Generation)</label>
                         <textarea id="global-prompt" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 custom-scrollbar" rows="4"></textarea>
                     </div>
+                    <div>
+                        <label for="suggestion-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Item Suggestion Prompt</label>
+                        <textarea id="suggestion-prompt" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 custom-scrollbar" rows="4"></textarea>
+                    </div>
                      <div>
                         <label for="api-endpoint" class="block text-lg font-semibold text-indigo-300 mb-2">Active API Provider</label>
                         <select id="api-endpoint" class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -323,7 +327,7 @@
             AUTOSAVE_INTERVAL: 500,
             SEARCH_DEBOUNCE_DELAY: 300,
             DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the category provided.`,
-            SUGGEST_ITEM_PROMPT: `You are a creative assistant helping to organize a collection of wildcards for AI image generation. You will be given a parent category path and a JSON object representing the entire existing category structure (excluding the wildcard lists themselves). Your task is to suggest 5 new, broad, and diverse item names that would fit well inside the parent category: '{parentPath}'. For each name, also provide a short, helpful 'instruction' string that describes its purpose. Do not suggest items that already exist. Format the names to be suitable as file names (e.g., use underscores instead of spaces). Return ONLY a JSON array of objects. Each object must have 'name' and 'instruction' keys. Example: [{"name": "new_item_1", "instruction": "A brief description for item 1."}]`
+            DEFAULT_SUGGEST_ITEM_PROMPT: `You are a creative assistant helping to organize a collection of wildcards for AI image generation. You will be given a parent category path and a JSON object representing the entire existing category structure (excluding the wildcard lists themselves). Your task is to suggest 5 new, broad, and diverse item names that would fit well inside the parent category: '{parentPath}'. For each name, also provide a short, helpful 'instruction' string that describes its purpose. Do not suggest items that already exist. Format the names to be suitable as file names (e.g., use underscores instead of spaces). Return ONLY a JSON array of objects. Each object must have 'name' and 'instruction' keys. Example: [{"name": "new_item_1", "instruction": "A brief description for item 1."}]`
         };
 
         // =================================================================================
@@ -348,7 +352,7 @@
         // --- STATE MANAGEMENT MODULE
         // =================================================================================
         const State = {
-            appState: { systemPrompt: '', wildcards: {} },
+            appState: { systemPrompt: '', suggestItemPrompt: '', wildcards: {} },
             history: [],
             historyIndex: -1,
             _debounceTimeout: null,
@@ -449,8 +453,10 @@
                     const savedState = localStorage.getItem(Config.STORAGE_KEY);
                     if (savedState) {
                         const parsed = JSON.parse(savedState);
-                        if (parsed.systemPrompt && parsed.wildcards) {
+                        if (parsed.wildcards) {
                             this.appState = parsed;
+                            if(!this.appState.systemPrompt) this.appState.systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
+                            if(!this.appState.suggestItemPrompt) this.appState.suggestItemPrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT;
                             UI.renderAll();
                             return;
                         }
@@ -474,6 +480,7 @@
                 const performReset = (data) => {
                     this.appState.wildcards = data || {};
                     this.appState.systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
+                    this.appState.suggestItemPrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT;
                     this.saveState(true);
                     this.clearHistory();
                     this.saveStateToHistory();
@@ -590,7 +597,7 @@
                 this.activeController = new AbortController();
                 try {
                     const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
-                    const globalPrompt = Config.SUGGEST_ITEM_PROMPT.replace('{parentPath}', readablePath);
+                    const globalPrompt = State.appState.suggestItemPrompt.replace('{parentPath}', readablePath);
                     const userPrompt = `This is the existing structure of all categories:\n${JSON.stringify(structure, null, 2)}\n\nPlease provide suggestions for the '${readablePath}' category based on this structure.`;
                     const generationConfig = { 
                         responseMimeType: "application/json", 
@@ -688,6 +695,7 @@
                 this.elements = {
                     container: document.getElementById('wildcard-container'),
                     globalPrompt: document.getElementById('global-prompt'),
+                    suggestItemPrompt: document.getElementById('suggestion-prompt'),
                     geminiApiKey: document.getElementById('gemini-api-key'),
                     openrouterApiKey: document.getElementById('openrouter-api-key'),
                     geminiModelName: document.getElementById('gemini-model-name'),
@@ -709,8 +717,9 @@
                 });
             },
             renderAll() {
-                const { wildcards, systemPrompt } = State.appState;
+                const { wildcards, systemPrompt, suggestItemPrompt } = State.appState;
                 this.elements.globalPrompt.value = systemPrompt || Config.DEFAULT_SYSTEM_PROMPT;
+                this.elements.suggestItemPrompt.value = suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT;
                 this.elements.geminiApiKey.value = localStorage.getItem(Config.API_KEY_GEMINI) || '';
                 this.elements.openrouterApiKey.value = localStorage.getItem(Config.API_KEY_OPENROUTER) || '';
                 this.elements.geminiModelName.value = localStorage.getItem(Config.MODEL_NAME_GEMINI) || 'gemini-1.5-flash';
@@ -927,6 +936,7 @@
             bindEventListeners() {
                 const elements = UI.elements;
                 elements.globalPrompt.addEventListener('input', e => { State.appState.systemPrompt = e.target.value; State.saveState(); });
+                elements.suggestItemPrompt.addEventListener('input', e => { State.appState.suggestItemPrompt = e.target.value; State.saveState(); });
                 elements.geminiApiKey.addEventListener('input', e => {
                     localStorage.setItem(Config.API_KEY_GEMINI, e.target.value.trim());
                     State.fetchGeminiModels();
