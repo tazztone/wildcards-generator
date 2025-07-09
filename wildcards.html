@@ -1425,25 +1425,76 @@
                 addFilesToZip(State.appState.wildcards, '');
                 zip.generateAsync({ type:"blob" }).then(content => { const a = document.createElement('a'); a.href = URL.createObjectURL(content); a.download = "wildcard_collection.zip"; a.click(); URL.revokeObjectURL(a.href); });
             },
-            convertStateToYamlObject(state) {
-                const yamlObject = {};
-                for (const key in state) {
-                    const value = state[key];
-                    if (value.hasOwnProperty('wildcards') && Array.isArray(value.wildcards)) {
-                        yamlObject[key] = {
-                            instruction: value.instruction || '',
-                            wildcards: value.wildcards
-                        };
+            buildYamlString(data, level = 0) {
+                let yamlString = '';
+                const indent = '  '.repeat(level);
+                const sortedKeys = Object.keys(data).sort();
+
+                for (const key of sortedKeys) {
+                    const value = data[key];
+                    const isLeaf = value && typeof value === 'object' && Array.isArray(value.wildcards);
+
+                    if (isLeaf) {
+                        yamlString += `${indent}${key}:`;
+                        if (value.instruction) {
+                            // Comments must not contain newline characters.
+                            yamlString += ` # instruction: ${value.instruction.replace(/\n/g, ' ')}`;
+                        }
+                        yamlString += '\n';
+                        if (value.wildcards && value.wildcards.length > 0) {
+                            value.wildcards.forEach(wildcard => {
+                                // Use jsyaml.dump on each item to handle special characters and quoting.
+                                const dumpedWildcard = jsyaml.dump(wildcard).trim();
+                                yamlString += `${indent}  - ${dumpedWildcard}\n`;
+                            });
+                        }
                     } else if (typeof value === 'object' && value !== null) {
-                        yamlObject[key] = this.convertStateToYamlObject(value);
+                        // This is a category (a nested object)
+                        yamlString += `${indent}${key}:\n`;
+                        yamlString += this.buildYamlString(value, level + 1);
                     }
                 }
-                return yamlObject;
+                return yamlString;
             },
+
+            preprocessYamlForImport(text) {
+                const lines = text.replace(/\r\n/g, '\n').split('\n');
+                let processedText = '';
+                let i = 0;
+
+                while (i < lines.length) {
+                    const line = lines[i];
+                    // Regex to find a key, followed by our special instruction comment.
+                    const instructionMatch = line.match(/^(\s*)((?:[a-zA-Z0-9_.-]|"[^"]+"|'[^']+'|[^:{\[\],#\s])+):\s*#\s*instruction:\s*(.*)$/);
+
+                    if (instructionMatch) {
+                        const indent = instructionMatch[1];
+                        const key = instructionMatch[2];
+                        const instruction = instructionMatch[3].trim();
+
+                        processedText += `${indent}${key}:\n`;
+                        // Reconstruct the old structure that convertYamlToState understands.
+                        processedText += `${indent}  instruction: ${jsyaml.dump(instruction)}\n`;
+                        processedText += `${indent}  wildcards:\n`;
+                        
+                        i++;
+                        // Collect the following list items.
+                        while (i < lines.length && lines[i].trim().startsWith('-')) {
+                            // Pass through the list items, just with more indentation.
+                            processedText += `${indent}    ${lines[i].trim()}\n`;
+                            i++;
+                        }
+                    } else {
+                        processedText += line + '\n';
+                        i++;
+                    }
+                }
+                return processedText;
+            },
+
             handleExportYaml() {
                 try {
-                    const yamlObject = this.convertStateToYamlObject(State.appState.wildcards);
-                    const yamlString = jsyaml.dump(yamlObject);
+                    const yamlString = this.buildYamlString(State.appState.wildcards);
                     const blob = new Blob([yamlString], { type: 'text/yaml' });
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(blob);
@@ -1456,36 +1507,39 @@
                     console.error(error);
                 }
             },
-            handleImportYaml() { 
-                const input = document.createElement('input'); 
-                input.type = 'file'; 
-                input.accept = '.yaml,.yml'; 
-                input.onchange = e => { 
-                    const file = e.target.files[0]; 
-                    if (!file) return; 
-                    const reader = new FileReader(); 
-                    reader.onload = re => { 
+
+            handleImportYaml() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.yaml,.yml';
+                input.onchange = e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = re => {
                         try {
-                            const yamlData = jsyaml.load(re.target.result);
+                            const rawText = re.target.result;
+                            const processedYaml = this.preprocessYamlForImport(rawText);
+                            const yamlData = jsyaml.load(processedYaml);
                             const importedData = this.convertYamlToState(yamlData);
-                            
+
                             UI.showNotification('Importing this file will overwrite your current collection. Are you sure?', true, () => {
                                 State.appState.wildcards = importedData;
-                                State.saveState(true); 
-                                State.clearHistory(); 
-                                State.saveStateToHistory(); 
-                                UI.renderAll(); 
+                                State.saveState(true);
+                                State.clearHistory();
+                                State.saveStateToHistory();
+                                UI.renderAll();
                                 UI.showNotification('YAML file imported successfully.');
                             });
 
-                        } catch (error) { 
-                            UI.showNotification(`Error importing: ${error.message}`); 
+                        } catch (error) {
+                            UI.showNotification(`Error importing: ${error.message}`);
                             console.error(error);
-                        } 
-                    }; 
-                    reader.readAsText(file); 
-                }; 
-                input.click(); 
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
             },
             handleHelp() { UI.showNotification(`Welcome!\n\nKey Features:\n- Global Settings: Set API keys and choose your provider.\n- Recursive Categories: Add nested categories for better organization.\n- Drag & Drop: Reorder items by dragging them into category folders.\n- Inline Renaming: Click any title to rename it.\n- Generate More: Use AI to create new wildcards for any list.\n- Suggest Categories: Use AI to get ideas for new top-level categories.\n- Export/Import: Save and load your entire setup.\n- Undo/Redo: Revert or re-apply changes.`); }
         };
