@@ -221,6 +221,21 @@
         </footer>
     </dialog>
 
+    <dialog id="generatePopup" class="suggest" role="dialog" aria-labelledby="generateTitle">
+        <header>
+            <h2 id="generateTitle">Generated Wildcards</h2>
+            <button id="generate-select-all" class="btn ghost">Select All</button>
+        </header>
+        <p class="intro">Select the wildcards you want to add to the list. All are selected by default.</p>
+        <ul class="suggest-list" id="generateList">
+            <!-- Generated wildcards will be dynamically inserted here -->
+        </ul>
+        <footer>
+            <button id="generateConfirmBtn" class="btn primary">Add Selected</button>
+            <button id="generateCancelBtn" class="btn ghost">Cancel</button>
+        </footer>
+    </dialog>
+
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-8">
             <h1 class="text-4xl sm:text-5xl font-bold text-white mb-2">AI-Powered Wildcard Generator</h1>
@@ -752,10 +767,10 @@
                 element.dataset.path = path;
                 element.draggable = true;
                 
-                element.innerHTML = this.getCategoryFolderHtml(name, path);
+                element.innerHTML = this.getCategoryFolderHtml(name, data, path);
                 const contentWrapper = element.querySelector('.content-wrapper');
                 
-                const sortedKeys = Object.keys(data).sort();
+                const sortedKeys = Object.keys(data).filter(k => k !== 'instruction').sort();
                 
                 const leafNodes = [];
                 const nonLeafNodes = [];
@@ -767,7 +782,7 @@
 
                     if (childIsLeaf) {
                         leafNodes.push(this.createWildcardCardElement(key, childData, level + 1, childPath));
-                    } else {
+                    } else if (typeof childData === 'object' && childData !== null) {
                         nonLeafNodes.push(this.createCategoryElement(key, childData, level + 1, childPath, 0));
                     }
                 }
@@ -806,14 +821,15 @@
                 `;
                 return placeholder;
             },
-            getCategoryFolderHtml(name, path) {
+            getCategoryFolderHtml(name, data, path) {
                 return `
-                    <summary class="flex justify-between items-center p-4 cursor-pointer">
-                        <div class="flex items-center gap-3 flex-wrap">
+                    <summary class="flex justify-between items-center p-4 cursor-pointer gap-4">
+                        <div class="flex items-center gap-3 flex-wrap flex-grow">
                             <h2 class="text-xl font-semibold text-indigo-400"><span contenteditable="true" class="outline-none focus:bg-indigo-400/50 rounded px-1">${sanitize(name.replace(/_/g, ' '))}</span></h2>
-                             <button class="delete-btn text-red-400 hover:text-red-300 font-bold text-xl leading-none" title="Delete this category">&times;</button>
+                            <button class="delete-btn text-red-400 hover:text-red-300 font-bold text-xl leading-none" title="Delete this category">&times;</button>
+                            <input type="text" value="${sanitize(data.instruction || '')}" class="custom-instructions-input bg-gray-700 text-sm border border-gray-600 rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 flex-grow" placeholder="Folder instructions..." style="min-width: 200px;" onclick="event.stopPropagation();">
                         </div>
-                        <div class="flex items-center gap-2 ml-auto">
+                        <div class="flex items-center gap-2 ml-auto flex-shrink-0">
                             <button class="add-subcategory-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 text-sm rounded-md" title="Add new folder">+</button>
                             <button class="suggest-subcategory-btn bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-2 text-sm rounded-md" title="Suggest new items for this category">Suggest</button>
                             <span class="arrow-down transition-transform duration-300 text-indigo-400"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
@@ -989,14 +1005,19 @@
             },
             convertYamlToState(yamlObj) {
                 const stateObj = {};
+                if (yamlObj.instruction) {
+                    stateObj.instruction = yamlObj.instruction;
+                }
+
                 for (const key in yamlObj) {
-                    if (key.startsWith('#')) continue; // Ignore comments
+                    if (key === 'instruction') continue;
+
                     const value = yamlObj[key];
                     if (typeof value === 'object' && value !== null) {
                         if (value.hasOwnProperty('wildcards') && Array.isArray(value.wildcards)) {
                             stateObj[key] = {
                                 instruction: value.instruction || '',
-                                wildcards: value.wildcards
+                                wildcards: value.wildcards.sort((a, b) => a.localeCompare(b))
                             };
                         } else {
                             stateObj[key] = this.convertYamlToState(value);
@@ -1082,7 +1103,9 @@
                     if (newText && newText !== originalText) {
                         State.saveStateToHistory();
                         dataObject.wildcards[index] = newText;
+                        dataObject.wildcards.sort((a, b) => a.localeCompare(b));
                         State.saveState();
+                        UI.updateCardByPath(path); // Re-render to reflect potential sort change
                     } else {
                         target.textContent = originalText;
                     }
@@ -1125,13 +1148,39 @@
                 try {
                     const dataObject = this.getObjectByPath(path);
                     const newWildcards = await Api.generateWildcards(State.appState.systemPrompt, path, dataObject.wildcards, dataObject.instruction);
-                    if (newWildcards) {
-                        State.saveStateToHistory();
-                        const existingSet = new Set(dataObject.wildcards);
-                        const uniqueNew = newWildcards.filter(w => w && !existingSet.has(w));
-                        dataObject.wildcards.push(...uniqueNew);
-                        State.saveState(true); UI.updateCardByPath(path);
-                        UI.announce(`Added ${uniqueNew.length} new wildcards.`);
+                    
+                    if (newWildcards && newWildcards.length > 0) {
+                        const generatePopup = document.getElementById('generatePopup');
+                        const generateList = document.getElementById('generateList');
+                        generateList.innerHTML = ''; // Clear previous results
+
+                        const existingSet = new Set(dataObject.wildcards.map(w => w.toLowerCase()));
+                        const uniqueNew = newWildcards.filter(w => w && !existingSet.has(w.toLowerCase()));
+
+                        if (uniqueNew.length === 0) {
+                            UI.showNotification("The AI didn't generate any new unique wildcards.");
+                            return;
+                        }
+
+                        uniqueNew.forEach(wildcard => {
+                            const li = document.createElement('li');
+                            li.className = 'suggest-card'; // Re-use existing styles
+                            li.setAttribute('role', 'checkbox');
+                            li.setAttribute('aria-checked', 'true'); // Default to selected
+                            li.setAttribute('tabindex', '0');
+                            li.dataset.wildcard = wildcard;
+                            li.innerHTML = `<h3>${sanitize(wildcard)}</h3>`;
+                            li.addEventListener('click', () => {
+                                const selected = li.getAttribute('aria-checked') === 'true';
+                                li.setAttribute('aria-checked', String(!selected));
+                            });
+                            generateList.appendChild(li);
+                        });
+
+                        generatePopup.dataset.path = path;
+                        generatePopup.showModal();
+                    } else {
+                        UI.showNotification("The AI didn't return any wildcards.");
                     }
                 } catch (error) {
                     console.error("Generation error:", error);
@@ -1205,7 +1254,16 @@
             handleCopy(path) { const content = this.getObjectByPath(path).wildcards.join('\n'); navigator.clipboard.writeText(content).then(() => UI.showNotification('Copied!')).catch(() => UI.showNotification('Failed to copy.')); },
             handleAddWildcard(card, path) {
                 const input = card.querySelector('.add-wildcard-input'); const value = input.value.trim();
-                if (value) { State.saveStateToHistory(); this.getObjectByPath(path).wildcards.push(value); State.saveState(true); UI.updateCardByPath(path); input.value = ''; input.focus(); }
+                if (value) { 
+                    State.saveStateToHistory(); 
+                    const dataObject = this.getObjectByPath(path);
+                    dataObject.wildcards.push(value);
+                    dataObject.wildcards.sort((a, b) => a.localeCompare(b));
+                    State.saveState(true); 
+                    UI.updateCardByPath(path); 
+                    input.value = ''; 
+                    input.focus(); 
+                }
             },
             handleBatchDelete(card, path) {
                 const checkboxes = card.querySelectorAll('.batch-select:checked'); if (checkboxes.length === 0) return;
@@ -1251,7 +1309,7 @@
                         return;
                     }
                     State.saveStateToHistory();
-                    parentObject[sanitizedName] = (type === 'list') ? { instruction: '', wildcards: [] } : {};
+                    parentObject[sanitizedName] = (type === 'list') ? { instruction: '', wildcards: [] } : { instruction: '' };
                     State.saveState(true);
                     UI.renderAll();
                 }, true);
@@ -1428,7 +1486,7 @@
             buildYamlString(data, level = 0) {
                 let yamlString = '';
                 const indent = '  '.repeat(level);
-                const sortedKeys = Object.keys(data).sort();
+                const sortedKeys = Object.keys(data).filter(k => k !== 'instruction').sort();
 
                 for (const key of sortedKeys) {
                     const value = data[key];
@@ -1437,20 +1495,21 @@
                     if (isLeaf) {
                         yamlString += `${indent}${key}:`;
                         if (value.instruction) {
-                            // Comments must not contain newline characters.
                             yamlString += ` # instruction: ${value.instruction.replace(/\n/g, ' ')}`;
                         }
                         yamlString += '\n';
                         if (value.wildcards && value.wildcards.length > 0) {
                             value.wildcards.forEach(wildcard => {
-                                // Use jsyaml.dump on each item to handle special characters and quoting.
                                 const dumpedWildcard = jsyaml.dump(wildcard).trim();
                                 yamlString += `${indent}  - ${dumpedWildcard}\n`;
                             });
                         }
                     } else if (typeof value === 'object' && value !== null) {
-                        // This is a category (a nested object)
-                        yamlString += `${indent}${key}:\n`;
+                        yamlString += `${indent}${key}:`;
+                        if (value.instruction) {
+                            yamlString += ` # instruction: ${value.instruction.replace(/\n/g, ' ')}`;
+                        }
+                        yamlString += '\n';
                         yamlString += this.buildYamlString(value, level + 1);
                     }
                 }
@@ -1464,7 +1523,6 @@
 
                 while (i < lines.length) {
                     const line = lines[i];
-                    // Regex to find a key, followed by our special instruction comment.
                     const instructionMatch = line.match(/^(\s*)((?:[a-zA-Z0-9_.-]|"[^"]+"|'[^']+'|[^:{\[\],#\s])+):\s*#\s*instruction:\s*(.*)$/);
 
                     if (instructionMatch) {
@@ -1472,16 +1530,29 @@
                         const key = instructionMatch[2];
                         const instruction = instructionMatch[3].trim();
 
-                        processedText += `${indent}${key}:\n`;
-                        // Reconstruct the old structure that convertYamlToState understands.
-                        processedText += `${indent}  instruction: ${jsyaml.dump(instruction)}\n`;
-                        processedText += `${indent}  wildcards:\n`;
+                        let nextLineIndex = i + 1;
+                        while (nextLineIndex < lines.length && lines[nextLineIndex].trim() === '') {
+                            nextLineIndex++;
+                        }
                         
-                        i++;
-                        // Collect the following list items.
-                        while (i < lines.length && lines[i].trim().startsWith('-')) {
-                            // Pass through the list items, just with more indentation.
-                            processedText += `${indent}    ${lines[i].trim()}\n`;
+                        const isWildcardList = nextLineIndex < lines.length && lines[nextLineIndex].trim().startsWith('-');
+
+                        processedText += `${indent}${key}:\n`;
+                        processedText += `${indent}  instruction: ${jsyaml.dump(instruction)}\n`;
+
+                        if (isWildcardList) {
+                            processedText += `${indent}  wildcards:\n`;
+                            i++;
+                            while (i < lines.length) {
+                                const currentLine = lines[i];
+                                if (currentLine.trim().startsWith('-')) {
+                                    processedText += `${indent}    ${currentLine.trim()}\n`;
+                                    i++;
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else {
                             i++;
                         }
                     } else {
@@ -1612,6 +1683,44 @@
         // Function to bind events to cards (though now bound directly in handleSuggestItems)
         // Kept for potential future use or reference
         bindCardEvents();
+
+        // Generate More Popup JavaScript
+        const generateDlg = document.getElementById('generatePopup');
+        const generateCancelBtn = document.getElementById('generateCancelBtn');
+        const generateConfirmBtn = document.getElementById('generateConfirmBtn');
+        const generateSelectAllBtn = document.getElementById('generate-select-all');
+
+        generateCancelBtn.addEventListener('click', () => generateDlg.close());
+
+        generateConfirmBtn.addEventListener('click', () => {
+            const path = generateDlg.dataset.path;
+            if (!path) return;
+
+            const dataObject = App.getObjectByPath(path);
+            const selectedItems = Array.from(generateDlg.querySelectorAll('.suggest-card[aria-checked="true"]'));
+            
+            if (selectedItems.length > 0) {
+                State.saveStateToHistory();
+                const wildcardsToAdd = selectedItems.map(item => item.dataset.wildcard);
+                dataObject.wildcards.push(...wildcardsToAdd);
+                dataObject.wildcards.sort((a, b) => a.localeCompare(b));
+                State.saveState(true);
+                UI.updateCardByPath(path);
+                UI.announce(`Added ${wildcardsToAdd.length} new wildcards.`);
+            }
+            generateDlg.close();
+        });
+
+        generateSelectAllBtn.addEventListener('click', () => {
+            const cards = generateDlg.querySelectorAll('.suggest-card');
+            const allSelected = Array.from(cards).every(card => card.getAttribute('aria-checked') === 'true');
+            cards.forEach(card => card.setAttribute('aria-checked', String(!allSelected)));
+            generateSelectAllBtn.textContent = allSelected ? 'Select All' : 'Deselect All';
+        });
+
+        generateDlg.addEventListener('close', () => {
+            generateSelectAllBtn.textContent = 'Select All';
+        });
 
         document.addEventListener('DOMContentLoaded', () => App.init());
     </script>

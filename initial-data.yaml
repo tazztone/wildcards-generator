@@ -1,4 +1,4 @@
-0_PROMPT_META_&_GLOBAL:
+0_PROMPT_META_&_GLOBAL: # instruction: Keywords that control the overall image generation parameters, not the content itself.
   Aspect_Ratio:
     instruction: "Define the image dimensions and orientation"
     wildcards:
@@ -47,8 +47,8 @@
     - artistic
     - photorealistic
     - hyperrealistic
-'1_SUBJECT_&_CONTENT':
-  PEOPLE:
+'1_SUBJECT_&_CONTENT': # instruction: The main focus of the image. What the picture is 'of'.
+  PEOPLE: # instruction: Human subjects, their characteristics, roles, and attire.
     Demographics:
       instruction: "Human diversity characteristics"
       wildcards:
@@ -87,7 +87,7 @@
       - mentor
       - warrior
       - mystic
-    Occupations:
+    Occupations: # instruction: Categorization of jobs and professions by time period.
       Modern:
         instruction: "Contemporary professions"
         wildcards:
@@ -189,7 +189,7 @@
       - goggles
       - gloves
       - scarf
-  CREATURES_&_BEINGS:
+  CREATURES_&_BEINGS: # instruction: Non-human subjects, including real animals, mythical beasts, and artificial life.
     Animals_by_Class:
       instruction: "Biological classification groups"
       wildcards:
@@ -268,7 +268,7 @@
       - hover-bike creature
       - giant eagle
       - war elephant
-  OBJECTS_&_ITEMS:
+  OBJECTS_&_ITEMS: # instruction: Inanimate objects, from everyday items to fantastical artifacts.
     Technology:
       instruction: "Modern and futuristic devices"
       wildcards:
@@ -305,7 +305,7 @@
       - powered exosuit
       - energy sword
       - force field
-    Vehicles_Transportation:
+    Vehicles_Transportation: # instruction: Modes of transport across different environments.
       Terrestrial:
         instruction: "Land-based vehicles"
         wildcards:
@@ -405,7 +405,7 @@
       - enchanted wine
       - mystical tea
       - energy drink
-  ABSTRACT_&_CONCEPTS:
+  ABSTRACT_&_CONCEPTS: # instruction: Non-physical subjects, ideas, and emotions.
     Geometric:
       instruction: "Mathematical and geometric forms"
       wildcards:
@@ -453,7 +453,7 @@
       - war
       - creation
       - destruction
-  HISTORICAL_ERAS_&_CULTURES:
+  HISTORICAL_ERAS_&_CULTURES: # instruction: Themes related to specific time periods and societies.
     Time_Periods:
       instruction: "Historical time periods and eras"
       wildcards:
@@ -499,8 +499,8 @@
       - Persian
       - Mesopotamian
       - Indian Subcontinent
-'2_ACTION_POSE_&_EMOTION':
-  Dynamic_Actions:
+'2_ACTION_POSE_&_EMOTION': # instruction: Describes what the subject is doing, feeling, or how they are positioned.
+  Dynamic_Actions: # instruction: Actions involving significant movement or interaction.
     Locomotion:
       instruction: "Movement and travel actions"
       wildcards:
@@ -546,7 +546,7 @@
       - performing
       - negotiating
       - discovering
-  Static_Poses:
+  Static_Poses: # instruction: Stationary positions for a subject.
     Standing:
       instruction: "Upright stationary positions"
       wildcards:
@@ -649,8 +649,8 @@
     - nervous fidget
     - confident smirk
     - knowing glance
-'3_ENVIRONMENT_&_SETTING':
-  Location:
+'3_ENVIRONMENT_&_SETTING': # instruction: The background and world where the subject exists.
+  Location: # instruction: Specific types of indoor and outdoor settings.
     Interior:
       instruction: "Indoor environments and spaces"
       wildcards:
@@ -718,7 +718,7 @@
       - swamp
       - hot springs
       - geyser field
-  Time_Weather:
+  Time_Weather: # instruction: Atmospheric conditions and time of day.
     Time_of_Day:
       instruction: "Temporal lighting conditions"
       wildcards:
@@ -794,7 +794,7 @@
       - summer heat
       - autumn colors
       - winter stillness
-  Architecture:
+  Architecture: # instruction: Building styles, materials, and types.
     Architectural_Styles:
       instruction: "Building design and architectural movements"
       wildcards:
@@ -863,7 +863,7 @@
       - underground dwelling
       - ice castle
       - crystal palace
-  Flora_Fauna_Details:
+  Flora_Fauna_Details: # instruction: Specific plants, animals, and natural details to populate the environment.
     instruction: "Environmental life and natural elements"
     wildcards:
     - overgrown ivy
@@ -885,7 +885,7 @@
     - microscopic ecosystem
     - giant flora
     - crystalline plants
-  Natural_Phenomena:
+  Natural_Phenomena: # instruction: Large-scale environmental events and occurrences.
     instruction: "Natural events and environmental effects"
     wildcards:
     - super-cell tornado
@@ -907,7 +907,7 @@
     - time dilation zone
     - dimensional rift
     - energy vortex
-'4_COMPOSITION_&_CINEMATOGRAPHY':
+'4_COMPOSITION_&_CINEMATOGRAPHY': # instruction: How the scene is framed, shot, and composed, as if by a camera.
   Shot_Framing:
     instruction: "Camera position and subject framing"
     wildcards:
@@ -998,7 +998,7 @@
     - whip pan
     - freeze frame
     - motion ghosting
-'5_STYLE_&_AESTHETICS':
+'5_STYLE_&_AESTHETICS': # instruction: The overall visual style, art movement, and mood of the image.
   Art_Movements:
     instruction: "Historical and contemporary art styles"
     wildcards:
@@ -1022,7 +1022,7 @@
     - hyperrealism
     - photorealism
     - conceptual art
-  Medium_Technique:
+  Medium_Technique: # instruction: The artistic medium used, both digital and traditional.
     Digital:
       instruction: "Digital art creation methods"
       wildcards:
@@ -1064,7 +1064,7 @@
       - relief carving
       - intaglio
       - monotype
-  Aesthetic_Genres:
+  Aesthetic_Genres: # instruction: Popular and niche visual styles and subcultures.
     instruction: "Visual style genres and movements"
     wildcards:
     - cyberpunk
@@ -1110,7 +1110,7 @@
     - warm palette
     - cool palette
     - neutral palette
-  Textures_Patterns:
+  Textures_Patterns: # instruction: Surface qualities and repeating visual motifs.
     instruction: "Surface qualities and decorative elements"
     wildcards:
     - smooth
@@ -1133,7 +1133,7 @@
     - cracked paint
     - fabric weave
     - stone texture
-  Mood_Atmosphere:
+  Mood_Atmosphere: # instruction: The emotional tone and feeling of the image.
     instruction: "Emotional and atmospheric qualities"
     wildcards:
     - ethereal
@@ -1156,7 +1156,7 @@
     - somber
     - energetic
     - contemplative
-  Film_Techniques:
+  Film_Techniques: # instruction: Effects and styles borrowed from photography and cinema.
     instruction: "Photography and film processing effects"
     wildcards:
     - infrared
@@ -1174,7 +1174,7 @@
     - low key
     - chiaroscuro
     - rembrandt lighting
-  Post_Processing:
+  Post_Processing: # instruction: Digital effects applied after the 'shot' is taken.
     instruction: "Digital enhancement and effects"
     wildcards:
     - HDR
@@ -1196,7 +1196,7 @@
     - desaturation
     - oversaturation
     - contrast boost
-  Cultural_Motifs:
+  Cultural_Motifs: # instruction: Design elements and symbols from various world cultures.
     instruction: "Traditional and cultural design elements"
     wildcards:
     - Maori kowhaiwhai
@@ -1214,8 +1214,8 @@
     - Roman mosaics
     - Byzantine iconography
     - Gothic tracery
-'6_TECHNICAL_ATTRIBUTES_&_RENDERING':
-  Lighting:
+'6_TECHNICAL_ATTRIBUTES_&_RENDERING': # instruction: Technical details about the virtual camera, lens, and rendering process.
+  Lighting: # instruction: All aspects of how the scene is illuminated.
     Lighting_Types:
       instruction: "Different lighting techniques and sources"
       wildcards:
@@ -1280,7 +1280,7 @@
       - blue hour lighting
       - magic hour
       - twilight lighting
-  Detail_Quality:
+  Detail_Quality: # instruction: The level of fidelity and detail in the final image.
     instruction: "Level of detail and rendering quality"
     wildcards:
     - highly detailed
@@ -1303,7 +1303,7 @@
     - production ready
     - ultra-detailed
     - macro detail
-  Camera_Film:
+  Camera_Film: # instruction: Specifics about the virtual camera, lens, and film type.
     Camera_Types:
       instruction: "Different camera systems and formats"
       wildcards:
@@ -1394,7 +1394,7 @@
       - 1/60 handheld
       - 1/15 motion
       - 30s long exposure
-  Rendering_Engines:
+  Rendering_Engines: # instruction: Simulated 3D software used to create the image.
     instruction: "3D rendering software and techniques"
     wildcards:
     - Octane Render
@@ -1417,7 +1417,7 @@
     - path tracing
     - rasterization
     - real-time rendering
-  File_Aesthetics:
+  File_Aesthetics: # instruction: The appearance of the image as a digital file type.
     instruction: "Digital file formats and presentation styles"
     wildcards:
     - RAW format
@@ -1440,8 +1440,8 @@
     - print ready
     - high resolution
     - low resolution
-'7_SPECIAL_FX_&_PARTICLES':
-  Elements:
+'7_SPECIAL_FX_&_PARTICLES': # instruction: Visual effects like smoke, fire, magic, and debris.
+  Elements: # instruction: Fundamental particle effects like dust, sparks, and rain.
     instruction: "Basic particle and environmental effects"
     wildcards:
     - sparks
@@ -1464,7 +1464,7 @@
     - sand grains
     - crystal fragments
     - energy orbs
-  Fluid_Energy:
+  Fluid_Energy: # instruction: Effects involving liquids, gases, and energy forms.
     instruction: "Liquid and energy-based effects"
     wildcards:
     - water splash
@@ -1487,7 +1487,7 @@
     - force fields
     - solar winds
     - cosmic rays
-  Destruction:
+  Destruction: # instruction: Visuals of damage, decay, and things breaking.
     instruction: "Breaking and destruction effects"
     wildcards:
     - shattered glass
@@ -1510,7 +1510,7 @@
     - weathering
     - battle damage
     - impact craters
-  Atmospheric:
+  Atmospheric: # instruction: Ambient environmental effects related to light and air.
     instruction: "Environmental and atmospheric effects"
     wildcards:
     - god rays
@@ -1533,7 +1533,7 @@
     - shadows
     - silhouettes
     - backlighting
-  Magical_Supernatural:
+  Magical_Supernatural: # instruction: Supernatural and fantasy-based visual effects.
     instruction: "Fantasy and supernatural effects"
     wildcards:
     - magical sparkles
@@ -1556,8 +1556,8 @@
     - psychic waves
     - astral projection
     - soul fragments
-'8_NARRATIVE_&_THEME':
-  Story_Genres:
+'8_NARRATIVE_&_THEME': # instruction: The underlying story, message, or theme of the image.
+  Story_Genres: # instruction: High-level narrative genres like sci-fi, fantasy, or horror.
     instruction: "Narrative categories and story types"
     wildcards:
     - adventure
@@ -1580,7 +1580,7 @@
     - political
     - social
     - philosophical
-  Narrative_Arcs:
+  Narrative_Arcs: # instruction: Common story structures and character journeys.
     instruction: "Story structure and character development"
     wildcards:
     - "hero's journey"
@@ -1603,7 +1603,7 @@
     - return
     - awakening
     - prophecy
-  Emotional_Themes:
+  Emotional_Themes: # instruction: The core emotions the image is intended to evoke.
     instruction: "Core emotional and thematic elements"
     wildcards:
     - love
@@ -1632,7 +1632,7 @@
     - war
     - order
     - chaos
-  Moral_Philosophical:
+  Moral_Philosophical: # instruction: Ideas and conflicts related to ethics and philosophy.
     instruction: "Ethical and philosophical perspectives"
     wildcards:
     - good vs evil
@@ -1650,7 +1650,7 @@
     - knowledge vs ignorance
     - civilization vs wilderness
     - technology vs humanity
-  Cultural_Social:
+  Cultural_Social: # instruction: Themes related to society and culture.
     instruction: "Social and cultural commentary themes"
     wildcards:
     - class struggle
@@ -1673,7 +1673,7 @@
     - rich vs poor
     - powerful vs powerless
     - connected vs isolated
-  Symbolic_Metaphorical:
+  Symbolic_Metaphorical: # instruction: The use of objects or concepts to represent deeper meanings.
     instruction: "Symbolic meanings and metaphorical elements"
     wildcards:
     - light and darkness
