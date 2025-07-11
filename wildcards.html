@@ -1013,7 +1013,10 @@
                 this.elements.dialogClose.classList.toggle('hidden', isConfirmation);
                 this.elements.dialog.showModal();
                 
-                this.elements.dialogConfirm.onclick = () => { if (onConfirm) onConfirm(inputElement ? inputElement.value : null); this.elements.dialog.close('confirm'); };
+                this.elements.dialogConfirm.onclick = () => {
+                    this.elements.dialog.close('confirm');
+                    if (onConfirm) onConfirm(inputElement ? inputElement.value : null);
+                };
                 this.elements.dialogCancel.onclick = () => this.elements.dialog.close('cancel');
                 this.elements.dialogClose.onclick = () => this.elements.dialog.close('close');
             },
@@ -1848,4 +1851,3 @@
     </script>
 </body>
 </html>
-""

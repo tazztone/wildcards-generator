@@ -1,0 +1,44 @@
+1_SUBJECT_and_CONTENT: # instruction: The main focus of the image. What the picture is of.
+  PEOPLE: # instruction: Human subjects, their characteristics, roles, and attire.
+    Demographics: # instruction: Human diversity characteristics
+      - infant
+      - toddler
+      - child
+      - teenager
+      - young adult
+      - middle-aged
+      - elderly
+      - Han Chinese
+      - Maasai
+      - Sámi
+      - Quechua
+      - Celtic
+      - Nordic
+      - masculine
+      - feminine
+      - androgynous
+      - non-binary
+    Archetypes: # instruction: Character roles and personality types
+      - hero
+      - innocent
+      - sage
+      - explorer
+      - rebel
+      - lover
+      - creator
+      - ruler
+      - jester
+      - caregiver
+      - magician
+      - outlaw
+      - mentor
+      - warrior
+      - mystic
+    Occupations: # instruction: Categorization of jobs and professions by time period.
+      Modern: # instruction: Contemporary professions
+        - astronaut
+        - doctor
+        - programmer
+        - CEO
+        - DJ
+        
