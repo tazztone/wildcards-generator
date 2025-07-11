@@ -1,6 +1,0 @@
-1_SUBJECT_&_CONTENT: # instruction: The main focus of the image. What the picture is of.
-  PEOPLE: # instruction: Human subjects, their characteristics, roles, and attire.
-    Demographics: # instruction: Human diversity characteristics
-      - infant
-      - toddler
-      

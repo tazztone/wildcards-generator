@@ -1,4 +1,4 @@
-1_SUBJECT_&_CONTENT: # instruction: The main focus of the image. What the picture is of.
+1_SUBJECT_and_CONTENT: # instruction: The main focus of the image. What the picture is of.
   PEOPLE: # instruction: Human subjects, their characteristics, roles, and attire.
     Demographics: # instruction: Human diversity characteristics
       - infant
@@ -128,7 +128,7 @@
       - goggles
       - gloves
       - scarf
-  CREATURES_&_BEINGS: # instruction: Non-human subjects, including real animals, mythical beasts, and artificial life.
+  CREATURES_and_BEINGS: # instruction: Non-human subjects, including real animals, mythical beasts, and artificial life.
     Animals_by_Class: # instruction: Biological classification groups
       - mammals
       - birds
@@ -197,7 +197,7 @@
       - hover-bike creature
       - giant eagle
       - war elephant
-  OBJECTS_&_ITEMS: # instruction: Inanimate objects, from everyday items to fantastical artifacts.
+  OBJECTS_and_ITEMS: # instruction: Inanimate objects, from everyday items to fantastical artifacts.
     Technology: # instruction: Modern and futuristic devices
       - smartphone
       - drone
@@ -314,7 +314,7 @@
       - enchanted wine
       - mystical tea
       - energy drink
-  ABSTRACT_&_CONCEPTS: # instruction: Non-physical subjects, ideas, and emotions.
+  ABSTRACT_and_CONCEPTS: # instruction: Non-physical subjects, ideas, and emotions.
     Geometric: # instruction: Mathematical and geometric forms
       - fractal
       - tessellation
@@ -356,7 +356,7 @@
       - war
       - creation
       - destruction
-  HISTORICAL_ERAS_&_CULTURES: # instruction: Themes related to specific time periods and societies.
+  HISTORICAL_ERAS_and_CULTURES: # instruction: Themes related to specific time periods and societies.
     Time_Periods: # instruction: Historical time periods and eras
       - prehistoric
       - stone age
@@ -398,7 +398,7 @@
       - Persian
       - Mesopotamian
       - Indian Subcontinent
-2_ACTION_POSE_&_EMOTION: # instruction: Describes what the subject is doing, feeling, or how they are positioned.
+2_ACTION_POSE_and_EMOTION: # instruction: Describes what the subject is doing, feeling, or how they are positioned.
   Dynamic_Actions: # instruction: Actions involving significant movement or interaction.
     Locomotion: # instruction: Movement and travel actions
       - leaping
@@ -528,7 +528,7 @@
     - nervous fidget
     - confident smirk
     - knowing glance
-3_ENVIRONMENT_&_SETTING: # instruction: The background and world where the subject exists.
+3_ENVIRONMENT_and_SETTING: # instruction: The background and world where the subject exists.
   Location: # instruction: Specific types of indoor and outdoor settings.
     Interior: # instruction: Indoor environments and spaces
       - abandoned asylum
@@ -762,7 +762,7 @@
     - time dilation zone
     - dimensional rift
     - energy vortex
-4_COMPOSITION_&_CINEMATOGRAPHY: # instruction: How the scene is framed, shot, and composed, as if by a camera.
+4_COMPOSITION_and_CINEMATOGRAPHY: # instruction: How the scene is framed, shot, and composed, as if by a camera.
   Shot_Framing: # instruction: Camera position and subject framing
     - establishing shot
     - wide shot
@@ -843,7 +843,7 @@
     - whip pan
     - freeze frame
     - motion ghosting
-5_STYLE_&_AESTHETICS: # instruction: The overall visual style, art movement, and mood of the image.
+5_STYLE_and_AESTHETICS: # instruction: The overall visual style, art movement, and mood of the image.
   Art_Movements: # instruction: Historical and contemporary art styles
     - abstract expressionism
     - impressionism
@@ -1039,7 +1039,7 @@
     - Roman mosaics
     - Byzantine iconography
     - Gothic tracery
-6_TECHNICAL_ATTRIBUTES_&_RENDERING: # instruction: Technical details about the virtual camera, lens, and rendering process.
+6_TECHNICAL_ATTRIBUTES_and_RENDERING: # instruction: Technical details about the virtual camera, lens, and rendering process.
   Lighting: # instruction: All aspects of how the scene is illuminated.
     Lighting_Types: # instruction: Different lighting techniques and sources
       - natural light
@@ -1245,7 +1245,7 @@
     - print ready
     - high resolution
     - low resolution
-7_SPECIAL_FX_&_PARTICLES: # instruction: Visual effects like smoke, fire, magic, and debris.
+7_SPECIAL_FX_and_PARTICLES: # instruction: Visual effects like smoke, fire, magic, and debris.
   Elements: # instruction: Basic particle and environmental effects
     - sparks
     - embers
@@ -1351,7 +1351,7 @@
     - psychic waves
     - astral projection
     - soul fragments
-8_NARRATIVE_&_THEME: # instruction: The underlying story, message, or theme of the image.
+8_NARRATIVE_and_THEME: # instruction: The underlying story, message, or theme of the image.
   Story_Genres: # instruction: Narrative categories and story types
     - adventure
     - mystery
