@@ -238,7 +238,7 @@
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-8">
             <h1 class="text-4xl sm:text-5xl font-bold text-white mb-2">AI-Powered Wildcard Generator</h1>
-            <p class="text-lg text-gray-400">Expand categories with AI. Changes are auto-saved.</p>
+            <p class="text-lg text-gray-400">Expand categories with AI.</p>
             
             <details class="max-w-4xl mx-auto mt-6 bg-gray-800 rounded-lg text-left">
                 <summary class="flex justify-between items-center p-4 cursor-pointer">
@@ -327,6 +327,34 @@
                             <button class="test-connection-btn text-sm bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md" data-provider="custom">Test Connection</button>
                         </div>
                     </div>
+                    <details class="bg-gray-900/50 rounded-lg border border-gray-700 mt-6">
+                        <summary class="p-4 cursor-pointer font-semibold text-indigo-300 flex justify-between items-center">
+                            <span>Advanced Configuration</span>
+                            <span class="arrow-down transition-transform duration-300"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
+                        </summary>
+                        <div class="p-4 border-t border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="config-history-limit" class="block text-sm font-medium text-gray-300 mb-1">History Limit</label>
+                                <input type="number" id="config-history-limit" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., 20">
+                                <p class="text-xs text-gray-400 mt-1">Max number of undo steps. Reload required.</p>
+                            </div>
+                            <div>
+                                <label for="config-search-debounce" class="block text-sm font-medium text-gray-300 mb-1">Search Debounce Delay (ms)</label>
+                                <input type="number" id="config-search-debounce" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., 300">
+                                <p class="text-xs text-gray-400 mt-1">Delay before search is triggered. Reload required.</p>
+                            </div>
+                            <div>
+                                <label for="config-storage-key" class="block text-sm font-medium text-gray-300 mb-1">State Storage Key</label>
+                                <input type="text" id="config-storage-key" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <p class="text-xs text-gray-400 mt-1">LocalStorage key for app state. Change with caution. Reload required.</p>
+                            </div>
+                            <div>
+                                <label for="config-history-key" class="block text-sm font-medium text-gray-300 mb-1">History Storage Key</label>
+                                <input type="text" id="config-history-key" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <p class="text-xs text-gray-400 mt-1">LocalStorage key for history. Change with caution. Reload required.</p>
+                            </div>
+                        </div>
+                    </details>
                 </div>
             </details>
 
@@ -340,6 +368,8 @@
             <div class="mt-6 flex flex-wrap justify-center items-center gap-4">
                 <button id="export-yaml" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Export YAML</button>
                 <button id="import-yaml" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Import YAML</button>
+                <button id="export-config" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Export Config</button>
+                <button id="import-config" class="bg-green-800 hover:bg-green-900 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Import Config</button>
                 <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Undo (Ctrl+Z)</button>
                 <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Redo (Ctrl+Y)</button>
                 <button id="help-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">Help</button>
@@ -353,31 +383,7 @@
         // =================================================================================
         // --- CONFIGURATION & CONSTANTS
         // =================================================================================
-        const Config = {
-            STORAGE_KEY: 'wildcardGeneratorState_v11',
-            API_KEY_GEMINI: 'gemini_api_key_v11',
-            API_KEY_OPENROUTER: 'openrouter_api_key_v11',
-            API_KEY_CUSTOM: 'custom_api_key_v11',
-            API_URL_CUSTOM: 'custom_api_url_v11',
-            MODEL_NAME_GEMINI: 'gemini_model_name_v11',
-            MODEL_NAME_OPENROUTER: 'openrouter_model_name_v11',
-            MODEL_NAME_CUSTOM: 'custom_model_name_v11',
-            HISTORY_KEY: 'wildcardGeneratorHistory_v11',
-            HISTORY_LIMIT: 20,
-            AUTOSAVE_INTERVAL: 500,
-            SEARCH_DEBOUNCE_DELAY: 300,
-            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the category provided.`,
-            DEFAULT_SUGGEST_ITEM_PROMPT: `You are an expert creative assistant. Your task is to suggest 20 new, unique, and descriptive sub-category names for a parent category called '{parentPath}'.
-
-**RULES:**
-1. The names must be suitable for use as filenames. Use underscores_between_words.
-2. The names must be specific and creative.
-3. **CRITICAL:** Do NOT include the parent category name ('{parentPath}') in your suggestions.
-4. **CRITICAL:** Do NOT use generic placeholders like "new_item", "category_name", or similar variations.
-5. The output MUST be ONLY a valid JSON array of objects. Each object must have a "name" and an "instruction" key.
-
-For context, you will be given the existing items that are siblings to the one you are suggesting for. Do not suggest items that already exist in the provided structure.`,
-        };
+        let Config = {};
 
         // =================================================================================
         // --- UTILITY FUNCTIONS
@@ -405,13 +411,76 @@ For context, you will be given the existing items that are siblings to the one y
             history: [],
             historyIndex: -1,
             _debounceTimeout: null,
-            init() {
+            async init() {
+                await this.loadConfig(); // Load config first
                 this.loadState();
                 if (!localStorage.getItem(Config.STORAGE_KEY)) {
                     this.resetState(false); 
                 }
                 this.loadHistory();
                 this.initializeModelSelector();
+            },
+            async loadConfig() {
+                try {
+                    // Fetch the default config from the external file
+                    const response = await fetch('config.json');
+                    if (!response.ok) throw new Error('Could not fetch default configuration.');
+                    const defaultConfig = await response.json();
+                    
+                    // Load user-saved config from localStorage
+                    const savedConfig = localStorage.getItem(defaultConfig.CONFIG_STORAGE_KEY);
+                    
+                    // Merge configs: defaults < saved
+                    Object.assign(Config, defaultConfig, savedConfig ? JSON.parse(savedConfig) : {});
+
+                } catch (error) {
+                    console.error("Failed to load configuration:", error);
+                    UI.showNotification(`Error: Could not load configuration. Please ensure config.json is present and valid. Error: ${error.message}`, false);
+                    // Fallback to a minimal safe config if everything fails
+                    Config = { STORAGE_KEY: 'wildcardGeneratorState_fallback', HISTORY_KEY: 'wildcardGeneratorHistory_fallback', HISTORY_LIMIT: 10 }; 
+                }
+            },
+            async saveConfig() {
+                try {
+                    // Fetch the default config again to compare against
+                    const response = await fetch('config.json');
+                    if (!response.ok) throw new Error('Could not fetch default configuration for saving.');
+                    const defaultConfig = await response.json();
+
+                    // Create a new object with only the changed values
+                    const changedConfig = {};
+                    for (const key in Config) {
+                        // A deep-enough comparison for this app's config structure
+                        if (Config.hasOwnProperty(key) && JSON.stringify(Config[key]) !== JSON.stringify(defaultConfig[key])) {
+                            changedConfig[key] = Config[key];
+                        }
+                    }
+
+                    localStorage.setItem(Config.CONFIG_STORAGE_KEY, JSON.stringify(changedConfig));
+                    UI.showNotification('Configuration saved. Some changes may require a reload to apply.');
+                } catch (error) {
+                    console.error("Failed to save config:", error);
+                    UI.showNotification(`Error saving configuration: ${error.message}`);
+                }
+            },
+            updateConfigValue(key, value) {
+                // Basic validation
+                if (typeof value === 'number' && isNaN(value)) return;
+                if (typeof value === 'string' && value.trim() === '') return;
+
+                if (Config.hasOwnProperty(key)) {
+                    if (typeof Config[key] === 'number') {
+                        Config[key] = Number(value);
+                    } else {
+                        Config[key] = value;
+                    }
+                    this.saveConfig();
+                }
+            },
+            resetConfig() {
+                localStorage.removeItem(Config.CONFIG_STORAGE_KEY);
+                UI.showNotification('Configuration has been reset to defaults. The page will now reload.');
+                setTimeout(() => window.location.reload(), 1500);
             },
             initializeModelSelector() {
                 this.fetchGeminiModels();
@@ -504,33 +573,30 @@ For context, you will be given the existing items that are siblings to the one y
                         const parsed = JSON.parse(savedState);
                         if (parsed.wildcards) {
                             this.appState = parsed;
-                            if(!this.appState.systemPrompt) this.appState.systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
-                            if(!this.appState.suggestItemPrompt) this.appState.suggestItemPrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT;
+                            // Always load default prompts, ignoring saved ones.
+                            this.appState.systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
+                            this.appState.suggestItemPrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT;
                             UI.renderAll();
                             return;
                         }
                     }
                 } catch (error) { console.error("Failed to load state, falling back to default.", error); }
             },
-            saveState(immediate = false) {
-                if (immediate) {
-                    this._save();
+            saveState() {
+                try {
+                    localStorage.setItem(Config.STORAGE_KEY, JSON.stringify(this.appState));
                     UI.announce("State saved.");
-                } else {
-                    clearTimeout(this._debounceTimeout);
-                    this._debounceTimeout = setTimeout(() => {
-                        this._save();
-                        UI.announce("State auto-saved.");
-                    }, Config.AUTOSAVE_INTERVAL);
+                } catch (e) {
+                    console.error("Failed to save state", e);
+                    UI.showNotification(`Failed to save state: ${e.message}`);
                 }
             },
-            _save() { try { localStorage.setItem(Config.STORAGE_KEY, JSON.stringify(this.appState)); } catch (e) { console.error("Failed to save state", e); } },
             resetState(notify = true) {
                 const performReset = (data) => {
                     this.appState.wildcards = data || {};
                     this.appState.systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
                     this.appState.suggestItemPrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT;
-                    this.saveState(true);
+                    this.saveState();
                     this.clearHistory();
                     this.saveStateToHistory();
                     UI.renderAll();
@@ -844,7 +910,12 @@ For context, you will be given the existing items that are siblings to the one y
                     dialogCancel: document.getElementById('cancel-btn'),
                     dialogClose: document.getElementById('notification-close'),
                     dialogConfirmButtons: document.getElementById('confirmation-buttons'),
-                    ariaLive: document.getElementById('aria-live-region')
+                    ariaLive: document.getElementById('aria-live-region'),
+                    // Advanced Config
+                    configHistoryLimit: document.getElementById('config-history-limit'),
+                    configSearchDebounce: document.getElementById('config-search-debounce'),
+                    configStorageKey: document.getElementById('config-storage-key'),
+                    configHistoryKey: document.getElementById('config-history-key')
                 };
                 this.elements.dialog.addEventListener('close', () => {
                     const customButtons = this.elements.dialog.querySelector('#custom-buttons');
@@ -855,13 +926,19 @@ For context, you will be given the existing items that are siblings to the one y
                 const { wildcards, systemPrompt, suggestItemPrompt } = State.appState;
                 this.elements.globalPrompt.value = systemPrompt || Config.DEFAULT_SYSTEM_PROMPT;
                 this.elements.suggestItemPrompt.value = suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT;
-                this.elements.geminiApiKey.value = localStorage.getItem(Config.API_KEY_GEMINI) || '';
-                this.elements.openrouterApiKey.value = localStorage.getItem(Config.API_KEY_OPENROUTER) || '';
-                this.elements.customApiKey.value = localStorage.getItem(Config.API_KEY_CUSTOM) || '';
-                this.elements.customApiUrl.value = localStorage.getItem(Config.API_URL_CUSTOM) || '';
-                this.elements.geminiModelName.value = localStorage.getItem(Config.MODEL_NAME_GEMINI) || 'gemini-1.5-flash';
-                this.elements.openrouterModelName.value = localStorage.getItem(Config.MODEL_NAME_OPENROUTER) || ':free';
-                this.elements.customModelName.value = localStorage.getItem(Config.MODEL_NAME_CUSTOM) || '';
+                this.elements.geminiApiKey.value = Config.API_KEY_GEMINI || '';
+                this.elements.openrouterApiKey.value = Config.API_KEY_OPENROUTER || '';
+                this.elements.customApiKey.value = Config.API_KEY_CUSTOM || '';
+                this.elements.customApiUrl.value = Config.API_URL_CUSTOM || '';
+                this.elements.geminiModelName.value = Config.MODEL_NAME_GEMINI || 'gemini-1.5-flash';
+                this.elements.openrouterModelName.value = Config.MODEL_NAME_OPENROUTER || ':free';
+                this.elements.customModelName.value = Config.MODEL_NAME_CUSTOM || '';
+
+                // Populate advanced config fields
+                this.elements.configHistoryLimit.value = Config.HISTORY_LIMIT;
+                this.elements.configSearchDebounce.value = Config.SEARCH_DEBOUNCE_DELAY;
+                this.elements.configStorageKey.value = Config.STORAGE_KEY;
+                this.elements.configHistoryKey.value = Config.HISTORY_KEY;
                 
                 const openPaths = [...this.elements.container.querySelectorAll('details[open]')].map(d => d.dataset.path);
 
@@ -1051,8 +1128,7 @@ For context, you will be given the existing items that are siblings to the one y
             draggedPath: null,
             async init() {
                 UI.init();
-                await this.loadApiKeysFromEnv();
-                State.init();
+                await State.init();
                 this.bindEventListeners();
                 this.debouncedSearch = debounce(this.handleSearch, Config.SEARCH_DEBOUNCE_DELAY);
             },
@@ -1077,23 +1153,21 @@ For context, you will be given the existing items that are siblings to the one y
             },
             bindEventListeners() {
                 const elements = UI.elements;
-                elements.globalPrompt.addEventListener('input', e => { State.appState.systemPrompt = e.target.value; State.saveState(); });
-                elements.suggestItemPrompt.addEventListener('input', e => { State.appState.suggestItemPrompt = e.target.value; State.saveState(); });
-                elements.geminiApiKey.addEventListener('input', e => {
-                    localStorage.setItem(Config.API_KEY_GEMINI, e.target.value.trim());
-                    State.fetchGeminiModels();
-                });
-                elements.openrouterApiKey.addEventListener('input', e => {
-                    localStorage.setItem(Config.API_KEY_OPENROUTER, e.target.value.trim());
-                    State.fetchOpenRouterModels();
-                });
-                elements.customApiKey.addEventListener('input', e => localStorage.setItem(Config.API_KEY_CUSTOM, e.target.value.trim()));
-                elements.customApiUrl.addEventListener('input', e => localStorage.setItem(Config.API_URL_CUSTOM, e.target.value.trim()));
-                elements.geminiModelName.addEventListener('input', e => localStorage.setItem(Config.MODEL_NAME_GEMINI, e.target.value.trim()));
-                elements.openrouterModelName.addEventListener('input', e => localStorage.setItem(Config.MODEL_NAME_OPENROUTER, e.target.value.trim()));
-                elements.customModelName.addEventListener('input', e => localStorage.setItem(Config.MODEL_NAME_CUSTOM, e.target.value.trim()));
+                elements.globalPrompt.addEventListener('change', e => { State.appState.systemPrompt = e.target.value; State.saveState(); });
+                elements.suggestItemPrompt.addEventListener('change', e => { State.appState.suggestItemPrompt = e.target.value; State.saveState(); });
+                elements.geminiApiKey.addEventListener('change', e => { State.updateConfigValue('API_KEY_GEMINI', e.target.value.trim()); State.fetchGeminiModels(); });
+                elements.openrouterApiKey.addEventListener('change', e => { State.updateConfigValue('API_KEY_OPENROUTER', e.target.value.trim()); State.fetchOpenRouterModels(); });
+                elements.customApiKey.addEventListener('change', e => State.updateConfigValue('API_KEY_CUSTOM', e.target.value.trim()));
+                elements.customApiUrl.addEventListener('change', e => State.updateConfigValue('API_URL_CUSTOM', e.target.value.trim()));
+                elements.geminiModelName.addEventListener('change', e => State.updateConfigValue('MODEL_NAME_GEMINI', e.target.value.trim()));
+                elements.openrouterModelName.addEventListener('change', e => State.updateConfigValue('MODEL_NAME_OPENROUTER', e.target.value.trim()));
+                elements.customModelName.addEventListener('change', e => State.updateConfigValue('MODEL_NAME_CUSTOM', e.target.value.trim()));
 
-                
+                // Advanced Config Listeners
+                elements.configHistoryLimit.addEventListener('change', e => State.updateConfigValue('HISTORY_LIMIT', parseInt(e.target.value, 10)));
+                elements.configSearchDebounce.addEventListener('change', e => State.updateConfigValue('SEARCH_DEBOUNCE_DELAY', parseInt(e.target.value, 10)));
+                elements.configStorageKey.addEventListener('change', e => State.updateConfigValue('STORAGE_KEY', e.target.value));
+                elements.configHistoryKey.addEventListener('change', e => State.updateConfigValue('HISTORY_KEY', e.target.value));
 
 
                 document.querySelectorAll('.toggle-api-key-visibility').forEach(button => {
@@ -1121,6 +1195,8 @@ For context, you will be given the existing items that are siblings to the one y
                     if (e.target.matches('#download-all-zip')) this.handleDownloadZip();
                     if (e.target.matches('#export-yaml')) this.handleExportYaml();
                     if (e.target.matches('#import-yaml')) this.handleImportYaml();
+                    if (e.target.matches('#export-config')) this.handleExportConfig();
+                    if (e.target.matches('#import-config')) this.handleImportConfig();
                     if (e.target.matches('#undo-btn')) State.undo();
                     if (e.target.matches('#redo-btn')) State.redo();
                     if (e.target.matches('#help-btn')) this.handleHelp();
@@ -1128,7 +1204,7 @@ For context, you will be given the existing items that are siblings to the one y
                 });
 
                 elements.container.addEventListener('click', this.handleContainerClick.bind(this));
-                elements.container.addEventListener('input', e => { if (e.target.matches('.custom-instructions-input')) { const path = e.target.closest('[data-path]').dataset.path; this.getObjectByPath(path).instruction = e.target.value; State.saveState(); } });
+                elements.container.addEventListener('change', e => { if (e.target.matches('.custom-instructions-input')) { const path = e.target.closest('[data-path]').dataset.path; this.getObjectByPath(path).instruction = e.target.value; State.saveState(); } });
                 elements.container.addEventListener('keydown', e => { if (e.key === 'Enter') { if (e.target.matches('.add-wildcard-input')) { e.preventDefault(); e.target.nextElementSibling.click(); } if (e.target.matches('[contenteditable="true"]')) { e.preventDefault(); e.target.blur(); } } });
                 elements.container.addEventListener('blur', e => { if (e.target.matches('[contenteditable="true"]')) this.handleContentEditableBlur(e.target); }, true);
                 
@@ -1199,7 +1275,7 @@ For context, you will be given the existing items that are siblings to the one y
             handleKeyboardShortcuts(e) {
                 if (e.ctrlKey || e.metaKey) {
                     switch (e.key.toLowerCase()) {
-                        case 's': e.preventDefault(); State.saveState(true); break;
+                        case 's': e.preventDefault(); UI.showNotification('All changes are saved automatically.'); break;
                         case 'z': e.preventDefault(); State.undo(); break;
                         case 'y': e.preventDefault(); State.redo(); break;
                     }
@@ -1277,7 +1353,7 @@ For context, you will be given the existing items that are siblings to the one y
                     const data = parentObject[oldKey];
                     delete parentObject[oldKey];
                     parentObject[newKey] = data;
-                    State.saveState(true);
+                    State.saveState();
                     UI.renderAll();
                     UI.announce(`Renamed "${oldText}" to "${newText}".`);
                 }
@@ -1407,7 +1483,7 @@ For context, you will be given the existing items that are siblings to the one y
                     const dataObject = this.getObjectByPath(path);
                     dataObject.wildcards.push(value);
                     dataObject.wildcards.sort((a, b) => a.localeCompare(b));
-                    State.saveState(true); 
+                    State.saveState(); 
                     UI.updateCardByPath(path); 
                     input.value = ''; 
                     input.focus(); 
@@ -1420,7 +1496,7 @@ For context, you will be given the existing items that are siblings to the one y
                     const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.closest('.chip').dataset.index, 10));
                     const dataObject = this.getObjectByPath(path);
                     dataObject.wildcards = dataObject.wildcards.filter((_, i) => !indicesToDelete.includes(i));
-                    State.saveState(true); UI.updateCardByPath(path); UI.announce(`Deleted ${indicesToDelete.length} wildcards.`);
+                    State.saveState(); UI.updateCardByPath(path); UI.announce(`Deleted ${indicesToDelete.length} wildcards.`);
                 });
             },
             handleDelete(path) {
@@ -1429,7 +1505,7 @@ For context, you will be given the existing items that are siblings to the one y
                 UI.showNotification(`Delete "${keyToDelete.replace(/_/g, ' ')}"? This cannot be undone.`, true, () => {
                     State.saveStateToHistory();
                     delete parentObject[keyToDelete];
-                    State.saveState(true);
+                    State.saveState();
                     UI.renderAll();
                     UI.announce(`Item deleted.`);
                 });
@@ -1440,7 +1516,7 @@ For context, you will be given the existing items that are siblings to the one y
                     if (name && name.trim()) {
                         const sanitizedName = name.trim().replace(/\s+/g, '_');
                         if (State.appState.wildcards[sanitizedName]) { UI.showNotification(`Category "${sanitizedName}" already exists.`); return; }
-                        State.saveStateToHistory(); State.appState.wildcards[sanitizedName] = {}; State.saveState(true); UI.renderAll();
+                        State.saveStateToHistory(); State.appState.wildcards[sanitizedName] = {}; State.saveState(); UI.renderAll();
                     }
                 }, true);
             },
@@ -1458,7 +1534,7 @@ For context, you will be given the existing items that are siblings to the one y
                     }
                     State.saveStateToHistory();
                     parentObject[sanitizedName] = (type === 'list') ? { instruction: '', wildcards: [] } : { instruction: '' };
-                    State.saveState(true);
+                    State.saveState();
                     UI.renderAll();
                 }, true);
             },
@@ -1604,7 +1680,7 @@ For context, you will be given the existing items that are siblings to the one y
                 State.saveStateToHistory();
                 delete sourceObject[draggedKey];
                 destinationObject[draggedKey] = draggedObject;
-                State.saveState(true);
+                State.saveState();
                 UI.renderAll();
             },
             handleDragEnd(e) {
@@ -1714,7 +1790,7 @@ For context, you will be given the existing items that are siblings to the one y
 
                             UI.showNotification('Importing this file will overwrite your current collection. Are you sure?', true, () => {
                                 State.appState.wildcards = importedData;
-                                State.saveState(true);
+                                State.saveState();
                                 State.clearHistory();
                                 State.saveStateToHistory();
                                 UI.renderAll();
@@ -1736,6 +1812,52 @@ For context, you will be given the existing items that are siblings to the one y
                 };
                 input.click();
             },
+
+            handleExportConfig() {
+                try {
+                    const configString = JSON.stringify(Config, null, 2);
+                    const blob = new Blob([configString], { type: 'application/json' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = "config.json";
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                    UI.showNotification('Configuration exported.');
+                } catch (error) {
+                    UI.showNotification(`Error exporting configuration: ${error.message}`);
+                    console.error(error);
+                }
+            },
+
+            handleImportConfig() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = re => {
+                        try {
+                            const newConfig = JSON.parse(re.target.result);
+                            UI.showNotification('Importing this configuration will overwrite your current settings and require a reload. Are you sure?', true, () => {
+                                // Assign to a temporary object to avoid modifying Config directly before saving
+                                const updatedConfig = { ...Config, ...newConfig };
+                                Config = updatedConfig;
+                                State.saveConfig(); // Save the merged config
+                                UI.showNotification('Configuration imported successfully. The page will now reload.');
+                                setTimeout(() => window.location.reload(), 1500);
+                            });
+                        } catch (error) {
+                            UI.showNotification(`Error importing configuration: ${error.message}`);
+                            console.error(error);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            },
+
             handleHelp() { UI.showNotification(`Welcome!\n\nKey Features:\n- Global Settings: Set API keys and choose your provider.\n- Recursive Categories: Add nested categories for better organization.\n- Drag & Drop: Reorder items by dragging them into category folders.\n- Inline Renaming: Click any title to rename it.\n- Generate More: Use AI to create new wildcards for any list.\n- Suggest Categories: Use AI to get ideas for new top-level categories.\n- Export/Import: Save and load your entire setup.\n- Undo/Redo: Revert or re-apply changes.`); }
         };
 
@@ -1796,7 +1918,7 @@ For context, you will be given the existing items that are siblings to the one y
                     }
                 });
                 if (addedCount > 0) {
-                    State.saveState(true);
+                    State.saveState();
                     UI.renderAll();
                     UI.announce(`${addedCount} new items added.`);
                 }
@@ -1828,7 +1950,7 @@ For context, you will be given the existing items that are siblings to the one y
                 const wildcardsToAdd = selectedItems.map(item => item.dataset.wildcard);
                 dataObject.wildcards.push(...wildcardsToAdd);
                 dataObject.wildcards.sort((a, b) => a.localeCompare(b));
-                State.saveState(true);
+                State.saveState();
                 UI.updateCardByPath(path);
                 UI.announce(`Added ${wildcardsToAdd.length} new wildcards.`);
             }
@@ -1846,10 +1968,7 @@ For context, you will be given the existing items that are siblings to the one y
             generateSelectAllBtn.textContent = 'Select All';
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            App.init();
-            
-        });
+        document.addEventListener('DOMContentLoaded', App.init.bind(App));
     </script>
 </body>
 </html>
