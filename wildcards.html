@@ -262,7 +262,7 @@
                             <option value="custom">Custom (OpenAI-Compatible)</option>
                         </select>
                     </div>
-                    <div id="default-api-settings" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="api-settings-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
                             <h3 class="text-lg font-semibold text-indigo-300">Gemini API</h3>
                             <div>
@@ -304,28 +304,28 @@
                             </div>
                             <button class="test-connection-btn text-sm bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md" data-provider="openrouter">Test Connection</button>
                         </div>
-                    </div>
-                    <div id="custom-api-settings" class="hidden mt-6 space-y-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                        <h3 class="text-lg font-semibold text-indigo-300">Custom OpenAI-Compatible API</h3>
-                        <div>
-                            <label for="custom-api-url" class="block text-sm font-medium text-gray-300 mb-1">API Base URL</label>
-                            <input type="text" id="custom-api-url" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., https://api.example.com/v1">
-                        </div>
-                        <div>
-                            <label for="custom-api-key" class="block text-sm font-medium text-gray-300 mb-1">API Key (Optional)</label>
-                            <div class="relative">
-                                <input type="password" id="custom-api-key" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter Custom API key" autocomplete="off">
-                                <button class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100" title="Show API Key">
-                                    <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" /><path class="eye-slash" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17L7 7" style="display: block;"/></svg>
-                                </button>
+                        <div class="space-y-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                            <h3 class="text-lg font-semibold text-indigo-300">Custom OpenAI-Compatible API</h3>
+                            <div>
+                                <label for="custom-api-url" class="block text-sm font-medium text-gray-300 mb-1">API Base URL</label>
+                                <input type="text" id="custom-api-url" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., https://api.example.com/v1">
                             </div>
+                            <div>
+                                <label for="custom-api-key" class="block text-sm font-medium text-gray-300 mb-1">API Key (Optional)</label>
+                                <div class="relative">
+                                    <input type="password" id="custom-api-key" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter Custom API key" autocomplete="off">
+                                    <button class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100" title="Show API Key">
+                                        <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" /><path class="eye-slash" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17L7 7" style="display: block;"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="custom-model-name" class="block text-sm font-medium text-gray-300 mb-1">Model Name</label>
+                                <input type="text" id="custom-model-name" list="custom-model-list" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter model name">
+                                <datalist id="custom-model-list"></datalist>
+                            </div>
+                            <button class="test-connection-btn text-sm bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md" data-provider="custom">Test Connection</button>
                         </div>
-                        <div>
-                            <label for="custom-model-name" class="block text-sm font-medium text-gray-300 mb-1">Model Name</label>
-                            <input type="text" id="custom-model-name" list="custom-model-list" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter model name">
-                            <datalist id="custom-model-list"></datalist>
-                        </div>
-                        <button class="test-connection-btn text-sm bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md" data-provider="custom">Test Connection</button>
                     </div>
                 </div>
             </details>
@@ -366,8 +366,17 @@
             HISTORY_LIMIT: 20,
             AUTOSAVE_INTERVAL: 500,
             SEARCH_DEBOUNCE_DELAY: 300,
-            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Example of expected output format: ["wildcard1", "wildcard2", "wildcard3", ..., "wildcard20"] Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the category provided.`,
-            DEFAULT_SUGGEST_ITEM_PROMPT: `You are a creative assistant helping to organize a collection of wildcards for AI image generation. You will be given a parent category path and a JSON object representing the entire existing category structure (excluding the wildcard lists themselves). Your task is to suggest 5 new, broad, and diverse item names that would fit well inside the parent category: '{parentPath}'. For each name, also provide a short, helpful 'instruction' string that describes its purpose. Do not suggest items that already exist. Format the names to be suitable as file names (e.g., use underscores instead of spaces). Return ONLY a JSON array of objects. Each object must have 'name' and 'instruction' keys. Example: [{"name": "new_item_1", "instruction": "A brief description for item 1."}]`
+            DEFAULT_SYSTEM_PROMPT: `You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings. Ensure that your response is a valid JSON array of strings, containing exactly 20 unique entries relevant to the category provided.`,
+            DEFAULT_SUGGEST_ITEM_PROMPT: `You are an expert creative assistant. Your task is to suggest 20 new, unique, and descriptive sub-category names for a parent category called '{parentPath}'.
+
+**RULES:**
+1. The names must be suitable for use as filenames. Use underscores_between_words.
+2. The names must be specific and creative.
+3. **CRITICAL:** Do NOT include the parent category name ('{parentPath}') in your suggestions.
+4. **CRITICAL:** Do NOT use generic placeholders like "new_item", "category_name", or similar variations.
+5. The output MUST be ONLY a valid JSON array of objects. Each object must have a "name" and an "instruction" key.
+
+For context, you will be given the existing items that are siblings to the one you are suggesting for. Do not suggest items that already exist in the provided structure.`,
         };
 
         // =================================================================================
@@ -639,7 +648,7 @@
                 try {
                     const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
                     const globalPrompt = State.appState.suggestItemPrompt.replace('{parentPath}', readablePath);
-                    const userPrompt = `This is the existing structure of all categories:\n${JSON.stringify(structure, null, 2)}\n\nPlease provide suggestions for the '${readablePath}' category based on this structure.`;
+                    const userPrompt = `For context, here are the existing sibling items at the same level:\n${JSON.stringify(structure, null, 2)}\n\nPlease provide new suggestions for the '${readablePath}' category.`;
                     const generationConfig = { 
                         responseMimeType: "application/json", 
                         responseSchema: {
@@ -647,8 +656,14 @@
                             items: {
                                 type: "OBJECT",
                                 properties: {
-                                    name: { type: "STRING" },
-                                    instruction: { type: "STRING" }
+                                    name: { 
+                                        type: "STRING",
+                                        description: "A unique, descriptive name for a new sub-category. MUST use underscores_between_words. MUST NOT be a generic placeholder. MUST NOT contain the parent category's name."
+                                    }, 
+                                    instruction: { 
+                                        type: "STRING",
+                                        description: "A brief, helpful description of the item's purpose."
+                                    }
                                 },
                                 required: ["name", "instruction"]
                             }
@@ -761,11 +776,10 @@
                     payload = {
                         model,
                         messages: [
-                            { role: "system", content: globalPrompt },
-                            { role: "user", content: userPrompt }
-                        ],
-                        response_format: { type: "json_object" }
+                            { role: "user", content: `${globalPrompt}\n\n${userPrompt}` }
+                        ]
                     };
+                    payload.response_format = { type: "json_object" };
                 } else if (endpoint === 'custom') {
                     apiKey = document.getElementById('custom-api-key').value.trim();
                     const model = document.getElementById('custom-model-name').value.trim();
@@ -776,11 +790,10 @@
                     payload = {
                         model,
                         messages: [
-                            { role: "system", content: globalPrompt },
-                            { role: "user", content: userPrompt }
-                        ],
-                        response_format: { type: "json_object" }
+                            { role: "user", content: `${globalPrompt}\n\n${userPrompt}` }
+                        ]
                     };
+                    payload.response_format = { type: "json_object" };
                 } else {
                     throw new Error("Invalid API endpoint.");
                 }
@@ -791,7 +804,7 @@
                 try {
                     if (endpoint === 'gemini') return JSON.parse(result.candidates[0].content.parts[0].text);
                     if (endpoint === 'openrouter' || endpoint === 'custom') {
-                        let contentStr = result.choices[0].message.content;
+                        let contentStr = result.choices[0].message.content.trim();
                         const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
                         if (match) contentStr = match[1];
                         const content = JSON.parse(contentStr);
@@ -1080,17 +1093,7 @@
                 elements.openrouterModelName.addEventListener('input', e => localStorage.setItem(Config.MODEL_NAME_OPENROUTER, e.target.value.trim()));
                 elements.customModelName.addEventListener('input', e => localStorage.setItem(Config.MODEL_NAME_CUSTOM, e.target.value.trim()));
 
-                elements.apiEndpoint.addEventListener('change', e => {
-                    const defaultSettings = document.getElementById('default-api-settings');
-                    const customSettings = document.getElementById('custom-api-settings');
-                    if (e.target.value === 'custom') {
-                        defaultSettings.classList.add('hidden');
-                        customSettings.classList.remove('hidden');
-                    } else {
-                        defaultSettings.classList.remove('hidden');
-                        customSettings.classList.add('hidden');
-                    }
-                });
+                
 
 
                 document.querySelectorAll('.toggle-api-key-visibility').forEach(button => {
@@ -1169,11 +1172,17 @@
             getStructureForPrompt(obj) {
                 const result = {};
                 for (const key in obj) {
+                    if (key === 'instruction') continue; // Skip instruction property at this level
                     const value = obj[key];
-                    if (Array.isArray(value.wildcards)) {
-                        result[key] = { instruction: value.instruction || '' };
-                    } else if (typeof value === 'object' && value !== null) {
-                        result[key] = this.getStructureForPrompt(value);
+                    if (value && typeof value === 'object') {
+                        if (Array.isArray(value.wildcards)) {
+                            result[key] = { instruction: value.instruction || '' };
+                        } else {
+                            result[key] = this.getStructureForPrompt(value);
+                            if(value.instruction) {
+                                result[key].instruction = value.instruction;
+                            }
+                        }
                     }
                 }
                 return result;
@@ -1335,7 +1344,8 @@
                     return;
                 }
 
-                const structure = this.getStructureForPrompt(State.appState.wildcards);
+                const parentObject = this.getParentObjectByPath(path);
+                const structure = this.getStructureForPrompt(parentObject);
                 UI.showNotification('Asking AI for suggestions...');
                 
                 try {
@@ -1838,16 +1848,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             App.init();
-            const apiEndpoint = document.getElementById('api-endpoint');
-            const defaultSettings = document.getElementById('default-api-settings');
-            const customSettings = document.getElementById('custom-api-settings');
-            if (apiEndpoint.value === 'custom') {
-                defaultSettings.classList.add('hidden');
-                customSettings.classList.remove('hidden');
-            } else {
-                defaultSettings.classList.remove('hidden');
-                customSettings.classList.add('hidden');
-            }
+            
         });
     </script>
 </body>
