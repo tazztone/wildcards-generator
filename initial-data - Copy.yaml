@@ -1,181 +1,2137 @@
 1_SUBJECT__Content: # instruction: The main focus of the image. What the picture is of.
   PEOPLE: # instruction: Human subjects, their characteristics, roles, and attire.
     Demographics: # instruction: Human diversity characteristics (age, gender, ethnicity).
+      - Toddler
+      - Child
+      - Teenager
+      - Young Adult
+      - Middle-Aged
+      - Senior Citizen
+      - Male
+      - Female
+      - Non-Binary
+      - Androgynous
+      - African
+      - Asian
+      - Caucasian
+      - Hispanic
+      - Indigenous
+      - Middle Eastern
+      - Polynesian
+      - Mixed Race
+      - Albino
+      - Freckled
     Archetypes: # instruction: Character roles and personality types (e.g., Hero, Trickster, Mentor).
+      - The Hero
+      - The Mentor
+      - The Trickster
+      - The Lover
+      - The Rebel
+      - The Explorer
+      - The Creator
+      - The Ruler
+      - The Sage
+      - The Innocent
+      - The Jester
+      - The Caregiver
+      - The Magician
+      - The Outlaw
+      - The Everyman
+      - The Villain
+      - The Sidekick
+      - The Femme Fatale
+      - The Damsel in Distress
+      - The Anti-Hero
     Occupations: # instruction: Categorization of jobs and professions by time period.
       Modern: # instruction: Contemporary professions.
+        - Accountant
+        - Architect
+        - Artist
+        - Astronaut
+        - Chef
+        - Detective
+        - Doctor
+        - Engineer
+        - Firefighter
+        - Graphic Designer
+        - Journalist
+        - Lawyer
+        - Musician
+        - Nurse
+        - Photographer
+        - Pilot
+        - Police Officer
+        - Scientist
+        - Software Developer
+        - Teacher
       Historical_Fantasy: # instruction: Period and fantasy roles.
+        - Alchemist
+        - Archer
+        - Blacksmith
+        - Bard
+        - Cartographer
+        - Executioner
+        - Gladiator
+        - Herbalist
+        - Jester
+        - Knight
+        - Monk
+        - Necromancer
+        - Oracle
+        - Pirate
+        - Queen
+        - Scribe
+        - Sorcerer
+        - Squire
+        - Viking
+        - Wizard
     Physical_Attributes: # instruction: General physical appearance.
+      - Tall
+      - Short
+      - Slender
+      - Muscular
+      - Curvy
+      - Stocky
+      - Wiry
+      - Graceful
+      - Clumsy
+      - Scarred
+      - Tattooed
+      - Pierced
+      - Sun-kissed skin
+      - Pale skin
+      - Broad shoulders
+      - Long legs
+      - Delicate hands
+      - Strong jawline
+      - Weathered face
+      - Youthful appearance
     Facial_Features: # instruction: Detailed facial characteristics and expressions.
+      - High cheekbones
+      - Sharp jawline
+      - Dimples
+      - Freckles
+      - Wrinkles
+      - Bushy eyebrows
+      - Thin lips
+      - Full lips
+      - Almond-shaped eyes
+      - Round eyes
+      - Blue eyes
+      - Green eyes
+      - Brown eyes
+      - Hazel eyes
+      - A mole on the cheek
+      - A scar above the eyebrow
+      - Rosy cheeks
+      - A button nose
+      - A Roman nose
+      - A cleft chin
     Body_Types: # instruction: Different human body shapes and sizes.
+      - Ectomorph
+      - Mesomorph
+      - Endomorph
+      - Apple-shaped
+      - Pear-shaped
+      - Hourglass figure
+      - Athletic build
+      - Dad bod
+      - Lean
+      - Ripped
+      - Brawny
+      - Petite
+      - Plus-sized
+      - Skinny
+      - Voluptuous
+      - Statuesque
+      - Gangly
+      - Compact
+      - Robust
+      - Dainty
     Hair_Styles: # instruction: Various haircuts, colors, and styles.
+      - Bald
+      - Buzz cut
+      - Crew cut
+      - Bob cut
+      - Pixie cut
+      - Long and straight
+      - Wavy
+      - Curly
+      - Coily
+      - Braids
+      - Dreadlocks
+      - Ponytail
+      - Man bun
+      - Top knot
+      - Undercut
+      - Mohawk
+      - Silver hair
+      - Fiery red hair
+      - Jet black hair
+      - Platinum blonde hair
     Clothing__Fashion: # instruction: Attire, fashion styles, and accessories.
       Fashion_Styles: # instruction: Styles like Casual, Formal, Vintage, Bohemian.
+        - Athleisure
+        - Avant-garde
+        - Bohemian
+        - Business casual
+        - Casual
+        - Chic
+        - Classic
+        - Couture
+        - Edgy
+        - Formal
+        - Goth
+        - Grunge
+        - Minimalist
+        - Preppy
+        - Punk
+        - Retro
+        - Streetwear
+        - Tomboy
+        - Vintage
+        - Western
       Garment_Types: # instruction: Specific clothing items (e.g., dresses, coats, trousers).
+        - Anorak
+        - Blazer
+        - Bodysuit
+        - Cardigan
+        - Cargo pants
+        - Corset
+        - Dress shirt
+        - Hoodie
+        - Jeans
+        - Jumpsuit
+        - Kimono
+        - Leather jacket
+        - Leggings
+        - Parka
+        - Polo shirt
+        - Skirt
+        - Suit
+        - Sweatshirt
+        - Trench coat
+        - T-shirt
       Accessories: # instruction: Jewelry, glasses, hats, bags, belts, scarves.
+        - Aviator sunglasses
+        - Backpack
+        - Beanie
+        - Belt
+        - Bow tie
+        - Bracelet
+        - Brooch
+        - Choker
+        - Cufflinks
+        - Earrings
+        - Fedora
+        - Gloves
+        - Handbag
+        - Necklace
+        - Pocket watch
+        - Scarf
+        - Tie
+        - Umbrella
+        - Wallet
+        - Wristwatch
   CREATURES__BEINGS: # instruction: Non-human subjects, including real animals, mythical beasts, and artificial life.
     Animals_by_Class: # instruction: Biological classification groups.
       Amphibians:
+        - Frog
+        - Salamander
+        - Newt
+        - Toad
+        - Caecilian
+        - Axolotl
+        - Olm
+        - Siren
+        - Mudpuppy
+        - Hellbender
+        - Tiger salamander
+        - Spotted salamander
+        - Poison dart frog
+        - Tree frog
+        - Bullfrog
+        - Glass frog
+        - Horned frog
+        - Marbled newt
+        - Alpine newt
+        - Fire salamander
       Birds:
+        - Eagle
+        - Owl
+        - Sparrow
+        - Robin
+        - Hawk
+        - Falcon
+        - Crow
+        - Raven
+        - Parrot
+        - Peacock
+        - Swan
+        - Duck
+        - Goose
+        - Penguin
+        - Ostrich
+        - Hummingbird
+        - Woodpecker
+        - Blue jay
+        - Cardinal
+        - Flamingo
       Fish:
+        - Salmon
+        - Tuna
+        - Shark
+        - Goldfish
+        - Koi
+        - Betta
+        - Angelfish
+        - Clownfish
+        - Piranha
+        - Eel
+        - Barracuda
+        - Marlin
+        - Swordfish
+        - Catfish
+        - Guppy
+        - Pufferfish
+        - Seahorse
+        - Stingray
+        - Lionfish
+        - Anglerfish
       Mammals:
+        - Lion
+        - Tiger
+        - Bear
+        - Wolf
+        - Fox
+        - Elephant
+        - Giraffe
+        - Zebra
+        - Horse
+        - Deer
+        - Monkey
+        - Gorilla
+        - Chimpanzee
+        - Kangaroo
+        - Koala
+        - Bat
+        - Whale
+        - Dolphin
+        - Seal
+        - Otter
       Reptiles:
+        - Snake
+        - Lizard
+        - Turtle
+        - Tortoise
+        - Crocodile
+        - Alligator
+        - Chameleon
+        - Iguana
+        - Gecko
+        - Komodo dragon
+        - Cobra
+        - Python
+        - Viper
+        - Rattlesnake
+        - Sea turtle
+        - Snapping turtle
+        - Gila monster
+        - Bearded dragon
+        - Monitor lizard
+        - Tuatara
       Insects__Arachnids:
+        - Ant
+        - Bee
+        - Butterfly
+        - Dragonfly
+        - Grasshopper
+        - Ladybug
+        - Mosquito
+        - Spider
+        - Scorpion
+        - Beetle
+        - Wasp
+        - Hornet
+        - Praying mantis
+        - Cockroach
+        - Fly
+        - Moth
+        - Centipede
+        - Millipede
+        - Tarantula
+        - Black widow
     Animals_by_Biome: # instruction: Environment-specific animals.
       Aquatic__Marine:
+        - Blue Whale
+        - Bottlenose Dolphin
+        - Clownfish
+        - Coral
+        - Crab
+        - Giant Squid
+        - Great White Shark
+        - Jellyfish
+        - Lobster
+        - Manatee
+        - Octopus
+        - Orca
+        - Penguin
+        - Pufferfish
+        - Sea Otter
+        - Sea Turtle
+        - Seahorse
+        - Seal
+        - Starfish
+        - Walrus
       Desert:
+        - Addax
+        - Armadillo
+        - Camel
+        - Coyote
+        - Desert Tortoise
+        - Fennec Fox
+        - Gila Monster
+        - Jackrabbit
+        - Meerkat
+        - Ostrich
+        - Rattlesnake
+        - Roadrunner
+        - Scorpion
+        - Sidewinder
+        - Tarantula
+        - Thorny Devil
+        - Vulture
+        - Yucca Moth
+        - Cactus Wren
+        - Desert Bighorn Sheep
       Forest__Woodland:
+        - Badger
+        - Bear
+        - Beaver
+        - Bobcat
+        - Chipmunk
+        - Deer
+        - Fox
+        - Moose
+        - Owl
+        - Porcupine
+        - Raccoon
+        - Red Panda
+        - Skunk
+        - Squirrel
+        - Weasel
+        - Wild Boar
+        - Wolf
+        - Woodpecker
+        - Brown Bear
+        - Gray Wolf
       Grassland__Savanna:
+        - Aardvark
+        - African Elephant
+        - Antelope
+        - Baboon
+        - Bison
+        - Cheetah
+        - Gazelle
+        - Giraffe
+        - Gnu
+        - Hyena
+        - Impala
+        - Leopard
+        - Lion
+        - Ostrich
+        - Prairie Dog
+        - Rhinoceros
+        - Secretary Bird
+        - Warthog
+        - Wildebeest
+        - Zebra
       Jungle__Tropical:
+        - Anaconda
+        - Capuchin Monkey
+        - Chameleon
+        - Chimpanzee
+        - Gorilla
+        - Howler Monkey
+        - Iguana
+        - Jaguar
+        - Lemur
+        - Macaw
+        - Ocelot
+        - Orangutan
+        - Piranha
+        - Poison Dart Frog
+        - Sloth
+        - Spider Monkey
+        - Tapir
+        - Tiger
+        - Toucan
+        - Tree Frog
       Tundra__Arctic:
+        - Arctic Fox
+        - Arctic Hare
+        - Arctic Tern
+        - Beluga Whale
+        - Caribou
+        - Dall Sheep
+        - Ermine
+        - Lemming
+        - Moose
+        - Musk Ox
+        - Narwhal
+        - Polar Bear
+        - Puffin
+        - Reindeer
+        - Snowy Owl
+        - Stoat
+        - Tundra Swan
+        - Walrus
+        - Wolverine
+        - Arctic Wolf
     Mythical__Fantasy: # instruction: Legendary and fantasy creatures.
       Dragons:
+        - Wyvern
+        - Hydra
+        - Drake
+        - Basilisk
+        - Lindworm
+        - Amphithere
+        - Fae Dragon
+        - Sea Serpent
+        - Quetzalcoatlus
+        - Tiamat
+        - Smaug
+        - Falkor
+        - Mushu
+        - Toothless
+        - Drogon
+        - Viserion
+        - Rhaegal
+        - King Ghidorah
+        - Charizard
+        - Dragonite
       Humanoid_Races: # instruction: e.g., Elves, Dwarves, Orcs, Fairies.
+        - Angel
+        - Centaur
+        - Cyclops
+        - Demon
+        - Dwarf
+        - Elf
+        - Fairy
+        - Genie
+        - Gnome
+        - Goblin
+        - Gorgon
+        - Harpy
+        - Hobbit
+        - Mermaid
+        - Minotaur
+        - Nymph
+        - Orc
+        - Satyr
+        - Troll
+        - Vampire
       Magical_Beasts: # instruction: e.g., Unicorn, Griffin, Phoenix.
+        - Bigfoot
+        - Cerberus
+        - Chupacabra
+        - Cockatrice
+        - Chimera
+        - Griffin
+        - Hippogriff
+        - Jackalope
+        - Kraken
+        - Loch Ness Monster
+        - Manticore
+        - Mothman
+        - Pegasus
+        - Phoenix
+        - Roc
+        - Sphinx
+        - Thunderbird
+        - Unicorn
+        - Wendigo
+        - Yeti
       Undead:
+        - Banshee
+        - Draugr
+        - Ghost
+        - Ghoul
+        - Lich
+        - Mummy
+        - Phantom
+        - Poltergeist
+        - Revenant
+        - Shade
+        - Skeleton
+        - Spectre
+        - Vampire
+        - Wight
+        - Wraith
+        - Zombie
+        - Jiangshi
+        - Dullahan
+        - Headless Horseman
+        - Grim Reaper
     Extraterrestrials: # instruction: Alien life forms.
+      - Grey Alien
+      - Reptilian
+      - Martian
+      - Venusian
+      - Arcturian
+      - Pleiadian
+      - Sirian
+      - Andromedan
+      - Zeta Reticulan
+      - Xenomorph
+      - Predator
+      - Wookiee
+      - Ewok
+      - Jawa
+      - Gungan
+      - Na'vi
+      - Kree
+      - Skrull
+      - Cybertronian
+      - Dalek
     Robots__Cyborgs: # instruction: Artificial and hybrid beings.
+      - Android
+      - Automaton
+      - Bioroid
+      - Cyborg
+      - Drone
+      - Gynoid
+      - Mech
+      - Nanobot
+      - Robot
+      - Transformer
+      - Wall-E
+      - R2-D2
+      - C-3PO
+      - Bender
+      - Optimus Prime
+      - Megatron
+      - The Terminator
+      - Robocop
+      - Astro Boy
+      - Iron Giant
   OBJECTS__ITEMS: # instruction: Inanimate objects, from everyday items to fantastical artifacts.
     Technology: # instruction: Modern and futuristic devices.
       Communication:
+        - Smartphone
+        - Laptop
+        - Tablet
+        - Smartwatch
+        - Walkie-talkie
+        - Satellite phone
+        - Radio
+        - Television
+        - Intercom
+        - Pager
+        - Fax machine
+        - Modem
+        - Router
+        - Bluetooth speaker
+        - Headphones
+        - Microphone
+        - Webcam
+        - Projector
+        - Holoprojector
+        - Neural interface
       Computing:
+        - Desktop computer
+        - Supercomputer
+        - Quantum computer
+        - Mainframe
+        - Server
+        - Raspberry Pi
+        - Arduino
+        - Drone
+        - 3D printer
+        - VR headset
+        - AR glasses
+        - External hard drive
+        - USB flash drive
+        - SD card
+        - Motherboard
+        - CPU
+        - GPU
+        - RAM
+        - Keyboard
+        - Mouse
       Energy:
+        - Solar panel
+        - Wind turbine
+        - Hydroelectric dam
+        - Nuclear reactor
+        - Geothermal plant
+        - Fusion reactor
+        - Dyson sphere
+        - Arc reactor
+        - Power cell
+        - Battery pack
+        - Wireless charger
+        - Tesla coil
+        - Cold fusion device
+        - Zero-point energy module
+        - Antimatter generator
+        - Perpetual motion machine
+        - Lightning rod
+        - Power grid
+        - Substation
+        - Transformer
       Medical:
+        - Stethoscope
+        - Syringe
+        - Scalpel
+        - Defibrillator
+        - MRI machine
+        - X-ray machine
+        - Ultrasound scanner
+        - Pacemaker
+        - Prosthetic limb
+        - Cybernetic eye
+        - Medical tricorder
+        - Hypospray
+        - Rejuvenation tank
+        - Nanobots
+        - Gene sequencer
+        - Cloning chamber
+        - Surgical laser
+        - Life support system
+        - Cryo-chamber
+        - First aid kit
     Weapons__Armor: # instruction: Combat equipment and protection.
       Armor_Types:
+        - Plate armor
+        - Chainmail
+        - Leather armor
+        - Kevlar vest
+        - Riot shield
+        - Ballistic helmet
+        - Power armor
+        - Energy shield
+        - Dragonscale armor
+        - Elven chainmail
+        - Dwarven plate
+        - Orcish armor
+        - Daedric armor
+        - Stormtrooper armor
+        - Spartan armor (Halo)
+        - Iron Man suit
+        - Bat-suit
+        - Captain America's shield
+        - Wonder Woman's bracelets
+        - Thor's hammer (Mjolnir)
       Melee_Weapons:
+        - Sword
+        - Axe
+        - Mace
+        - Hammer
+        - Spear
+        - Dagger
+        - Halberd
+        - Scythe
+        - Katana
+        - Lightsaber
+        - Energy sword
+        - Chainsword
+        - Power fist
+        - Monomolecular wire
+        - Vibroblade
+        - Crowbar
+        - Baseball bat
+        - Nunchaku
+        - Bo staff
+        - Tonfa
       Ranged_Weapons:
+        - Bow
+        - Crossbow
+        - Slingshot
+        - Javelin
+        - Shuriken
+        - Pistol
+        - Rifle
+        - Shotgun
+        - Sniper rifle
+        - Machine gun
+        - Rocket launcher
+        - Grenade launcher
+        - Flamethrower
+        - Laser gun
+        - Plasma rifle
+        - Railgun
+        - Gauss cannon
+        - BFG 9000
+        - Phased-plasma rifle in the 40-watt range
+        - Deckard's blaster
       Shields:
+        - Round shield
+        - Kite shield
+        - Tower shield
+        - Buckler
+        - Heater shield
+        - Scutum
+        - Pavise
+        - Targe
+        - Aspis
+        - Hoplon
+        - Riot shield
+        - Ballistic shield
+        - Energy shield
+        - Bubble shield
+        - Deflector shield
+        - Spellbreaker
+        - Hylian Shield
+        - Captain America's shield
+        - Aegis
+        - Ancile
     Vehicles__Transportation: # instruction: Modes of transport across different environments.
       Terrestrial: # Land-based
+        - Car
+        - Motorcycle
+        - Bicycle
+        - Skateboard
+        - Roller skates
+        - Segway
+        - Hoverboard
+        - Monowheel
+        - Tank
+        - APC
+        - Humvee
+        - Dune buggy
+        - Monster truck
+        - Batmobile
+        - Landspeeder
+        - Speeder bike
+        - Warthog (Halo)
+        - Mad Max car
+        - Light Cycle (Tron)
+        - The Tumbler (Batman)
       Aerial: # Flying
+        - Airplane
+        - Helicopter
+        - Jetpack
+        - Hang glider
+        - Paraglider
+        - Hot air balloon
+        - Zeppelin
+        - Ornithopter
+        - Flying carpet
+        - Broomstick
+        - X-wing
+        - TIE fighter
+        - Quinjet
+        - Serenity (Firefly)
+        - The Milano (Guardians of the Galaxy)
+        - Airship
+        - Flying car
+        - Jet fighter
+        - Biplane
+        - Glider
       Nautical: # Water
+        - Submarine
+        - Aircraft carrier
+        - Battleship
+        - Destroyer
+        - Galleon
+        - Viking longship
+        - Pirate ship
+        - Speedboat
+        - Yacht
+        - Jet ski
+        - Hovercraft
+        - Hydrofoil
+        - Catamaran
+        - Canoe
+        - Kayak
+        - Gondola
+        - The Black Pearl
+        - The Nautilus
+        - A-boat
+        - Titanic
       Space: # Spacecraft
+        - Space shuttle
+        - Rocket
+        - Satellite
+        - Space station
+        - Starship Enterprise
+        - Millennium Falcon
+        - Death Star
+        - Battlestar Galactica
+        - Normandy SR-2
+        - Discovery One
+        - Nostromo
+        - Planet Express Ship
+        - TARDIS
+        - Heart of Gold
+        - Serenity
+        - The Milano
+        - Razor Crest
+        - Slave I
+        - Imperial Star Destroyer
+        - Borg Cube
     Buildings__Structures: # instruction: Architectural subjects and landmarks.
+      - Skyscraper
+      - Cottage
+      - Castle
+      - Palace
+      - Temple
+      - Church
+      - Mosque
+      - Synagogue
+      - Lighthouse
+      - Windmill
+      - Watermill
+      - Pyramid
+      - Sphinx
+      - Eiffel Tower
+      - Statue of Liberty
+      - Taj Mahal
+      - Colosseum
+      - Great Wall of China
+      - Stonehenge
+      - Burj Khalifa
     Containers__Vessels: # instruction: Storage and containment objects.
+      - Bottle
+      - Jar
+      - Can
+      - Box
+      - Crate
+      - Barrel
+      - Chest
+      - Trunk
+      - Suitcase
+      - Backpack
+      - Pouch
+      - Vial
+      - Flask
+      - Amphora
+      - Urn
+      - Ark of the Covenant
+      - Pandora's Box
+      - Holy Grail
+      - Treasure chest
+      - Cryptex
     Tools__Instruments: # instruction: Implements and equipment.
+      - Hammer
+      - Screwdriver
+      - Wrench
+      - Pliers
+      - Saw
+      - Drill
+      - Axe
+      - Shovel
+      - Pickaxe
+      - Crowbar
+      - Compass
+      - Telescope
+      - Microscope
+      - Magnifying glass
+      - Sextant
+      - Astrolabe
+      - Abacus
+      - Typewriter
+      - Sewing machine
+      - 3D printer
     Food__Drink: # instruction: Consumables and beverages.
+      - Apple
+      - Banana
+      - Pizza
+      - Burger
+      - Sushi
+      - Steak
+      - Salad
+      - Soup
+      - Bread
+      - Cheese
+      - Wine
+      - Beer
+      - Coffee
+      - Tea
+      - Soda
+      - Water
+      - Ambrosia
+      - Nectar
+      - Lembas bread
+      - Butterbeer
     Furniture__Decor: # instruction: Household and decorative furniture.
+      - Chair
+      - Table
+      - Bed
+      - Sofa
+      - Bookshelf
+      - Wardrobe
+      - Desk
+      - Lamp
+      - Rug
+      - Curtain
+      - Mirror
+      - Painting
+      - Sculpture
+      - Vase
+      - Candelabra
+      - Throne
+      - Palantir
+      - The Iron Throne
+      - The One Ring
+      - The Sorting Hat
     Musical_Instruments: # instruction: Instruments for music creation.
+      - Guitar
+      - Piano
+      - Violin
+      - Drums
+      - Trumpet
+      - Saxophone
+      - Flute
+      - Harp
+      - Lute
+      - Lyre
+      - Ocarina
+      - Pan flute
+      - Bagpipes
+      - Accordion
+      - Synthesizer
+      - Theremin
+      - Keytar
+      - Horn of Gondor
+      - Frodo's flute
+      - The Pied Piper's pipe
     Documents__Books: # instruction: Written materials and documents.
+      - Ancient scroll
+      - Leather-bound book
+      - Dusty tome
+      - Illuminated manuscript
+      - Treasure map
+      - Wanted poster
+      - Royal decree
+      - Secret message
+      - Love letter
+      - Diary
+      - Newspaper
+      - Magazine
+      - Comic book
+      - Blueprint
+      - Spellbook
+      - The Necronomicon
+      - The Book of Thoth
+      - The Red Book of Westmarch
+      - The Hitchhiker's Guide to the Galaxy
+      - The Daily Prophet
   ABSTRACT__CONCEPTS: # instruction: Non-physical subjects, ideas, and emotions.
     Geometric__Fractal: # instruction: Mathematical, geometric, and fractal forms.
+      - Mandelbrot set
+      - Julia set
+      - Sierpinski triangle
+      - Koch snowflake
+      - Lorenz attractor
+      - Tesseract
+      - Hypercube
+      - Mobius strip
+      - Klein bottle
+      - Penrose triangle
+      - Fibonacci spiral
+      - Golden ratio
+      - Sacred geometry
+      - Crop circles
+      - Labyrinth
+      - Mandala
+      - Celtic knot
+      - Yin-yang
+      - Flower of Life
+      - Metatron's Cube
     Ethereal__Spiritual: # instruction: Intangible and spiritual concepts.
+      - Aura
+      - Chakra
+      - Chi
+      - Prana
+      - Mana
+      - Karma
+      - Nirvana
+      - Enlightenment
+      - Astral projection
+      - Lucid dreaming
+      - Deja vu
+      - Synchronicity
+      - Serendipity
+      - Soulmate
+      - Spirit animal
+      - Higher self
+      - Collective unconscious
+      - Akashic records
+      - The Force
+      - The Tao
     Emotions_Personified: # instruction: Emotions as visual entities.
+      - Joy as a radiant sun
+      - Sadness as a weeping willow
+      - Anger as a raging fire
+      - Fear as a shadowy figure
+      - Love as a blooming rose
+      - Hope as a guiding star
+      - Despair as a bottomless pit
+      - Envy as a green-eyed monster
+      - Pride as a strutting peacock
+      - Greed as a grasping hand
+      - Lust as a siren's call
+      - Sloth as a melting clock
+      - Wrath as a thundercloud
+      - Gluttony as a banquet of excess
+      - Courage as a roaring lion
+      - Peace as a tranquil lake
+      - Confusion as a tangled knot
+      - Anxiety as a swarm of bees
+      - Depression as a heavy cloak
+      - Excitement as a bolt of lightning
     Symbols__Icons: # instruction: Visual symbols and iconography.
+      - Ankh
+      - Eye of Horus
+      - Ouroboros
+      - Pentagram
+      - Star of David
+      - Crescent moon
+      - Cross
+      - Om
+      - Triskelion
+      - Valknut
+      - Helm of Awe
+      - Vegvisir
+      - Caduceus
+      - Rod of Asclepius
+      - Peace sign
+      - Heart symbol
+      - Skull and crossbones
+      - Biohazard symbol
+      - Radiation symbol
+      - Infinity symbol
     Data_Visualization: # instruction: Visual representation of data and information.
+      - Bar chart
+      - Line graph
+      - Pie chart
+      - Scatter plot
+      - Histogram
+      - Heat map
+      - Word cloud
+      - Flowchart
+      - Venn diagram
+      - Mind map
+      - Network diagram
+      - Tree diagram
+      - Gantt chart
+      - Candlestick chart
+      - Bubble chart
+      - Radar chart
+      - Sunburst chart
+      - Sankey diagram
+      - Chord diagram
+      - Treemap
   HISTORY__CULTURE: # instruction: Themes related to specific time periods and societies.
     Historical_Eras: # instruction: Major historical time periods.
       Prehistoric:
+        - Stone Age
+        - Bronze Age
+        - Iron Age
+        - Paleolithic
+        - Mesolithic
+        - Neolithic
+        - Cave paintings
+        - Hunter-gatherers
+        - Megaliths
+        - Stonehenge
+        - Lascaux
+        - Chauvet Cave
+        - Gobekli Tepe
+        - Mammoth hunting
+        - Saber-toothed cat
+        - Neanderthal
+        - Cro-Magnon
+        - Venus figurines
+        - Dolmen
+        - Menhir
       Ancient_Civilizations:
+        - Ancient Egypt
+        - Ancient Greece
+        - Ancient Rome
+        - Mesopotamia
+        - Indus Valley
+        - Ancient China
+        - Persian Empire
+        - Mayan Civilization
+        - Aztec Empire
+        - Inca Empire
+        - Babylon
+        - Sparta
+        - Athens
+        - Roman Legion
+        - Gladiator
+        - Pharaoh
+        - Pyramid
+        - Parthenon
+        - Colosseum
+        - Library of Alexandria
       Medieval_Era:
+        - Vikings
+        - Knights
+        - Castles
+        - Feudalism
+        - The Black Death
+        - The Crusades
+        - Gothic architecture
+        - Byzantine Empire
+        - Charlemagne
+        - William the Conqueror
+        - Joan of Arc
+        - Magna Carta
+        - Illuminated manuscripts
+        - Gregorian chants
+        - Troubadours
+        - Jousting
+        - Siege warfare
+        - Monastery
+        - Cathedral
+        - Guilds
       Renaissance:
+        - Leonardo da Vinci
+        - Michelangelo
+        - Raphael
+        - Donatello
+        - Florence
+        - Venice
+        - The Medici family
+        - Humanism
+        - The printing press
+        - The Reformation
+        - Martin Luther
+        - Shakespeare
+        - Copernicus
+        - Galileo
+        - Machiavelli
+        - The Last Supper
+        - The Mona Lisa
+        - The Sistine Chapel
+        - St. Peter's Basilica
+        - The Age of Discovery
       Industrial_Revolution:
+        - Steam engine
+        - Factory
+        - Urbanization
+        - Child labor
+        - Luddites
+        - Victorian era
+        - Charles Dickens
+        - Karl Marx
+        - Adam Smith
+        - The Crystal Palace
+        - The Eiffel Tower
+        - The Brooklyn Bridge
+        - Telegraph
+        - Telephone
+        - Phonograph
+        - Light bulb
+        - Automobile
+        - Airplane
+        - Suffragettes
+        - The Gilded Age
       Modern_Era:
+        - World War I
+        - World War II
+        - The Cold War
+        - The Roaring Twenties
+        - The Great Depression
+        - The Civil Rights Movement
+        - The Space Race
+        - The Vietnam War
+        - The fall of the Berlin Wall
+        - The internet
+        - Globalization
+        - Pop art
+        - Rock and roll
+        - Hippies
+        - Punk rock
+        - Hip hop
+        - Art Deco
+        - Modernism
+        - Postmodernism
+        - The Digital Age
       Future__SciFi:
+        - Cyberpunk
+        - Steampunk
+        - Solarpunk
+        - Biopunk
+        - Nanopunk
+        - Post-apocalyptic
+        - Dystopian
+        - Utopian
+        - Space opera
+        - Galactic empire
+        - Alien invasion
+        - Time travel
+        - Artificial intelligence
+        - Virtual reality
+        - Genetic engineering
+        - Flying cars
+        - Megacities
+        - Off-world colonies
+        - First contact
+        - The Singularity
     Cultures__Regions: # instruction: Cultural and geographical origins.
       African:
+        - Maasai
+        - Zulu
+        - Yoruba
+        - Berber
+        - Tuareg
+        - Himba
+        - Dogon
+        - Ashanti
+        - Ethiopian
+        - Egyptian
+        - Kenyan
+        - Nigerian
+        - South African
+        - Moroccan
+        - Ghanaian
+        - Senegalese
+        - Malian
+        - Congolese
+        - Rwandan
+        - Zimbabwean
       Asian:
+        - Chinese
+        - Japanese
+        - Korean
+        - Indian
+        - Thai
+        - Vietnamese
+        - Indonesian
+        - Malaysian
+        - Filipino
+        - Mongolian
+        - Tibetan
+        - Nepalese
+        - Cambodian
+        - Laotian
+        - Burmese
+        - Singaporean
+        - Taiwanese
+        - Bhutanese
+        - Sri Lankan
+        - Pakistani
       European:
+        - British
+        - French
+        - German
+        - Italian
+        - Spanish
+        - Russian
+        - Greek
+        - Irish
+        - Scottish
+        - Welsh
+        - Dutch
+        - Belgian
+        - Swiss
+        - Austrian
+        - Polish
+        - Hungarian
+        - Czech
+        - Swedish
+        - Norwegian
+        - Finnish
       Mesoamerican:
+        - Olmec
+        - Zapotec
+        - Maya
+        - Teotihuacan
+        - Toltec
+        - Aztec
+        - Mixtec
+        - Tlaxcalan
+        - Purepecha
+        - Huastec
+        - Chichen Itza
+        - Tikal
+        - Palenque
+        - Tenochtitlan
+        - Monte Alban
+        - Quetzalcoatl
+        - Huitzilopochtli
+        - Chacmool
+        - Cenote
+        - Ball game
       Middle_Eastern:
+        - Persian
+        - Arab
+        - Turkish
+        - Israeli
+        - Kurdish
+        - Assyrian
+        - Phoenician
+        - Babylonian
+        - Sumerian
+        - Akkadian
+        - Hittite
+        - Ottoman
+        - Bedouin
+        - Druze
+        - Maronite
+        - Coptic
+        - Samaritan
+        - Yazidi
+        - Zoroastrian
+        - Sufi
       Norse:
+        - Viking
+        - Scandinavia
+        - Odin
+        - Thor
+        - Loki
+        - Asgard
+        - Valhalla
+        - Ragnarok
+        - Runes
+        - Longship
+        - Fjord
+        - Berserker
+        - Shieldmaiden
+        - Jarl
+        - Thing
+        - Mead hall
+        - Yggdrasil
+        - Mjolnir
+        - Gungnir
+        - Sleipnir
       Oceanic:
+        - Polynesian
+        - Melanesian
+        - Micronesian
+        - Aboriginal Australian
+        - Maori
+        - Hawaiian
+        - Samoan
+        - Tongan
+        - Fijian
+        - Tahitian
+        - Rapa Nui
+        - Papua New Guinean
+        - Vanuatu
+        - Solomon Islands
+        - Kiribati
+        - Tuvalu
+        - Marshall Islands
+        - Palau
+        - Nauru
       South_American:
+        - Inca
+        - Mapuche
+        - Guarani
+        - Aymara
+        - Quechua
+        - Tupi
+        - Yanomami
+        - Shuar
+        - Ashaninka
+        - Shipibo
+        - Machu Picchu
+        - Nazca Lines
+        - Amazon rainforest
+        - Andes mountains
+        - Patagonia
+        - Gaucho
+        - Samba
+        - Tango
+        - Carnival
+        - Capoeira
     Mythologies: # instruction: Mythological stories and beliefs from various cultures.
+      - Greek mythology
+      - Roman mythology
+      - Norse mythology
+      - Egyptian mythology
+      - Celtic mythology
+      - Hindu mythology
+      - Chinese mythology
+      - Japanese mythology
+      - Aztec mythology
+      - Maya mythology
+      - Inca mythology
+      - Native American mythology
+      - Aboriginal mythology
+      - Slavic mythology
+      - Finnish mythology
+      - Mesopotamian mythology
+      - Persian mythology
+      - Arthurian legend
+      - Cthulhu Mythos
+      - Abrahamic religions
 2_ACTION_POSE__EMOTION: # instruction: Describes what the subject is doing, feeling, or how they are positioned.
   Dynamic_Actions: # instruction: Actions involving significant movement or interaction.
     Locomotion: # instruction: e.g., Walking, running, swimming, flying.
+      - Walking
+      - Running
+      - Swimming
+      - Flying
+      - Jumping
+      - Leaping
+      - Crouching
+      - Crawling
+      - Sneaking
+      - Sprinting
+      - Jogging
+      - Marching
+      - Strutting
+      - Sauntering
+      - Shuffling
+      - Limping
+      - Stumbling
+      - Falling
+      - Climbing
+      - Sliding
     Combat__Defense:
+      - Punching
+      - Kicking
+      - Slashing
+      - Stabbing
+      - Shooting
+      - Blocking
+      - Parrying
+      - Dodging
+      - Weaving
+      - Rolling
+      - Grappling
+      - Wrestling
+      - Brawling
+      - Fencing
+      - Archery
+      - Throwing a grenade
+      - Casting a spell
+      - Summoning a creature
+      - Building a barricade
+      - Taking cover
     Interaction: # instruction: Social, object, and environmental interactions.
+      - Talking
+      - Listening
+      - Shaking hands
+      - Hugging
+      - Kissing
+      - Waving
+      - Pointing
+      - Giving
+      - Receiving
+      - Pushing
+      - Pulling
+      - Lifting
+      - Carrying
+      - Opening a door
+      - Closing a window
+      - Reading a book
+      - Writing a letter
+      - Typing on a keyboard
+      - Playing a musical instrument
+      - Eating a meal
     Athletics__Sports:
+      - Swinging a baseball bat
+      - Throwing a football
+      - Shooting a basketball
+      - Kicking a soccer ball
+      - Serving a tennis ball
+      - Spiking a volleyball
+      - Hitting a golf ball
+      - Swimming laps
+      - Running a marathon
+      - Lifting weights
+      - Doing yoga
+      - Practicing martial arts
+      - Skateboarding
+      - Snowboarding
+      - Surfing
+      - Rock climbing
+      - Cycling
+      - Fencing
+      - Boxing
+      - Wrestling
     Dance__Performance:
+      - Ballet
+      - Ballroom dancing
+      - Hip hop dancing
+      - Breakdancing
+      - Tap dancing
+      - Contemporary dance
+      - Folk dance
+      - Belly dancing
+      - Salsa dancing
+      - Tango
+      - Acting on a stage
+      - Singing into a microphone
+      - Playing a guitar solo
+      - Conducting an orchestra
+      - Juggling
+      - Performing magic tricks
+      - Stand-up comedy
+      - Spoken word poetry
+      - Mime
+      - Puppetry
     Crafting__Creating:
+      - Painting a canvas
+      - Sculpting clay
+      - Drawing in a sketchbook
+      - Carving wood
+      - Weaving a tapestry
+      - Sewing a garment
+      - Knitting a scarf
+      - Forging a sword
+      - Brewing a potion
+      - Building a robot
+      - Coding on a laptop
+      - Composing music
+      - Writing a novel
+      - Cooking a meal
+      - Baking a cake
+      - Gardening
+      - Pottery
+      - Glassblowing
+      - Calligraphy
+      - Origami
   Static_Poses: # instruction: Stationary positions for a subject. eg standing, Sitting, Kneeling, Crouching, Leaning.
+    - Standing
+    - Sitting
+    - Kneeling
+    - Crouching
+    - Leaning
+    - Lying down
+    - Reclining
+    - Lounging
+    - Perching
+    - Squatting
+    - Meditating
+    - Praying
+    - Sunbathing
+    - Posing for a portrait
+    - Arms crossed
+    - Hands on hips
+    - Looking over shoulder
+    - Staring into the distance
+    - Daydreaming
+    - Sleeping
   Hand__Arm_Gestures: # instruction: Expressive hand and arm positions.
+    - Thumbs up
+    - Peace sign
+    - High five
+    - Fist bump
+    - Pointing
+    - Waving
+    - Clapping
+    - Snapping fingers
+    - Making a fist
+    - Open palm
+    - Praying hands
+    - Shushing gesture
+    - Facepalm
+    - Shrugging
+    - Flexing biceps
+    - Holding hands
+    - Interlocked fingers
+    - Tapping fingers
+    - Drumming fingers
+    - Air quotes
   Facial_Expressions: # instruction: Emotional expressions and facial states.
+    - Smiling
+    - Frowning
+    - Laughing
+    - Crying
+    - Screaming
+    - Yawning
+    - Winking
+    - Smirking
+    - Scowling
+    - Pouting
+    - Grimacing
+    - Surprised
+    - Shocked
+    - Scared
+    - Angry
+    - Sad
+    - Happy
+    - Confused
+    - Curious
+    - Bored
   Group_Interactions: # instruction: Multi-person social dynamics and formations.
+    - Huddling together
+    - Standing in a line
+    - Sitting in a circle
+    - Back-to-back
+    - Shoulder-to-shoulder
+    - Holding hands
+    - Linking arms
+    - Raising glasses for a toast
+    - Arguing
+    - Debating
+    - Gossiping
+    - Whispering secrets
+    - Plotting
+    - Celebrating
+    - Mourning
+    - Protesting
+    - Marching in formation
+    - Dancing in a group
+    - Playing a team sport
+    - Working together on a project
 3_ENVIRONMENT__SETTING: # instruction: The background and world where the subject exists.
   Location: # instruction: Specific types of indoor and outdoor settings.
     Interior: # instruction: Indoor environments and spaces.
+      - Grand library
+      - Cozy cabin fireplace
+      - Bustling kitchen
+      - Mad scientist's laboratory
+      - Opulent ballroom
+      - Dusty attic
+      - Serene yoga studio
+      - Grimy subway station
+      - High-tech command center
+      - Antique shop
+      - Art gallery
+      - Planetarium
+      - Greenhouse
+      - Recording studio
+      - Abandoned hospital ward
+      - Luxurious hotel suite
+      - Industrial warehouse
+      - School classroom
+      - Medieval throne room
+      - Spaceship cockpit
     Exterior_Man_Made: # instruction: Outdoor constructed environments.
+      - Cobblestone street
+      - Rooftop garden
+      - Amusement park
+      - Skyscraper observation deck
+      - Ancient stone bridge
+      - Bustling marketplace
+      - Industrial shipyard
+      - Manicured botanical garden
+      - Modernist plaza
+      - Roman aqueduct
+      - Train tracks stretching to horizon
+      - Abandoned factory complex
+      - Ornate city fountain
+      - Public swimming pool
+      - Outdoor amphitheater
+      - War-torn battlefield
+      - Graffiti-covered alleyway
+      - Lighthouse on a cliff
+      - Zen garden
+      - Castle courtyard
     Exterior_Natural: # instruction: Natural outdoor environments.
+      - Sun-drenched beach
+      - Dense jungle
+      - Snowy mountain peak
+      - Serene lake
+      - Vast desert
+      - Enchanted forest
+      - Volcanic crater
+      - Rolling hills
+      - Grassy meadow
+      - Rocky coastline
+      - Crystal cave
+      - Redwood forest
+      - Arctic tundra
+      - Coral reef
+      - Salt flats
+      - Swampy marshland
+      - Sunflower field
+      - Glacial valley
+      - Bamboo grove
+      - Bioluminescent bay
     Urban__Cityscape:
+      - Neon-lit city street at night
+      - Bustling Times Square
+      - Quaint European village
+      - Futuristic cyberpunk metropolis
+      - Post-apocalyptic ruined city
+      - Steampunk city with airships
+      - Venetian canals
+      - Rooftops overlooking the city
+      - Gritty back alley
+      - Modern financial district
+      - Historic old town
+      - Sprawling suburban neighborhood
+      - Industrial district with smokestacks
+      - Public park in the city center
+      - University campus
+      - Shopping mall
+      - Construction site
+      - Chinatown
+      - Favela
+      - Waterfront promenade
     Rural__Countryside:
+      - Quaint farmhouse
+      - Rolling green hills
+      - Winding country road
+      - Babbling brook
+      - Field of wildflowers
+      - Old wooden barn
+      - Vineyard
+      - Orchard in bloom
+      - Pasture with grazing sheep
+      - Secluded cabin in the woods
+      - Stone wall fence
+      - Covered bridge
+      - Windmill on a hill
+      - Scarecrow in a cornfield
+      - Hay bales in a field
+      - Fishing pond
+      - Dirt road
+      - Village green
+      - Thatched-roof cottage
+      - Apple orchard
     Underwater:
+      - Coral reef teeming with life
+      - Sunken pirate ship
+      - Deep sea trench
+      - Underwater cave system
+      - Kelp forest
+      - Hydrothermal vents
+      - Lost city of Atlantis
+      - Submarine wreckage
+      - Giant clam bed
+      - School of colorful fish
+      - Whale graveyard
+      - Underwater volcano
+      - Bioluminescent jellyfish field
+      - Mangrove forest roots
+      - Shark feeding frenzy
+      - Pearl oyster bed
+      - Underwater research station
+      - Sea turtle nesting ground
+      - Manta ray migration
+      - Iceberg from below
     Outer_Space:
+      - Nebulae
+      - Asteroid field
+      - Surface of Mars
+      - Rings of Saturn
+      - International Space Station
+      - Black hole
+      - Supernova explosion
+      - Alien planet landscape
+      - Spaceship graveyard
+      - View of Earth from the Moon
+      - Dyson sphere
+      - Comet tail
+      - Star nursery
+      - Galactic core
+      - Wormhole
+      - Exoplanet with two suns
+      - Floating space city
+      - Derelict space freighter
+      - Crystalline planet
+      - Gas giant atmosphere
   Time__Atmosphere: # instruction: Atmospheric conditions and time of day.
     Time_of_Day: # instruction: e.g., Sunrise, Midday, Sunset, Night.
+      - Sunrise
+      - Dawn
+      - Early morning
+      - Mid-morning
+      - Noon
+      - Midday
+      - Afternoon
+      - Golden hour
+      - Sunset
+      - Dusk
+      - Twilight
+      - Blue hour
+      - Evening
+      - Night
+      - Midnight
+      - Witching hour
+      - Pre-dawn
+      - High noon
+      - Late afternoon
+      - Civil twilight
     Weather_Conditions: # instruction: e.g., Clear, Cloudy, Rain, Snow, Storm.
+      - Clear skies
+      - Partly cloudy
+      - Overcast
+      - Light rain
+      - Heavy rain
+      - Drizzle
+      - Thunderstorm
+      - Lightning
+      - Snowfall
+      - Blizzard
+      - Hail
+      - Fog
+      - Mist
+      - Haze
+      - Sandstorm
+      - Dust devil
+      - Tornado
+      - Hurricane
+      - Rainbow
+      - Aurora Borealis
     Celestial_Events: # instruction: e.g., Eclipse, Meteor Shower, Aurora.
+      - Solar eclipse
+      - Lunar eclipse
+      - Meteor shower
+      - Aurora Borealis
+      - Aurora Australis
+      - Comet passing
+      - Supernova
+      - Planetary alignment
+      - Full moon
+      - New moon
+      - Crescent moon
+      - Blood moon
+      - Harvest moon
+      - Blue moon
+      - Star trail
+      - Milky Way visible
+      - Zodiacal light
+      - Sun pillar
+      - Moonbow
+      - Transit of Venus
     Seasons:
+      - Spring
+      - Summer
+      - Autumn
+      - Winter
+      - Rainy season
+      - Dry season
+      - Monsoon season
+      - Wildfire season
+      - Pollen season
+      - Harvest season
+      - Mating season
+      - Hibernation season
+      - Thawing season
+      - Freezing season
+      - Indian summer
+      - Blackberry winter
+      - Mud season
+      - Tourist season
+      - Off-season
+      - Holiday season
   Architecture: # instruction: Building styles, materials, and types.
     Architectural_Styles: # instruction: e.g., Gothic, Modernist, Brutalist, Art Deco.
+      - Gothic
+      - Modernist
+      - Brutalist
+      - Art Deco
+      - Art Nouveau
+      - Baroque
+      - Neoclassical
+      - Victorian
+      - Tudor
+      - Bauhaus
+      - Deconstructivism
+      - International Style
+      - Postmodern
+      - Romanesque
+      - Byzantine
+      - Islamic
+      - Japanese
+      - Chinese
+      - Russian Revival
+      - Prairie School
     Building_Materials: # instruction: e.g., Wood, Stone, Glass, Metal.
+      - Wood
+      - Stone
+      - Glass
+      - Metal
+      - Concrete
+      - Brick
+      - Marble
+      - Granite
+      - Sandstone
+      - Terracotta
+      - Stucco
+      - Thatch
+      - Adobe
+      - Bamboo
+      - Steel
+      - Aluminum
+      - Copper
+      - Titanium
+      - Carbon fiber
+      - Plastic
     Structural_Elements: # instruction: e.g., Arches, Domes, Facades.
+      - Arches
+      - Domes
+      - Facades
+      - Columns
+      - Beams
+      - Vaults
+      - Buttresses
+      - Spires
+      - Gargoyles
+      - Balconies
+      - Courtyards
+      - Atriums
+      - Staircases
+      - Bridges
+      - Tunnels
+      - Dams
+      - Canals
+      - Aqueducts
+      - Towers
     Futuristic__SciFi:
+      - Arcology
+      - Megastructure
+      - Floating city
+      - Underwater city
+      - Biodome
+      - Space elevator
+      - Ringworld
+      - Dyson sphere
+      - O'Neill cylinder
+      - Bernal sphere
+      - Stanford torus
+      - Generation ship
+      - Starport
+      - Terraformed landscape
+      - Holographic architecture
+      - Nanotechnology-built structures
+      - Crystalline structures
+      - Organic architecture
+      - Zero-gravity architecture
+      - Vertical farm
     Ruins__Decay:
+      - Ancient temple ruins
+      - Crumbling castle walls
+      - Overgrown abandoned city
+      - Post-apocalyptic cityscape
+      - Sunken city
+      - Ghost town
+      - Derelict spaceship
+      - Forgotten cemetery
+      - Rusted industrial factory
+      - Decaying Victorian mansion
+      - Moss-covered statues
+      - Collapsed bridge
+      - Burned-out forest
+      - Eroded rock formations
+      - Faded frescoes
+      - Shattered stained glass
+      - Peeling paint
+      - Water-damaged library
+      - Vandalized subway station
+      - Reclaimed by nature
   Flora__Geology: # instruction: Environmental life and natural formations.
     Flowers:
+      - Rose
+      - Lily
+      - Tulip
+      - Orchid
+      - Sunflower
+      - Daisy
+      - Poppy
+      - Lavender
+      - Cherry blossom
+      - Lotus
+      - Hibiscus
+      - Bird of paradise
+      - Corpse flower
+      - Venus flytrap
+      - Pitcher plant
+      - Rafflesia
+      - Night-blooming cereus
+      - Ghost orchid
+      - Black bat flower
+      - Jade vine
     Trees__Forests:
+      - Oak
+      - Pine
+      - Redwood
+      - Willow
+      - Baobab
+      - Bonsai
+      - Jacaranda
+      - Mangrove
+      - Banyan
+      - Joshua tree
+      - Dragon's blood tree
+      - Rainbow eucalyptus
+      - Angel oak
+      - The President (sequoia)
+      - General Sherman (sequoia)
+      - Methuselah (bristlecone pine)
+      - Taiga forest
+      - Rainforest
+      - Deciduous forest
+      - Petrified forest
     Plants__Vegetation:
+      - Ferns
+      - Moss
+      - Ivy
+      - Vines
+      - Cacti
+      - Succulents
+      - Seaweed
+      - Kelp
+      - Reeds
+      - Bamboo
+      - Grasses
+      - Shrubs
+      - Bushes
+      - Wildflowers
+      - Herbs
+      - Carnivorous plants
+      - Bioluminescent plants
+      - Alien flora
+      - Giant mushrooms
+      - Tumbleweed
     Fungi__Mushrooms:
+      - Fly agaric
+      - Morel
+      - Chanterelle
+      - Shiitake
+      - Portobello
+      - Enoki
+      - Oyster mushroom
+      - Lion's mane
+      - Turkey tail
+      - Reishi
+      - Puffball
+      - Stinkhorn
+      - Bioluminescent mushroom
+      - Fairy ring
+      - Slime mold
+      - Mycelial network
+      - Cordyceps
+      - Devil's tooth
+      - Bleeding tooth fungus
+      - Amethyst deceiver
     Geological_Formations: # instruction: e.g., Mountains, Canyons, Caves, Volcanoes.
+      - Mountains
+      - Canyons
+      - Caves
+      - Volcanoes
+      - Glaciers
+      - Geysers
+      - Hot springs
+      - Mesas
+      - Buttes
+      - Hoodoos
+      - Arches
+      - Natural bridges
+      - Sand dunes
+      - Salt flats
+      - Meteor crater
+      - Caldera
+      - Fjord
+      - Delta
+      - Atoll
+      - Stalactites and stalagmites
 4_COMPOSITION__CINEMATOGRAPHY: # instruction: How the scene is framed, shot, and composed.
-  Framing__Shot_Type: # instruction: Camera position and subject framing.
-    Extreme_Wide_Shot:
-    Wide_Shot:
-    Full_Shot:
-    Medium_Shot:
-    Close_Up:
-    Extreme_Close_Up:
-  Angle__Perspective: # instruction: Camera angle and viewpoint.
-    Eye_Level:
-    High_Angle:
-    Low_Angle:
-    Birds_Eye_View:
-    Worms_Eye_View:
-    Dutch_Angle:
-  Compositional_Principles: # instruction: Fundamental rules of visual arrangement.
-    Rule_of_Thirds:
-    Golden_Ratio:
-    Leading_Lines:
-    Symmetry__Asymmetry:
-    Framing_within_a_Frame:
-  Depth__Focus: # instruction: Focus techniques and depth effects.
-    Shallow_Focus__Bokeh:
-    Deep_Focus__Pan_Focus:
-  Aspect_Ratio__Format: # instruction: Image dimensions and orientation.
-    Portrait:
-    Landscape:
-    Square:
-    Panoramic:
+  Framing__Shot_Type: # instruction: Camera position and subject framing. eg,     Extreme_Wide_Shot, Wide_Shot, Full_Shot, Medium_Shot, Close_Up, Extreme_Close_Up:
+  Angle__Perspective: # instruction: Camera angle and viewpoint. eg,  Eye_Level, High_Angle, Low_Angle, Birds_Eye_View, Worms_Eye_View, Dutch_Angle:
+  Compositional_Principles: # instruction: Fundamental rules of visual arrangement.     Rule_of_Thirds:    Golden_Ratio:    Leading_Lines:    Symmetry__Asymmetry:    Framing_within_a_Frame:
+  Depth__Focus: # instruction: Focus techniques and depth effects. eg:   Shallow_Focus__Bokeh:    Deep_Focus__Pan_Focus:
 5_STYLE__AESTHETICS: # instruction: The overall visual style, art movement, and mood of the image.
-  Art_Movements: # instruction: Historical and contemporary art styles.
-    Abstract_Expressionism:
-    Art_Nouveau:
-    Baroque:
-    Cubism:
-    Expressionism:
-    Impressionism:
-    Minimalism:
-    Modernism:
-    Pop_Art:
-    Renaissance:
-    Surrealism:
+  Art_Movements: # instruction: Historical and contemporary art styles.    Abstract_Expressionism:    Art_Nouveau:    Baroque:    Cubism:    Expressionism:    Impressionism:    Minimalism:    Modernism:    Pop_Art:    Renaissance:    Surrealism:
   Art_Medium__Technique: # instruction: The artistic medium used, both digital and traditional.
     Digital_Art: # instruction: e.g., 2D, 3D, Vector Graphics, Pixel Art.
     Traditional_Art: # instruction: e.g., Oil Painting, Watercolor, Ink, Pencil Sketch, Sculpture.
     Photography: # instruction: Photographic styles and techniques.
     Mixed_Media:
-  Aesthetic_Genres: # instruction: Visual style genres and movements.
-    Cyberpunk:
-    Fantasy:
-    Horror:
-    Noir:
-    Sci-Fi:
-    Steampunk:
-    Utopian__Dystopian:
+  Aesthetic_Genres: # instruction: Visual style genres and movements.     Cyberpunk:    Fantasy:    Horror:    Noir:    Sci-Fi:    Steampunk:    Utopian__Dystopian:
   Color: # instruction: All aspects of color and light.
     Color_Palettes: # instruction: e.g., Vibrant, Muted, Pastel, Earthy.
     Color_Schemes: # instruction: e.g., Monochromatic, Analogous, Complementary, Triadic.
