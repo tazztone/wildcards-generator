@@ -324,22 +324,27 @@
         // =================================================================================
         const Api = {
             activeController: null,
-            async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions) {
+
+            async _makeRequest(globalPrompt, userPrompt, generationConfig) {
                 if (this.activeController) this.activeController.abort();
                 this.activeController = new AbortController();
+
                 try {
-                    const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
-                    const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
-                    const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
-                    
                     const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(payload),
+                        signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)])
+                    });
                     
-                    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)]) });
                     if (!response.ok) {
                         const errorText = await response.text();
                         throw new Error(`API request failed: ${response.status} - ${errorText}`);
                     }
-                    return this._parseResponse(await response.json());
+
+                    const result = await response.json();
+                    return { result, request: { url, headers, payload } };
                 } catch (error) {
                     if (error.name === 'AbortError') throw new Error("Request timed out or was aborted.");
                     console.error("Error calling LLM API:", error);
@@ -348,51 +353,45 @@
                     this.activeController = null;
                 }
             },
-            async suggestItems(parentPath, structure) {
-                if (this.activeController) this.activeController.abort();
-                this.activeController = new AbortController();
-                try {
-                    const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
-                    const globalPrompt = State.appState.suggestItemPrompt.replace('{parentPath}', readablePath);
-                    const userPrompt = `For context, here are the existing sibling items at the same level:\n${JSON.stringify(structure, null, 2)}\n\nPlease provide new suggestions for the '${readablePath}' category.`;
-                    const generationConfig = { 
-                        responseMimeType: "application/json", 
-                        responseSchema: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    name: { 
-                                        type: "STRING",
-                                        description: "A unique, descriptive name for a new sub-category. MUST use underscores_between_words. MUST NOT be a generic placeholder. MUST NOT contain the parent category's name."
-                                    }, 
-                                    instruction: { 
-                                        type: "STRING",
-                                        description: "A brief, helpful description of the item's purpose."
-                                    }
-                                },
-                                required: ["name", "instruction"]
-                            }
-                        } 
-                    };
 
-                    const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
+            async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions) {
+                const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
+                const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+                const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
 
-                    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)]) });
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`API request failed: ${response.status} - ${errorText}`);
-                    }
-                    const result = await response.json();
-                    return { suggestions: this._parseResponse(result), request: { url, headers, payload } };
-                } catch (error) {
-                    if (error.name === 'AbortError') throw new Error("Request timed out or was aborted.");
-                    console.error("Error calling LLM API for suggestions:", error);
-                    throw error;
-                } finally {
-                    this.activeController = null;
-                }
+                const { result } = await this._makeRequest(globalPrompt, userPrompt, generationConfig);
+                return this._parseResponse(result);
             },
+
+            async suggestItems(parentPath, structure) {
+                const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
+                const globalPrompt = State.appState.suggestItemPrompt.replace('{parentPath}', readablePath);
+                const userPrompt = `For context, here are the existing sibling items at the same level:\n${JSON.stringify(structure, null, 2)}\n\nPlease provide new suggestions for the '${readablePath}' category.`;
+                const generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                name: {
+                                    type: "STRING",
+                                    description: "A unique, descriptive name for a new sub-category. MUST use underscores_between_words. MUST NOT be a generic placeholder. MUST NOT contain the parent category's name."
+                                },
+                                instruction: {
+                                    type: "STRING",
+                                    description: "A brief, helpful description of the item's purpose."
+                                }
+                            },
+                            required: ["name", "instruction"]
+                        }
+                    }
+                };
+
+                const { result, request } = await this._makeRequest(globalPrompt, userPrompt, generationConfig);
+                return { suggestions: this._parseResponse(result), request };
+            },
+
             async testConnection(provider) {
                 UI.showNotification(`Testing connection to ${provider}...`);
                 try {
