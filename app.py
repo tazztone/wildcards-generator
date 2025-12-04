@@ -628,4 +628,4 @@ with gr.Blocks() as demo:
     import_yaml_btn.upload(fn=import_handler, inputs=[import_yaml_btn, app_state], outputs=[app_state, category_path_dropdown, wildcard_display_group, download_file])
 
 if __name__ == "__main__":
-    demo.launch(css_paths="wildcards.css")
+    demo.launch()
