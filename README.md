@@ -33,6 +33,10 @@ The project is built with vanilla HTML, CSS, and JavaScript (ES Modules).
 *   `wildcards.css`: The styling.
 *   `data/`: Contains the default dataset (`initial-data.yaml`).
 
+## For Developers & AI Agents
+
+Please refer to `AGENTS.md` for specific rules and context regarding the codebase architecture and development workflows.
+
 ## Contributing
 
 Feel free to open issues or submit pull requests to improve the tool.
