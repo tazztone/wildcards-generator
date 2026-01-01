@@ -651,7 +651,11 @@ export const UI = {
                 </div>
                 <div class="flex items-center gap-2 ml-auto flex-shrink-0">
                     <button class="pin-btn btn-action-icon text-yellow-400 hover:text-yellow-300 text-lg transition-all duration-200" title="${isPinned ? 'Unpin' : 'Pin to top'}" aria-label="${isPinned ? 'Unpin category' : 'Pin category'}">${isPinned ? '📌' : '📍'}</button>
-                    <button class="delete-btn btn-action-icon text-red-400 hover:text-red-300 font-bold text-xl leading-none transition-all duration-200" title="Delete this category" aria-label="Delete this category">&times;</button>
+                    <button class="delete-btn btn-action-icon text-red-400 hover:text-red-300 transition-all duration-200 p-1 rounded hover:bg-red-400/10" title="Delete this category" aria-label="Delete this category">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
                     <span class="arrow-down transition-transform duration-300 text-indigo-400"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
                 </div>
             </summary>
@@ -665,7 +669,11 @@ export const UI = {
             <div class="text-xs text-gray-400 mb-1 uppercase tracking-wider">${sanitize(parentPath)}</div>
             <div class="flex justify-between items-center mb-2 group">
                 <h3 class="font-bold text-lg text-gray-100 flex-grow"><span contenteditable="true" class="wildcard-name outline-none focus:bg-indigo-400/50 rounded px-1" aria-label="Edit list name">${name.replace(/_/g, ' ')}</span> <span class="wildcard-count text-gray-400 text-sm ml-2">(${(data.wildcards || []).length})</span></h3>
-                <button class="delete-btn btn-action-icon text-red-400 hover:text-red-300 font-bold text-xl leading-none transition-all duration-200" title="Delete this card" aria-label="Delete this card">&times;</button>
+                <button class="delete-btn btn-action-icon text-red-400 hover:text-red-300 transition-all duration-200 p-1 rounded hover:bg-red-400/10" title="Delete this card" aria-label="Delete this card">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
             </div>
             <input type="text" aria-label="Custom instructions" class="custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 w-full my-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200" placeholder="Custom generation instructions..." value="${sanitize(data.instruction || '')}">
             <div class="chip-container custom-scrollbar flex flex-wrap gap-2 bg-gray-800 rounded-md p-2 w-full border border-gray-600 overflow-y-auto" style="max-height: 150px; min-height: 2.5rem;">
