@@ -645,12 +645,12 @@ export const UI = {
         return `
             <summary class="flex justify-between items-center p-4 cursor-pointer gap-4 group">
                 <div class="flex items-center gap-3 flex-wrap flex-grow">
-                    <input type="checkbox" class="category-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" onclick="event.stopPropagation();">
+                    <input type="checkbox" aria-label="Select category" class="category-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" onclick="event.stopPropagation();">
                     <h2 class="text-xl font-semibold text-indigo-400 select-none"><span contenteditable="true" class="category-name outline-none focus:bg-indigo-400/50 rounded px-1" aria-label="Edit category name">${name.replace(/_/g, ' ')}</span></h2>
-                    <input type="text" class="custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 flex-grow transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}" onclick="event.stopPropagation();">
+                    <input type="text" aria-label="Folder instructions" class="custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 flex-grow transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}" onclick="event.stopPropagation();">
                 </div>
                 <div class="flex items-center gap-2 ml-auto flex-shrink-0">
-                    <button class="pin-btn btn-action-icon text-yellow-400 hover:text-yellow-300 text-lg transition-all duration-200" title="${isPinned ? 'Unpin' : 'Pin to top'}">${isPinned ? '📌' : '📍'}</button>
+                    <button class="pin-btn btn-action-icon text-yellow-400 hover:text-yellow-300 text-lg transition-all duration-200" title="${isPinned ? 'Unpin' : 'Pin to top'}" aria-label="${isPinned ? 'Unpin category' : 'Pin category'}">${isPinned ? '📌' : '📍'}</button>
                     <button class="delete-btn btn-action-icon text-red-400 hover:text-red-300 font-bold text-xl leading-none transition-all duration-200" title="Delete this category" aria-label="Delete this category">&times;</button>
                     <span class="arrow-down transition-transform duration-300 text-indigo-400"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
                 </div>
@@ -667,13 +667,13 @@ export const UI = {
                 <h3 class="font-bold text-lg text-gray-100 flex-grow"><span contenteditable="true" class="wildcard-name outline-none focus:bg-indigo-400/50 rounded px-1" aria-label="Edit list name">${name.replace(/_/g, ' ')}</span> <span class="wildcard-count text-gray-400 text-sm ml-2">(${(data.wildcards || []).length})</span></h3>
                 <button class="delete-btn btn-action-icon text-red-400 hover:text-red-300 font-bold text-xl leading-none transition-all duration-200" title="Delete this card" aria-label="Delete this card">&times;</button>
             </div>
-            <input type="text" class="custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 w-full my-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200" placeholder="Custom generation instructions..." value="${sanitize(data.instruction || '')}">
+            <input type="text" aria-label="Custom instructions" class="custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 w-full my-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200" placeholder="Custom generation instructions..." value="${sanitize(data.instruction || '')}">
             <div class="chip-container custom-scrollbar flex flex-wrap gap-2 bg-gray-800 rounded-md p-2 w-full border border-gray-600 overflow-y-auto" style="max-height: 150px; min-height: 2.5rem;">
                 ${(data.wildcards || []).map((wc, i) => this.createChip(wc, i)).join('')}
             </div>
             <div class="flex gap-2 mt-2">
-                <input type="text" placeholder="Add new wildcard..." class="add-wildcard-input flex-grow bg-gray-800 border border-gray-600 rounded-md px-2 py-1 text-sm">
-                <button class="add-wildcard-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-md">+
+                <input type="text" aria-label="New wildcard text" placeholder="Add new wildcard..." class="add-wildcard-input flex-grow bg-gray-800 border border-gray-600 rounded-md px-2 py-1 text-sm">
+                <button class="add-wildcard-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-md" aria-label="Add wildcard item">+
                 </button>
             </div>
             <div class="flex justify-between items-center mt-3 flex-wrap gap-2">
@@ -698,7 +698,7 @@ export const UI = {
             <div class="p-4 flex flex-wrap justify-between items-center gap-4">
                 <h2 class="text-xl sm:text-2xl font-semibold text-indigo-400">Add New Top-Level Category</h2>
                 <div class="flex items-center gap-2">
-                    <button id="add-category-placeholder-btn" class="add-category-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">+</button>
+                    <button id="add-category-placeholder-btn" class="add-category-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md" aria-label="Add new top-level category">+</button>
                     <button id="suggest-toplevel-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md">Suggest</button>
                 </div>
             </div>`;
@@ -711,7 +711,7 @@ export const UI = {
         div.innerHTML = `
             <span class="text-gray-400 font-medium">Add new subcategory</span>
             <div class="flex gap-2">
-                <button class="add-subcategory-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-md">+</button>
+                <button class="add-subcategory-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-md" aria-label="Add new subcategory">+</button>
                 <button class="suggest-subcategory-btn bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-md">Suggest</button>
             </div>
         `;
@@ -725,7 +725,7 @@ export const UI = {
              <div class="flex-grow flex flex-col items-center justify-center text-center">
                  <p class="text-gray-400 mb-4">Add new wildcard list</p>
                  <div class="flex gap-4">
-                    <button class="add-wildcard-list-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-2xl">+</button>
+                    <button class="add-wildcard-list-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-2xl" aria-label="Add new wildcard list">+</button>
                     <button class="suggest-wildcard-list-btn bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md">Suggest</button>
                 </div>
             </div>`;
