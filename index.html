@@ -112,275 +112,291 @@
             </div>
         </div>
 
-        <details class="max-w-4xl mx-auto mt-6 bg-gray-800 rounded-lg text-left">
-            <summary class="flex justify-between items-center p-4 cursor-pointer">
-                <h2 class="text-xl font-semibold text-indigo-400">Global Settings</h2>
-                <span class="arrow-down transition-transform duration-300 text-indigo-400"><svg class="h-6 w-6"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                        </path>
-                    </svg></span>
-            </summary>
-            <div class="p-4 border-t border-gray-700 space-y-6">
-                <div>
-                    <label for="global-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Global
-                        System Prompt (for Wildcard Generation)</label>
-                    <textarea id="global-prompt"
-                        class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 custom-scrollbar"
-                        rows="4"></textarea>
+        <dialog id="settings-dialog" class="settings-modal">
+            <div
+                class="bg-gray-800/95 backdrop-blur-xl rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-gray-700/50">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center p-5 border-b border-gray-700/50 flex-shrink-0">
+                    <h2
+                        class="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+                        Global Settings</h2>
+                    <button id="settings-close-btn"
+                        class="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                        title="Close Settings">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
-                <div>
-                    <label for="suggestion-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Item
-                        Suggestion Prompt</label>
-                    <textarea id="suggestion-prompt"
-                        class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 custom-scrollbar"
-                        rows="4"></textarea>
-                </div>
-                <!-- API Provider Selection -->
-                <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                    <label for="api-endpoint" class="block text-lg font-semibold text-indigo-300 mb-2">Active API
-                        Provider</label>
-                    <select id="api-endpoint"
-                        class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-base focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                        <option value="openrouter" selected>OpenRouter (Recommended)</option>
-                        <option value="gemini">Google Gemini</option>
-                        <option value="custom">Custom (OpenAI-Compatible)</option>
-                    </select>
-                    <p class="text-sm text-gray-400 mt-2">Select the AI service you want to use for generating
-                        wildcards.</p>
-                </div>
+                <!-- Modal Body - Scrollable -->
+                <div class="p-5 space-y-6 overflow-y-auto custom-scrollbar text-left">
+                    <div>
+                        <label for="global-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Global
+                            System Prompt (for Wildcard Generation)</label>
+                        <textarea id="global-prompt"
+                            class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 custom-scrollbar"
+                            rows="4"></textarea>
 
-                <!-- OpenRouter Settings -->
-                <div id="settings-openrouter"
-                    class="api-settings-panel space-y-4 p-5 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-xl font-semibold text-white flex items-center gap-2">
-                            <img src="https://openrouter.ai/favicon.ico" alt="" class="w-5 h-5 opacity-80">
-                            OpenRouter API
-                        </h3>
-                        <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer"
-                            class="text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center gap-1">
-                            Get API Key <span class="text-xs">↗</span>
-                        </a>
+                    </div>
+                    <div>
+                        <label for="suggestion-prompt" class="block text-lg font-semibold text-indigo-300 mb-2">Item
+                            Suggestion Prompt</label>
+                        <textarea id="suggestion-prompt"
+                            class="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 custom-scrollbar"
+                            rows="4"></textarea>
+                    </div>
+                    <!-- API Provider Selection -->
+                    <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                        <label for="api-endpoint" class="block text-lg font-semibold text-indigo-300 mb-2">Active API
+                            Provider</label>
+                        <select id="api-endpoint"
+                            class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-base focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                            <option value="openrouter" selected>OpenRouter (Recommended)</option>
+                            <option value="gemini">Google Gemini</option>
+                            <option value="custom">Custom (OpenAI-Compatible)</option>
+                        </select>
+                        <p class="text-sm text-gray-400 mt-2">Select the AI service you want to use for generating
+                            wildcards.</p>
                     </div>
 
-                    <div>
-                        <label for="openrouter-api-key" class="block text-sm font-medium text-gray-300 mb-1">API
-                            Key</label>
-                        <div class="relative">
-                            <input type="password" id="openrouter-api-key"
-                                class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 pr-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                                placeholder="sk-or-..." autocomplete="off">
-                            <button
-                                class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100 transition-colors"
-                                title="Show/Hide API Key">
-                                <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" />
-                                    <path class="eye-slash hidden" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M17 17L7 7" />
-                                </svg>
-                            </button>
+                    <!-- OpenRouter Settings -->
+                    <div id="settings-openrouter"
+                        class="api-settings-panel space-y-4 p-5 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-semibold text-white flex items-center gap-2">
+                                <img src="https://openrouter.ai/favicon.ico" alt="" class="w-5 h-5 opacity-80">
+                                OpenRouter API
+                            </h3>
+                            <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer"
+                                class="text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center gap-1">
+                                Get API Key <span class="text-xs">↗</span>
+                            </a>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Key is stored in session memory only.</p>
-                    </div>
 
-                    <div>
-                        <label for="openrouter-model-name" class="block text-sm font-medium text-gray-300 mb-1">Model
-                            Name</label>
-                        <div class="flex gap-2">
-                            <div class="relative flex-grow">
-                                <input type="text" id="openrouter-model-name" list="openrouter-model-list"
-                                    class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="e.g., openai/gpt-4o">
-                                <datalist id="openrouter-model-list"></datalist>
+                        <div>
+                            <label for="openrouter-api-key" class="block text-sm font-medium text-gray-300 mb-1">API
+                                Key</label>
+                            <div class="relative">
+                                <input type="password" id="openrouter-api-key"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 pr-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                    placeholder="sk-or-..." autocomplete="off">
+                                <button
+                                    class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100 transition-colors"
+                                    title="Show/Hide API Key">
+                                    <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" />
+                                        <path class="eye-slash hidden" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="M17 17L7 7" />
+                                    </svg>
+                                </button>
                             </div>
-                            <button
-                                class="test-connection-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap"
-                                data-provider="openrouter">
-                                Test Connection
-                            </button>
+                            <p class="text-xs text-gray-500 mt-1">Key is stored in session memory only.</p>
                         </div>
-                        <div class="flex justify-between items-start mt-1">
-                            <p id="openrouter-model-loading-indicator"
-                                class="text-xs text-indigo-400 hidden animate-pulse">Loading models...</p>
-                            <p id="openrouter-model-error-indicator" class="text-xs text-red-400 hidden"></p>
-                        </div>
-                    </div>
 
-                    <div class="bg-blue-900/20 border border-blue-800/50 rounded p-3 text-sm text-blue-200">
-                        <strong>Tip:</strong> OpenRouter provides access to hundreds of models (Chat-GPT, Claude,
-                        Gemini, Deepseek, GLM, etc) many of them for free.
-                    </div>
-                </div>
-
-                <!-- Gemini Settings -->
-                <div id="settings-gemini"
-                    class="api-settings-panel hidden space-y-4 p-5 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-xl font-semibold text-white flex items-center gap-2">Gemini API</h3>
-                        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer"
-                            class="text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center gap-1">
-                            Get API Key <span class="text-xs">↗</span>
-                        </a>
-                    </div>
-
-                    <div>
-                        <label for="gemini-api-key" class="block text-sm font-medium text-gray-300 mb-1">API
-                            Key</label>
-                        <div class="relative">
-                            <input type="password" id="gemini-api-key"
-                                class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 pr-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                                placeholder="AIzaSy..." autocomplete="off">
-                            <button
-                                class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100 transition-colors"
-                                title="Show/Hide API Key">
-                                <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" />
-                                    <path class="eye-slash hidden" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M17 17L7 7" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="gemini-model-name" class="block text-sm font-medium text-gray-300 mb-1">Model
-                            Name</label>
-                        <div class="flex gap-2">
-                            <div class="relative flex-grow">
-                                <input type="text" id="gemini-model-name" list="gemini-model-list"
-                                    class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="e.g., gemini-1.5-flash">
-                                <datalist id="gemini-model-list"></datalist>
+                        <div>
+                            <label for="openrouter-model-name"
+                                class="block text-sm font-medium text-gray-300 mb-1">Model
+                                Name</label>
+                            <div class="flex gap-2">
+                                <div class="relative flex-grow">
+                                    <input type="text" id="openrouter-model-name" list="openrouter-model-list"
+                                        class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="e.g., openai/gpt-4o">
+                                    <datalist id="openrouter-model-list"></datalist>
+                                </div>
+                                <button
+                                    class="test-connection-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap"
+                                    data-provider="openrouter">
+                                    Test Connection
+                                </button>
                             </div>
-                            <button
-                                class="test-connection-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap"
-                                data-provider="gemini">
-                                Test Connection
-                            </button>
-                        </div>
-                        <div class="flex justify-between items-start mt-1">
-                            <p id="gemini-model-loading-indicator" class="text-xs text-indigo-400 hidden animate-pulse">
-                                Loading models...</p>
-                            <p id="gemini-model-error-indicator" class="text-xs text-red-400 hidden"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Custom API Settings -->
-                <div id="settings-custom"
-                    class="api-settings-panel hidden space-y-4 p-5 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-xl font-semibold text-white">Custom API</h3>
-                        <span
-                            class="text-xs text-gray-400 uppercase tracking-wider font-semibold border border-gray-600 rounded px-2 py-0.5">OpenAI
-                            Compatible</span>
-                    </div>
-
-                    <div>
-                        <label for="custom-api-url" class="block text-sm font-medium text-gray-300 mb-1">API Base
-                            URL</label>
-                        <input type="text" id="custom-api-url"
-                            class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 font-mono"
-                            placeholder="e.g., http://localhost:11434/v1">
-                        <p class="text-xs text-gray-500 mt-1">The base URL for the API (e.g. for Ollama, LM Studio,
-                            etc.)</p>
-                    </div>
-
-                    <div>
-                        <label for="custom-api-key" class="block text-sm font-medium text-gray-300 mb-1">API Key
-                            (Optional)</label>
-                        <div class="relative">
-                            <input type="password" id="custom-api-key"
-                                class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 pr-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                                placeholder="Enter API key if required" autocomplete="off">
-                            <button
-                                class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100 transition-colors"
-                                title="Show/Hide API Key">
-                                <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" />
-                                    <path class="eye-slash hidden" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M17 17L7 7" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="custom-model-name" class="block text-sm font-medium text-gray-300 mb-1">Model
-                            Name</label>
-                        <div class="flex gap-2">
-                            <div class="relative flex-grow">
-                                <input type="text" id="custom-model-name" list="custom-model-list"
-                                    class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="Enter model identifier">
-                                <datalist id="custom-model-list"></datalist>
+                            <div class="flex justify-between items-start mt-1">
+                                <p id="openrouter-model-loading-indicator"
+                                    class="text-xs text-indigo-400 hidden animate-pulse">Loading models...</p>
+                                <p id="openrouter-model-error-indicator" class="text-xs text-red-400 hidden"></p>
                             </div>
-                            <button
-                                class="test-connection-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap"
-                                data-provider="custom">
-                                Test Connection
-                            </button>
+                        </div>
+
+                        <div class="bg-blue-900/20 border border-blue-800/50 rounded p-3 text-sm text-blue-200">
+                            <strong>Tip:</strong> OpenRouter provides access to hundreds of models (Chat-GPT, Claude,
+                            Gemini, Deepseek, GLM, etc) many of them for free.
                         </div>
                     </div>
+
+                    <!-- Gemini Settings -->
+                    <div id="settings-gemini"
+                        class="api-settings-panel hidden space-y-4 p-5 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-semibold text-white flex items-center gap-2">Gemini API</h3>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer"
+                                class="text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center gap-1">
+                                Get API Key <span class="text-xs">↗</span>
+                            </a>
+                        </div>
+
+                        <div>
+                            <label for="gemini-api-key" class="block text-sm font-medium text-gray-300 mb-1">API
+                                Key</label>
+                            <div class="relative">
+                                <input type="password" id="gemini-api-key"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 pr-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                    placeholder="AIzaSy..." autocomplete="off">
+                                <button
+                                    class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100 transition-colors"
+                                    title="Show/Hide API Key">
+                                    <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" />
+                                        <path class="eye-slash hidden" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="M17 17L7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="gemini-model-name" class="block text-sm font-medium text-gray-300 mb-1">Model
+                                Name</label>
+                            <div class="flex gap-2">
+                                <div class="relative flex-grow">
+                                    <input type="text" id="gemini-model-name" list="gemini-model-list"
+                                        class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="e.g., gemini-1.5-flash">
+                                    <datalist id="gemini-model-list"></datalist>
+                                </div>
+                                <button
+                                    class="test-connection-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap"
+                                    data-provider="gemini">
+                                    Test Connection
+                                </button>
+                            </div>
+                            <div class="flex justify-between items-start mt-1">
+                                <p id="gemini-model-loading-indicator"
+                                    class="text-xs text-indigo-400 hidden animate-pulse">
+                                    Loading models...</p>
+                                <p id="gemini-model-error-indicator" class="text-xs text-red-400 hidden"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom API Settings -->
+                    <div id="settings-custom"
+                        class="api-settings-panel hidden space-y-4 p-5 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-semibold text-white">Custom API</h3>
+                            <span
+                                class="text-xs text-gray-400 uppercase tracking-wider font-semibold border border-gray-600 rounded px-2 py-0.5">OpenAI
+                                Compatible</span>
+                        </div>
+
+                        <div>
+                            <label for="custom-api-url" class="block text-sm font-medium text-gray-300 mb-1">API Base
+                                URL</label>
+                            <input type="text" id="custom-api-url"
+                                class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 font-mono"
+                                placeholder="e.g., http://localhost:11434/v1">
+                            <p class="text-xs text-gray-500 mt-1">The base URL for the API (e.g. for Ollama, LM Studio,
+                                etc.)</p>
+                        </div>
+
+                        <div>
+                            <label for="custom-api-key" class="block text-sm font-medium text-gray-300 mb-1">API Key
+                                (Optional)</label>
+                            <div class="relative">
+                                <input type="password" id="custom-api-key"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 pr-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                    placeholder="Enter API key if required" autocomplete="off">
+                                <button
+                                    class="toggle-api-key-visibility absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-100 transition-colors"
+                                    title="Show/Hide API Key">
+                                    <svg class="eye-icon h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" />
+                                        <path class="eye-slash hidden" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="M17 17L7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="custom-model-name" class="block text-sm font-medium text-gray-300 mb-1">Model
+                                Name</label>
+                            <div class="flex gap-2">
+                                <div class="relative flex-grow">
+                                    <input type="text" id="custom-model-name" list="custom-model-list"
+                                        class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="Enter model identifier">
+                                    <datalist id="custom-model-list"></datalist>
+                                </div>
+                                <button
+                                    class="test-connection-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap"
+                                    data-provider="custom">
+                                    Test Connection
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <details class="bg-gray-900/50 rounded-lg border border-gray-700 mt-6">
+                        <summary
+                            class="p-4 cursor-pointer font-semibold text-indigo-300 flex justify-between items-center">
+                            <span>Advanced Configuration</span>
+                            <span class="arrow-down transition-transform duration-300"><svg class="h-6 w-6" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg></span>
+                        </summary>
+                        <div class="p-4 border-t border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="config-history-limit"
+                                    class="block text-sm font-medium text-gray-300 mb-1">History Limit</label>
+                                <input type="number" id="config-history-limit"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="e.g., 20">
+                                <p class="text-xs text-gray-400 mt-1">Max number of undo steps. Reload required.</p>
+                            </div>
+                            <div>
+                                <label for="config-search-debounce"
+                                    class="block text-sm font-medium text-gray-300 mb-1">Search Debounce Delay
+                                    (ms)</label>
+                                <input type="number" id="config-search-debounce"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="e.g., 300">
+                                <p class="text-xs text-gray-400 mt-1">Delay before search is triggered. Reload required.
+                                </p>
+                            </div>
+                            <div>
+                                <label for="config-storage-key"
+                                    class="block text-sm font-medium text-gray-300 mb-1">State
+                                    Storage Key</label>
+                                <input type="text" id="config-storage-key"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <p class="text-xs text-gray-400 mt-1">LocalStorage key for app state. Change with
+                                    caution. Reload required.</p>
+                            </div>
+                            <div>
+                                <label for="config-history-key"
+                                    class="block text-sm font-medium text-gray-300 mb-1">History
+                                    Storage Key</label>
+                                <input type="text" id="config-history-key"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <p class="text-xs text-gray-400 mt-1">LocalStorage key for history. Change with caution.
+                                    Reload required.</p>
+                            </div>
+                        </div>
+                    </details>
                 </div>
-                <details class="bg-gray-900/50 rounded-lg border border-gray-700 mt-6">
-                    <summary class="p-4 cursor-pointer font-semibold text-indigo-300 flex justify-between items-center">
-                        <span>Advanced Configuration</span>
-                        <span class="arrow-down transition-transform duration-300"><svg class="h-6 w-6" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                            </svg></span>
-                    </summary>
-                    <div class="p-4 border-t border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="config-history-limit"
-                                class="block text-sm font-medium text-gray-300 mb-1">History Limit</label>
-                            <input type="number" id="config-history-limit"
-                                class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="e.g., 20">
-                            <p class="text-xs text-gray-400 mt-1">Max number of undo steps. Reload required.</p>
-                        </div>
-                        <div>
-                            <label for="config-search-debounce"
-                                class="block text-sm font-medium text-gray-300 mb-1">Search Debounce Delay
-                                (ms)</label>
-                            <input type="number" id="config-search-debounce"
-                                class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="e.g., 300">
-                            <p class="text-xs text-gray-400 mt-1">Delay before search is triggered. Reload required.
-                            </p>
-                        </div>
-                        <div>
-                            <label for="config-storage-key" class="block text-sm font-medium text-gray-300 mb-1">State
-                                Storage Key</label>
-                            <input type="text" id="config-storage-key"
-                                class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                            <p class="text-xs text-gray-400 mt-1">LocalStorage key for app state. Change with
-                                caution. Reload required.</p>
-                        </div>
-                        <div>
-                            <label for="config-history-key" class="block text-sm font-medium text-gray-300 mb-1">History
-                                Storage Key</label>
-                            <input type="text" id="config-history-key"
-                                class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                            <p class="text-xs text-gray-400 mt-1">LocalStorage key for history. Change with caution.
-                                Reload required.</p>
-                        </div>
-                    </div>
-                </details>
             </div>
-        </details>
+        </dialog>
 
         <div class="mt-6 text-left max-w-4xl mx-auto">
             <div class="flex justify-between items-center">

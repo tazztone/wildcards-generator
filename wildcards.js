@@ -547,8 +547,33 @@ const UI = {
             configSearchDebounce: document.getElementById('config-search-debounce'),
             configStorageKey: document.getElementById('config-storage-key'),
             configHistoryKey: document.getElementById('config-history-key'),
-            toastContainer: document.getElementById('toast-container')
+            toastContainer: document.getElementById('toast-container'),
+            // Settings Modal
+            settingsDialog: document.getElementById('settings-dialog'),
+            settingsBtn: document.getElementById('settings-btn'),
+            settingsCloseBtn: document.getElementById('settings-close-btn')
         };
+
+        // Settings Modal Handlers
+        this.elements.settingsBtn?.addEventListener('click', () => {
+            this.elements.settingsDialog?.showModal();
+        });
+
+        this.elements.settingsCloseBtn?.addEventListener('click', () => {
+            this.elements.settingsDialog?.close();
+        });
+
+        // Close on backdrop click
+        this.elements.settingsDialog?.addEventListener('click', (e) => {
+            if (e.target === this.elements.settingsDialog) {
+                this.elements.settingsDialog.close();
+            }
+        });
+
+        // Close on Escape key (native behavior, just ensuring modal closes properly)
+        this.elements.settingsDialog?.addEventListener('close', () => {
+            // Any cleanup needed when settings close
+        });
 
         // UI Event Listeners for Progressive Reveal
         this.elements.apiEndpoint.addEventListener('change', (e) => {

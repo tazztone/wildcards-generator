@@ -513,3 +513,83 @@
         .toggle-api-key-visibility:hover .eye-icon {
             color: var(--text-primary);
         }
+
+        /* Settings Modal */
+        .settings-modal {
+            background-color: transparent;
+            border: none;
+            padding: 1rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            margin: auto;
+        }
+
+        .settings-modal::backdrop {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+        }
+
+        .settings-modal[open] {
+            animation: modal-appear 0.25s ease-out;
+        }
+
+        @keyframes modal-appear {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Gradient Buttons */
+        .btn-gradient-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            transition: all 0.2s ease;
+        }
+
+        .btn-gradient-primary:hover {
+            background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .btn-gradient-blue:hover {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-gradient-green {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        .btn-gradient-green:hover {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .btn-gradient-orange {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+
+        .btn-gradient-orange:hover {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+        }
+
+        /* Category Header Polish */
+        .category-header {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .category-title {
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
