@@ -147,6 +147,29 @@ jobs:
 
 | Issue | Solution |
 |-------|----------|
+
 | Tests timeout | Increase timeout, check network |
 | Elements not found | Add explicit waits, check selectors |
 | Server not starting | Verify port 8080 is available |
+
+## Known Limitations & Challenges
+
+### 1. Playwright Verification
+*   **Timeout Errors:** Modal inputs and buttons can cause timeouts if interactions occur before animations complete.
+*   **Strict Mode Violations:** Recursive UIs (categories inside categories) can cause "strict mode" failures. Use specific locators with `data-parent-path` to distinguish elements.
+*   **Drag and Drop:** Simulating drag events to trigger global states (like `body.dragging-active`) is unreliable with standard mouse events.
+*   **Visibility Assertions:** Prerequisite states for visibility checks often require precise timing or manual event triggering.
+
+### 2. DOM State Management
+*   **Element Replacement:** The app's `replace-on-update` logic destroys local state (like `<details open>`) when data changes. Test scripts must account for this by re-opening categories after updates.
+
+## Testing Best Practices
+
+### Strategies for Recursive UIs
+*   **Specific Locators:** Use `data-path` and `data-parent-path` attributes to target the correct scope in recursive structures.
+*   **Manual State Mocking:** For complex interactions like Drag & Drop visuals, manually triggering state classes (e.g., `document.body.classList.add('dragging-active')`) is often more reliable than simulating mouse gestures.
+
+### Architecture Insights
+*   **Global State:** Using global classes on `body` is robust for app-wide modes like dragging.
+*   **Re-rendering:** Be aware that the current full-element replacement strategy affects UX and testing state persistence.
+
