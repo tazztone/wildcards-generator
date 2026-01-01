@@ -1,42 +1,69 @@
 # AI-Powered Wildcard Generator (Web Version)
 
-This is a standalone Single Page Application (SPA) for managing and generating "wildcards" (dynamic lists of terms) for AI image generation prompts. It runs directly in your browser.
+A standalone Single Page Application (SPA) for managing and generating "wildcards" (dynamic lists of terms) for AI image generation prompts. Runs directly in your browser.
 
 ## Features
 
-*   **Hierarchical Organization:** Create nested folders and categories to organize your wildcards.
-*   **AI Generation:** Use LLMs (Gemini, OpenRouter, or OpenAI-compatible APIs) to generate new wildcards based on your existing lists and custom instructions.
-*   **Context-Aware:** The AI understands the category structure and existing items to avoid duplicates and maintain relevance.
-*   **Import/Export:** Support for importing and exporting data in YAML format.
-*   **Search:** Instant search across all your wildcard categories.
-*   **Customizable:** Configure API keys, prompts, and UI settings.
+### Core
+- **Hierarchical Organization** — Nested folders and categories
+- **AI Generation** — Use LLMs (Gemini, OpenRouter, or OpenAI-compatible APIs) to expand lists
+- **Import/Export** — YAML format, ZIP download with folder structure
+- **Search** — Instant search with match highlighting
+- **Undo/Redo** — Full history support
+
+### v2.9+
+- 🍞 **Toast Notifications** — Non-blocking status messages
+- 📱 **PWA/Offline** — Works without internet after first load
+- ⚡ **Lazy Loading** — Categories load on expand
+
+### v2.10+
+- 🌙/☀️ **Theme Toggle** — Dark/Light mode with persistence
+- ⌨️ **Keyboard Navigation** — Arrow keys + Enter + Escape
+- 🔍 **Duplicate Detection** — Find duplicates across categories
+- 📌 **Favorites/Pinning** — Pin categories to top
+
+### v2.11+
+- 📊 **Statistics Dashboard** — Category/wildcard/pinned counts
+- ✅ **Batch Operations** — Select and operate on multiple categories
+- 🔆 **Search Highlighting** — Visual match highlighting
 
 ## Getting Started
 
-Simply open `index.html` in any modern web browser. No installation or server is required.
+Open `index.html` in any modern browser. No installation or server required.
 
 ### Configuration
 
-Click **Global Settings** in the interface to:
-*   Enter your API keys (Gemini, OpenRouter, etc.).
-*   Customize system prompts.
-*   Adjust UI settings like search delay and history limits.
+Click **Global Settings** to:
+- Enter API keys (Gemini, OpenRouter, etc.)
+- Customize system prompts
+- Adjust UI settings
 
 You can also use `api-keys.json` (rename `api-keys.json.example`) to preload keys.
 
 ## Development
 
-The project is built with vanilla HTML, CSS, and JavaScript (ES Modules).
+Built with vanilla HTML, CSS, and JavaScript (ES Modules).
 
-*   `index.html`: The main entry point.
-*   `wildcards.js`: The application logic.
-*   `wildcards.css`: The styling.
-*   `data/`: Contains the default dataset (`initial-data.yaml`).
+| File | Purpose |
+|------|---------|
+| `index.html` | Entry point |
+| `wildcards.js` | Application logic |
+| `wildcards.css` | Styling |
+| `data/` | Default dataset |
+| `tests/` | Playwright E2E tests |
+
+### Testing
+
+```bash
+npm install -D @playwright/test http-server
+npx playwright install chromium
+npx playwright test
+```
 
 ## For Developers & AI Agents
 
-Please refer to `AGENTS.md` for specific rules and context regarding the codebase architecture and development workflows.
+See `AGENTS.md` for architecture rules and development workflows.
 
 ## Contributing
 
-Feel free to open issues or submit pull requests to improve the tool.
+Feel free to open issues or submit pull requests.

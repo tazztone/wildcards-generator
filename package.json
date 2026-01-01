@@ -1,0 +1,28 @@
+{
+  "name": "wildcards-generator-gemini",
+  "version": "1.0.0",
+  "description": "This is a standalone Single Page Application (SPA) for managing and generating \"wildcards\" (dynamic lists of terms) for AI image generation prompts. It runs directly in your browser.",
+  "main": "playwright.config.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "http-server": "^14.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tazztone/wildcards-generator-gemini.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tazztone/wildcards-generator-gemini/issues"
+  },
+  "homepage": "https://github.com/tazztone/wildcards-generator-gemini#readme"
+}

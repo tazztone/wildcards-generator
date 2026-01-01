@@ -3,29 +3,61 @@
 This file contains context and rules for AI agents working on this repository.
 
 ## Project Architecture
-*   **Type**: Static Single Page Application (SPA).
-*   **Languages**: HTML, CSS, JavaScript (ES Modules).
-*   **No Build Step**: There is NO `npm build`, `webpack`, `vite`, etc. The code runs directly in the browser. Do not introduce build tools.
-*   **No Backend**: There is NO Python or Node.js backend. All logic is client-side.
-*   **Entry Point**: `index.html`.
-*   **Logic**: `wildcards.js` (uses ES modules, imports `yaml` from CDN).
-*   **Styling**: `wildcards.css` (Tailwind CSS is loaded via CDN in `index.html`, plus custom styles).
+
+| Aspect | Details |
+|--------|---------|
+| Type | Static Single Page Application (SPA) |
+| Languages | HTML, CSS, JavaScript (ES Modules) |
+| Entry Point | `index.html` |
+| Logic | `wildcards.js` |
+| Styling | `wildcards.css` + Tailwind CSS (CDN) |
 
 ## Core Rules
-1.  **Keep it Simple**: Do not introduce a build system or package manager (npm/yarn) unless explicitly requested and necessary.
-2.  **Monolithic Structure**: The project structure is intentionally flat. `index.html`, `wildcards.js`, and `wildcards.css` are the main files. Do not split `wildcards.js` into many small files unless the file size becomes unmanageable.
-3.  **No Python**: The project was previously a Python app but has been converted to a pure web app. Do not reintroduce Python files for the application logic.
-4.  **Testing**: There are no automated unit tests currently. Verify changes by checking if `index.html` loads and functions correctly in a browser environment (conceptually).
-    *   *Note*: Temporary Python Playwright scripts may be used for verification if available in the environment, but they are not part of the deployed application.
 
-## Configuration & Data
-*   **`config.json`**: Contains default configuration settings.
-*   **`api-keys.json`**: (Git-ignored) Local file for storing API keys. See `api-keys.json.example`.
-*   **`data/initial-data.yaml`**: Contains the default wildcard data loaded on first visit or reset.
+1. **No Build Step** — No webpack, vite, npm build. Code runs directly in browser.
+2. **No Backend** — All logic is client-side JavaScript.
+3. **Monolithic Structure** — Main files are `index.html`, `wildcards.js`, `wildcards.css`. Don't split into many small files.
+4. **No Python** — Project was converted from Python to pure web app.
 
-## External Libraries
-*   **Tailwind CSS**: Loaded via CDN.
-*   **YAML**: `yaml` library loaded via CDN in `wildcards.js`.
+## Project Structure
 
-## Documentation
-*   See `docs/` for API documentation (e.g., OpenRouter).
+```
+├── index.html           # Entry point
+├── wildcards.js         # App logic
+├── wildcards.css        # Styling
+├── manifest.json        # PWA manifest
+├── sw.js                # Service worker for offline
+├── config.json          # Default settings
+├── api-keys.json        # (Git-ignored) API keys
+├── api-keys.json.example
+├── data/
+│   └── initial-data.yaml  # Default wildcard data
+├── docs/
+│   └── openrouter_API_docs.md
+└── tests/
+    └── e2e.spec.js      # Playwright tests
+```
+
+## Testing
+
+Playwright E2E tests are available:
+
+```bash
+npm install -D @playwright/test http-server
+npx playwright install chromium
+npx playwright test
+```
+
+Current: **8 passed**, 1 skipped
+
+## External Libraries (CDN)
+
+- Tailwind CSS
+- YAML (`yaml` library)
+- JSZip (for ZIP export)
+
+## Recent Features (v2.9-2.11)
+
+- Toast notifications, PWA/offline, lazy loading
+- Theme toggle, keyboard nav, duplicate detection, pinning
+- Statistics dashboard, batch operations, search highlighting
