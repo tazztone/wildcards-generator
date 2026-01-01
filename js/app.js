@@ -48,11 +48,18 @@ export const App = {
         });
 
         document.addEventListener('change', (e) => {
-            if (e.target.matches('.api-key-input')) {
-                const provider = e.target.id.replace('-api-key', '');
-                // Logic to handle persistence if "Remember" is checked (to be added to UI)
-                // For now, just update Config in memory
-                Config[`API_KEY_${provider.toUpperCase()}`] = e.target.value.trim();
+            if (e.target.matches('.api-key-input') || e.target.matches('.api-key-remember')) {
+                const panel = e.target.closest('.api-settings-panel');
+                if (!panel) return;
+
+                const keyInput = panel.querySelector('.api-key-input');
+                const rememberCheck = panel.querySelector('.api-key-remember');
+                if (!keyInput) return;
+
+                const provider = keyInput.id.replace('-api-key', '');
+                const persist = rememberCheck ? rememberCheck.checked : false;
+
+                saveApiKey(provider, keyInput.value.trim(), persist);
             }
         });
 
@@ -650,22 +657,3 @@ export const App = {
 
 };
 
-// Bind logic for API checkbox
-document.addEventListener('change', (e) => {
-    if (e.target.matches('.api-key-input') || e.target.matches('.api-key-remember')) {
-        const panel = e.target.closest('.api-settings-panel');
-        if (!panel) return;
-
-        const providerTitle = panel.querySelector('.provider-title').textContent.trim().toLowerCase();
-        let provider = 'custom';
-        if (providerTitle.includes('gemini')) provider = 'gemini';
-        if (providerTitle.includes('openrouter')) provider = 'openrouter';
-
-        const keyInput = panel.querySelector('.api-key-input');
-        const rememberCheck = panel.querySelector('.api-key-remember');
-
-        if (keyInput && rememberCheck) {
-            saveApiKey(provider, keyInput.value.trim(), rememberCheck.checked);
-        }
-    }
-});
