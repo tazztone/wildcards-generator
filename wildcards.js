@@ -549,10 +549,33 @@ const UI = {
             configHistoryKey: document.getElementById('config-history-key'),
             toastContainer: document.getElementById('toast-container')
         };
+
+        // UI Event Listeners for Progressive Reveal
+        this.elements.apiEndpoint.addEventListener('change', (e) => {
+            this.updateSettingsVisibility(e.target.value);
+            // Auto-test initialization if key exists? Maybe too obtrusive.
+        });
+
         this.elements.dialog.addEventListener('close', () => {
             const customButtons = this.elements.dialog.querySelector('#custom-buttons');
             if (customButtons) customButtons.remove();
         });
+    },
+    updateSettingsVisibility(provider) {
+        // Hide all panels
+        document.querySelectorAll('.api-settings-panel').forEach(el => el.classList.add('hidden'));
+
+        // Show selected panel
+        const selectedPanel = document.getElementById(`settings-${provider}`);
+        if (selectedPanel) {
+            selectedPanel.classList.remove('hidden');
+            // Add subtle animation reflow
+            selectedPanel.style.opacity = '0';
+            requestAnimationFrame(() => {
+                selectedPanel.style.transition = 'opacity 0.3s ease-in-out';
+                selectedPanel.style.opacity = '1';
+            });
+        }
     },
     renderAll() {
         const { wildcards, systemPrompt, suggestItemPrompt } = State.appState;
@@ -565,6 +588,11 @@ const UI = {
         this.elements.geminiModelName.value = Config.MODEL_NAME_GEMINI || 'gemini-1.5-flash';
         this.elements.openrouterModelName.value = Config.MODEL_NAME_OPENROUTER || ':free';
         this.elements.customModelName.value = Config.MODEL_NAME_CUSTOM || '';
+
+        // Default to OpenRouter if not set
+        const currentEndpoint = Config.API_ENDPOINT || 'openrouter';
+        this.elements.apiEndpoint.value = currentEndpoint;
+        this.updateSettingsVisibility(currentEndpoint);
 
         // Populate advanced config fields
         this.elements.configHistoryLimit.value = Config.HISTORY_LIMIT;

@@ -27,18 +27,37 @@ A standalone Single Page Application (SPA) for managing and generating "wildcard
 - ✅ **Batch Operations** — Select and operate on multiple categories
 - 🔆 **Search Highlighting** — Visual match highlighting
 
-## Getting Started
+## Quick Start
 
-Open `index.html` in any modern browser. No installation or server required.
+1. **Open the App**
+   Simply open `index.html` in your browser. No server or installation required.
 
-### Configuration
+2. **Setup API Key** (Required for AI features)
+   - Click **Global Settings** (top of the page)
+   - Select your preferred AI provider:
+     - **OpenRouter** (Recommended - access to Claude, GPT-4, Llama 3, etc.)
+     - **Gemini** (Google's models)
+     - **Custom** (Any OpenAI-compatible API)
+   - Enter your API Key. Keys are stored safely in **session memory only** and are never saved to files.
 
-Click **Global Settings** to:
-- Enter API keys (Gemini, OpenRouter, etc.)
-- Customize system prompts
-- Adjust UI settings
+   > **Get an API Key:**
+   > - [Get OpenRouter Key](https://openrouter.ai/keys)
+   > - [Get Gemini Key](https://aistudio.google.com/app/apikey)
 
-You can also use `api-keys.json` (rename `api-keys.json.example`) to preload keys.
+## Features
+
+### Core
+- **Hierarchical Organization** — Nested folders and categories
+- **AI Generation** — Use LLMs to expand lists
+- **Import/Export** — YAML format, ZIP download with folder structure
+- **Search** — Instant search with match highlighting
+- **Undo/Redo** — Full history support
+
+### v2.11+
+- 📊 **Statistics Dashboard** — Category/wildcard/pinned counts
+- ✅ **Batch Operations** — Select and operate on multiple categories
+- 🔆 **Search Highlighting** — Visual match highlighting
+- 🔒 **Secure Settings** — Session-based API key management
 
 ## Development
 

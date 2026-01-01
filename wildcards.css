@@ -465,3 +465,24 @@
         html.light mark.search-highlight {
             background: linear-gradient(135deg, #fcd34d, #fbbf24);
         }
+
+        /* API Settings Panel Transitions */
+        .api-settings-panel {
+            transition: all 0.3s ease-in-out;
+            will-change: opacity, transform;
+        }
+
+        .api-settings-panel.hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        /* Eye Icon for Password Fields */
+        .eye-slash {
+            display: none;
+        }
+
+        .toggle-api-key-visibility:hover .eye-icon {
+            color: var(--text-primary);
+        }
