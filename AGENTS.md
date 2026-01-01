@@ -50,7 +50,9 @@ npx playwright install chromium
 npx playwright test
 ```
 
-Current: **8 passed**, 1 skipped
+Current: **42 passed**
+
+See [tests/testing.md](tests/testing.md) for detailed testing documentation.
 
 ## External Libraries (CDN)
 
