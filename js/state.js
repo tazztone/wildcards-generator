@@ -239,8 +239,10 @@ const State = {
     processYamlNode(node) {
         if (YAML.isMap(node)) {
             const result = {};
+            const sortOrder = [];
             node.items.forEach(pair => {
                 const key = pair.key.value;
+                sortOrder.push(key);
                 const valueNode = pair.value;
                 let instruction = "";
                 // Attempt to extract instruction from comments
@@ -259,6 +261,7 @@ const State = {
                     result[key] = { instruction, wildcards: [String(processedValue)] };
                 }
             });
+            result.__sort_order__ = sortOrder;
             return result;
         } else if (YAML.isSeq(node)) {
             return node.items.map(item => (item && item.value !== undefined) ? item.value : item);

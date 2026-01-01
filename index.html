@@ -391,7 +391,11 @@
         <main id="wildcard-container" class="space-y-4"></main>
     </div>
 
-    <script src="js/main.js" type="module"></script>
+    <script type="module">
+        import { App } from './js/app.js';
+        // window.App = App; // Uncomment for debugging
+        App.init();
+    </script>
 
     <template id="category-template">
         <details class="bg-gray-800 rounded-lg shadow-md group">

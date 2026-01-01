@@ -167,7 +167,7 @@ export const App = {
     handleCheckDuplicates() {
         const wildcardMap = new Map();
         const scanData = (data, path) => {
-            Object.keys(data).filter(k => k !== 'instruction').forEach(key => {
+            Object.keys(data).filter(k => k !== 'instruction' && k !== '__sort_order__').forEach(key => {
                 const item = data[key];
                 const currentPath = path ? `${path}/${key}` : key;
                 if (item.wildcards && Array.isArray(item.wildcards)) {
@@ -298,6 +298,10 @@ export const App = {
                 State.saveStateToHistory();
                 const parent = State.getParentObjectByPath(path);
                 const key = path.split('/').pop();
+                if (parent.__sort_order__) {
+                    const idx = parent.__sort_order__.indexOf(key);
+                    if (idx > -1) parent.__sort_order__.splice(idx, 1);
+                }
                 delete parent[key]; // Proxy trap will handle save/notify
             });
             return;
@@ -361,6 +365,15 @@ export const App = {
                     }
                     State.saveStateToHistory();
                     const content = parent[oldKey];
+
+                    // Update sort order
+                    if (parent.__sort_order__) {
+                        const idx = parent.__sort_order__.indexOf(oldKey);
+                        if (idx > -1) {
+                            parent.__sort_order__[idx] = newKey;
+                        }
+                    }
+
                     delete parent[oldKey];
                     parent[newKey] = content; // Proxy handles it. 
                     // IMPORTANT: The path of this element and all children is now invalid in DOM until re-render.
@@ -418,6 +431,10 @@ export const App = {
 
             State.saveStateToHistory();
             parent[key] = type === 'list' ? { instruction: '', wildcards: [] } : { instruction: '' };
+
+            if (!parent.__sort_order__) parent.__sort_order__ = UI.getSortedKeys(parent);
+            if (!parent.__sort_order__.includes(key)) parent.__sort_order__.push(key);
+
         }, true);
     },
 
@@ -512,13 +529,15 @@ export const App = {
         // Complex move logic:
         // 1. Get Source Data
         const srcParent = State.getParentObjectByPath(srcPath);
+        const srcParentPath = srcPath.includes('/') ? srcPath.substring(0, srcPath.lastIndexOf('/')) : '';
         const srcKey = srcPath.split('/').pop();
         const srcData = srcParent[srcKey];
 
         // 2. Identify Dest Parent and Key
-        let destParent, destKey, newKey;
+        let destParent, destKey, destParentPath;
 
         if (position === 'inside') {
+            destParentPath = destPath;
             destParent = State.getObjectByPath(destPath); // The category itself is the parent
             // Ensure it's not a wildcard leaf
             if (Array.isArray(destParent.wildcards)) {
@@ -527,6 +546,7 @@ export const App = {
             }
             destKey = null; // Appending to end
         } else {
+            destParentPath = destPath.includes('/') ? destPath.substring(0, destPath.lastIndexOf('/')) : '';
             destParent = State.getParentObjectByPath(destPath);
             destKey = destPath.split('/').pop();
         }
@@ -537,40 +557,55 @@ export const App = {
             return;
         }
 
-        // 3. Remove from Source
-        delete srcParent[srcKey]; // Proxy triggers
-
-        // 4. Insert into Dest
-        // If sorting is automatic (keys sorted), we just add it to parent.
-        // But if user wants manual ordering, we'd need an array.
-        // Current architecture uses Object keys, so specific ordering 'before/after' is hard unless we use a prefix or special array.
-        // The current app sorts keys alphabetically in render.
-        // So 'before/after' drops effectively just mean 'move to this parent'.
-        // UNLESS we change the data structure to support manual ordering.
-        // For V1 refactor, let's respect the user's wish for "visual drop targets" but acknowledge alphabetical sort limitation?
-        // OR: Rename the key if necessary? No, that breaks links.
-        // Use 'pinned' for top level?
-
-        // Compromise: Just move to the parent. 'Inside' moves to subfolder. 'Before/After' moves to same folder.
-        // Ideally we would support ordering.
+        const isSameParent = srcParentPath === destParentPath;
 
         // Check for key collision in dest
-        if (destParent[srcKey]) {
+        if (!isSameParent && destParent[srcKey]) {
             // Append copy or number
             UI.showToast("Item with this name already exists in destination", 'error');
-            // Revert?
-            srcParent[srcKey] = srcData;
             return;
         }
 
-        destParent[srcKey] = srcData;
+        // 3. Remove from Source
+        // Update Source Order
+        if (srcParent.__sort_order__) {
+            const idx = srcParent.__sort_order__.indexOf(srcKey);
+            if (idx > -1) {
+                const newOrder = [...srcParent.__sort_order__];
+                newOrder.splice(idx, 1);
+                srcParent.__sort_order__ = newOrder;
+            }
+        }
 
-        // If we really wanted to support 'before' 'after', we'd need to change State structure to Array, or use a 'order' property.
-        // Staying with Object structure implies alphabetical sort usually.
-        // We'll trust the alphabetical sort for now, effectively ignoring 'before'/'after' distinction for persistent order,
-        // but it still correctly targets the PARENT. 
-        // Example: Dropping 'before' Item B (which is in Folder X) puts it in Folder X.
+        // Only modify object structure if parent changed
+        if (!isSameParent) {
+            delete srcParent[srcKey]; // Proxy triggers
+            destParent[srcKey] = srcData;
+        }
+
+        // 4. Update Dest Order
+        let destOrder = destParent.__sort_order__ ? [...destParent.__sort_order__] : UI.getSortedKeys(destParent);
+
+        // Remove srcKey if it was already there (safety check)
+        const existingIdx = destOrder.indexOf(srcKey);
+        if (existingIdx > -1) destOrder.splice(existingIdx, 1);
+
+        if (position === 'inside') {
+            destOrder.push(srcKey);
+        } else if (position === 'before') {
+            const destIdx = destOrder.indexOf(destKey);
+            if (destIdx > -1) destOrder.splice(destIdx, 0, srcKey);
+            else destOrder.push(srcKey);
+        } else if (position === 'after') {
+            const destIdx = destOrder.indexOf(destKey);
+            if (destIdx > -1) destOrder.splice(destIdx + 1, 0, srcKey);
+            else destOrder.push(srcKey);
+        } else {
+             destOrder.push(srcKey);
+        }
+        destParent.__sort_order__ = destOrder;
     },
+
 
     handleDragEnd(e) {
         this.draggedPath = null;

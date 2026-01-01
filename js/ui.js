@@ -114,7 +114,7 @@ export const UI = {
         const fragment = document.createDocumentFragment();
 
         // Sort keys
-        const keys = Object.keys(wildcards).sort((a, b) => a.localeCompare(b)); // Helper needed for pinned sort later
+        const keys = this.getSortedKeys(wildcards);
 
         keys.forEach((key, index) => {
             const data = wildcards[key];
@@ -139,6 +139,35 @@ export const UI = {
         }
 
         const wildcardsPath = path.slice(1); // Remove 'wildcards' prefix
+
+        // Check for sort order updates
+        if (wildcardsPath.includes('__sort_order__')) {
+            // Find the index of __sort_order__
+            const sortOrderIndex = wildcardsPath.indexOf('__sort_order__');
+
+            // If it's at index 0, it's root sort order -> Render All
+            if (sortOrderIndex === 0) {
+                this.renderAll();
+                return;
+            }
+
+            // Otherwise, it's a nested category sort order.
+            // Path to parent is everything before __sort_order__
+            const parentPathArr = wildcardsPath.slice(0, sortOrderIndex);
+            const parentPath = parentPathArr.join('/');
+
+            const parentEl = this.findElement(parentPath);
+            if (parentEl && parentEl.tagName === 'DETAILS') {
+                const data = State.getObjectByPath(parentPath);
+                if (data) {
+                    const level = parseInt(parentEl.classList.value.match(/level-(\d+)/)?.[1] || '0');
+                    this.renderCategoryContent(parentEl, data, parentPath, level);
+                    this.updateStats();
+                }
+            }
+            return;
+        }
+
         const relevantKey = wildcardsPath[0];
         const stringPath = wildcardsPath.join('/');
 
@@ -513,7 +542,7 @@ export const UI = {
         const contentWrapper = element.querySelector('.content-wrapper');
         contentWrapper.innerHTML = '';
 
-        const sortedKeys = Object.keys(data).filter(k => k !== 'instruction').sort();
+        const sortedKeys = this.getSortedKeys(data);
 
         const leafNodes = [];
         const nonLeafNodes = [];
@@ -662,7 +691,7 @@ export const UI = {
         let categoryCount = 0;
         let wildcardCount = 0;
         const countData = (data) => {
-            Object.keys(data).filter(k => k !== 'instruction').forEach(key => {
+            Object.keys(data).filter(k => k !== 'instruction' && k !== '__sort_order__').forEach(key => {
                 const item = data[key];
                 if (item.wildcards && Array.isArray(item.wildcards)) {
                     categoryCount++;
@@ -719,5 +748,17 @@ export const UI = {
         toast.textContent = message;
         this.elements.toastContainer.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
+    },
+
+    getSortedKeys(data) {
+        if (!data) return [];
+        const allKeys = Object.keys(data).filter(k => k !== 'instruction' && k !== '__sort_order__');
+        if (data.__sort_order__ && Array.isArray(data.__sort_order__)) {
+            // Use sort order, append any new keys that aren't in sort order (sorted alphabetically)
+            const sorted = data.__sort_order__.filter(k => allKeys.includes(k));
+            const missing = allKeys.filter(k => !sorted.includes(k)).sort((a, b) => a.localeCompare(b));
+            return [...sorted, ...missing];
+        }
+        return allKeys.sort((a, b) => a.localeCompare(b));
     }
 };
