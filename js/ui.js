@@ -73,10 +73,34 @@ export const UI = {
         // Helper to request closing settings with confirmation if dirty
         const requestCloseSettings = () => {
             if (this._settingsDirty) {
-                this.showNotification('You have unsaved changes. Close anyway?', true, () => {
-                    this._settingsDirty = false;
-                    this.elements.settingsDialog?.close();
-                });
+                this.showNotification('You have unsaved changes.', true, null, false, [
+                    {
+                        text: 'Save & Close',
+                        class: 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
+                        onClick: () => {
+                            this.saveAllSettings();
+                            this._settingsDirty = false;
+                            this.elements.settingsDialog?.close();
+                            this.elements.dialog.close();
+                        }
+                    },
+                    {
+                        text: 'Discard Changes',
+                        class: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded',
+                        onClick: () => {
+                            this._settingsDirty = false;
+                            this.elements.settingsDialog?.close();
+                            this.elements.dialog.close();
+                        }
+                    },
+                    {
+                        text: 'Cancel',
+                        class: 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded',
+                        onClick: () => {
+                            this.elements.dialog.close();
+                        }
+                    }
+                ]);
             } else {
                 this.elements.settingsDialog?.close();
             }
@@ -821,7 +845,10 @@ export const UI = {
                 <div class="flex items-center gap-3 flex-wrap flex-grow">
                     <input type="checkbox" aria-label="Select category ${sanitize(name.replace(/_/g, ' '))}" class="category-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" onclick="event.stopPropagation();">
                     <h2 class="text-xl font-semibold text-indigo-400 select-none editable-wrapper"><span class="editable-name category-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit category name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span></h2>
-                    <input type="text" aria-label="Folder instructions" class="custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 flex-grow transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}" onclick="event.stopPropagation();">
+                    <div class="editable-wrapper flex-grow items-center">
+                    <input type="text" readonly aria-label="Folder instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 w-full transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}" onclick="event.stopPropagation();">
+                    <span class="edit-icon" title="Double-click to edit">✏️</span>
+                </div>
                 </div>
                 <div class="flex items-center gap-2 ml-auto flex-shrink-0">
                     <button class="pin-btn btn-action-icon text-yellow-400 hover:text-yellow-300 text-lg transition-all duration-200" title="${isPinned ? 'Unpin' : 'Pin to top'}" aria-label="${isPinned ? 'Unpin category' : 'Pin category'}">${isPinned ? '📌' : '📍'}</button>
@@ -849,7 +876,10 @@ export const UI = {
                     </svg>
                 </button>
             </div>
-            <input type="text" aria-label="Custom instructions" class="custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 w-full my-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200" placeholder="Custom generation instructions..." value="${sanitize(data.instruction || '')}">
+            <div class="editable-wrapper w-full items-center my-2">
+            <input type="text" readonly aria-label="Custom instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 w-full focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200" placeholder="Custom generation instructions..." value="${sanitize(data.instruction || '')}">
+            <span class="edit-icon" title="Double-click to edit">✏️</span>
+        </div>
             <div class="chip-container custom-scrollbar flex flex-wrap gap-2 bg-gray-800 rounded-md p-2 w-full border border-gray-600 overflow-y-auto" style="max-height: 150px; min-height: 2.5rem;">
                 ${(data.wildcards || []).map((wc, i) => this.createChip(wc, i)).join('')}
             </div>
@@ -937,7 +967,7 @@ export const UI = {
         }
     },
 
-    showNotification(message, isConfirmation = false, onConfirm = null, withInput = false) {
+    showNotification(message, isConfirmation = false, onConfirm = null, withInput = false, customButtons = null) {
         this.elements.dialogMessage.innerHTML = '';
         let inputElement = null;
 
@@ -957,16 +987,46 @@ export const UI = {
             setTimeout(() => inputElement.focus(), 100);
         }
 
-        this.elements.dialogConfirmButtons.classList.toggle('hidden', !isConfirmation);
-        this.elements.dialogClose.classList.toggle('hidden', isConfirmation);
-        this.elements.dialog.showModal();
+        this.elements.dialogConfirmButtons.classList.toggle('hidden', !isConfirmation && !customButtons);
+        this.elements.dialogClose.classList.toggle('hidden', isConfirmation || !!customButtons);
 
-        this.elements.dialogConfirm.onclick = () => {
-            this.elements.dialog.close('confirm');
-            if (onConfirm) onConfirm(inputElement ? inputElement.value : null);
-        };
-        this.elements.dialogCancel.onclick = () => this.elements.dialog.close('cancel');
+        // Handle custom buttons
+        if (customButtons) {
+            this.elements.dialogConfirmButtons.innerHTML = '';
+            customButtons.forEach(btn => {
+                const b = document.createElement('button');
+                b.textContent = btn.text;
+                b.className = btn.class || 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded';
+                b.onclick = btn.onClick;
+                this.elements.dialogConfirmButtons.appendChild(b);
+            });
+        } else {
+            // Restore default buttons if needed (they might have been removed)
+            if (this.elements.dialogConfirmButtons.children.length === 0 || !this.elements.dialogConfirmButtons.contains(this.elements.dialogConfirm)) {
+                this.elements.dialogConfirmButtons.innerHTML = '';
+                this.elements.dialogConfirmButtons.appendChild(this.elements.dialogCancel);
+                this.elements.dialogConfirmButtons.appendChild(this.elements.dialogConfirm);
+            }
+
+            this.elements.dialogConfirm.onclick = () => {
+                this.elements.dialog.close('confirm');
+                if (onConfirm) onConfirm(inputElement ? inputElement.value : null);
+            };
+            this.elements.dialogCancel.onclick = () => this.elements.dialog.close('cancel');
+        }
+
         this.elements.dialogClose.onclick = () => this.elements.dialog.close('close');
+
+        this.elements.dialog.showModal();
+    },
+
+    saveAllSettings() {
+        if (!this.elements.settingsDialog) return;
+        const inputs = this.elements.settingsDialog.querySelectorAll('input, select, textarea');
+        inputs.forEach(el => {
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        UI.showToast('Settings saved', 'success');
     },
 
     showToast(message, type = 'info') {

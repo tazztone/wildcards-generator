@@ -20,6 +20,20 @@ This document details the features of the Wildcard Generator application.
 
 ## Advanced Features
 
+### v2.13 Features (Latest)
+
+- **Enhanced Safety**:
+  - **Double-Click Edit**: Category and wildcard names (and instructions) now require a double-click to edit.
+  - **Edit Indicators**: Pencil icons appear on hover to clearly indicate editable fields.
+  - **Toggle Protection**: Editing a name no longer toggles the category open/closed.
+- **Improved Settings UX**:
+  - **Save & Close**: Explicit options to Save, Discard, or Cancel when closing settings with unsaved changes.
+  - **Modal Toasts**: Notifications now appear above dialogs for better visibility.
+- **Advanced API Tools**:
+  - **Streaming Generation**: Watch the AI generate wildcards character-by-character with a live elapsed timer.
+  - **Test Model Dialog**: Detailed modal showing full JSON response, response time, and validation checks for the selected model.
+- **Visual Refinements**: Fixed light theme contrast issues and improved spacing.
+
 ### v2.12 Features
 
 - **Import YAML/Config**: Fully functional import buttons for YAML wildcards and JSON config files.

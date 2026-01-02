@@ -1080,3 +1080,26 @@
         html.light .editable-name[contenteditable="true"] {
             background-color: rgba(99, 102, 241, 0.3);
         }
+
+        /* Editable Input Styling (Instruction fields) */
+        .editable-input[readonly] {
+            cursor: default;
+        }
+
+        .editable-input:read-only:hover {
+            background-color: rgba(99, 102, 241, 0.2);
+            cursor: text;
+        }
+
+        .editable-input:not(:read-only) {
+            background-color: rgba(99, 102, 241, 0.5);
+            cursor: text;
+        }
+
+        html.light .editable-input:read-only:hover {
+            background-color: rgba(99, 102, 241, 0.15);
+        }
+
+        html.light .editable-input:not(:read-only) {
+            background-color: rgba(99, 102, 241, 0.3);
+        }

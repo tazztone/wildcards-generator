@@ -31,7 +31,15 @@ export const App = {
         UI.elements.container.addEventListener('dblclick', (e) => {
             const editableEl = e.target.closest('.editable-name');
             if (editableEl && !editableEl.isContentEditable) {
+                e.stopPropagation(); // Prevent category toggle
                 this.enableEditing(editableEl);
+            }
+
+            const editableInput = e.target.closest('.editable-input');
+            if (editableInput && editableInput.readOnly) {
+                e.preventDefault(); // Create standard behavior
+                e.stopPropagation(); // Prevent category toggle
+                this.enableEditing(editableInput);
             }
         });
 
@@ -39,10 +47,20 @@ export const App = {
         UI.elements.container.addEventListener('click', (e) => {
             if (e.target.classList.contains('edit-icon')) {
                 const wrapper = e.target.closest('.editable-wrapper') || e.target.closest('.chip');
-                const editableEl = wrapper?.querySelector('.editable-name');
+                if (!wrapper) return;
+
+                const editableEl = wrapper.querySelector('.editable-name');
                 if (editableEl && !editableEl.isContentEditable) {
                     e.stopPropagation();
                     this.enableEditing(editableEl);
+                    return;
+                }
+
+                const editableInput = wrapper.querySelector('.editable-input');
+                if (editableInput && editableInput.readOnly) {
+                    e.stopPropagation();
+                    this.enableEditing(editableInput);
+                    return;
                 }
             }
         });
@@ -126,15 +144,56 @@ export const App = {
                 }
 
                 Api.testModel(provider, apiKey, modelName, (result) => {
+                    const dialog = document.getElementById('api-test-dialog');
+                    const timeEl = document.getElementById('api-test-time');
+                    const jsonEl = document.getElementById('api-test-json');
+                    const responseEl = document.getElementById('api-test-response');
+                    const iconEl = document.getElementById('api-test-status-icon');
+                    const closeBtn = document.getElementById('api-test-close-btn');
+
                     if (result.success) {
-                        UI.showToast(`✅ Model responded in ${result.stats.responseTime}ms`, 'success');
+                        // Update stats in settings panel
                         if (statsEl) {
                             statsEl.textContent = `Last test: ${result.stats.responseTime}ms${result.stats.supportsJson ? ' ✓ JSON' : ''}`;
                             statsEl.classList.remove('hidden');
                         }
+
+                        // Populate Dialog
+                        timeEl.textContent = `${result.stats.responseTime} ms`;
+                        jsonEl.textContent = result.stats.supportsJson ? 'Yes' : 'No';
+                        jsonEl.className = `text-lg font-mono ${result.stats.supportsJson ? 'text-green-400' : 'text-yellow-400'}`;
+                        iconEl.textContent = '✅';
+
+                        try {
+                            const parsed = JSON.parse(result.stats.rawResponse);
+                            responseEl.textContent = JSON.stringify(parsed, null, 2);
+                        } catch (e) {
+                            responseEl.textContent = result.stats.rawResponse || '(No content)';
+                        }
+                        responseEl.className = "bg-gray-950 p-3 rounded border border-gray-800 text-xs font-mono overflow-auto max-h-[300px] text-green-300 custom-scrollbar";
                     } else {
-                        UI.showToast(`❌ Test failed: ${result.error}`, 'error');
+                        iconEl.textContent = '❌';
+                        timeEl.textContent = result.stats?.responseTime ? `${result.stats.responseTime} ms` : '--';
+                        jsonEl.textContent = 'N/A';
+                        responseEl.textContent = result.error;
+                        responseEl.className = "bg-gray-950 p-3 rounded border border-gray-800 text-xs font-mono overflow-auto max-h-[300px] text-red-400 custom-scrollbar";
                     }
+
+                    dialog.showModal();
+
+                    // Close handlers
+                    const closeHandler = () => {
+                        dialog.close();
+                        closeBtn.removeEventListener('click', closeHandler);
+                        dialog.removeEventListener('click', backdropHandler);
+                    };
+                    const backdropHandler = (e) => {
+                        if (e.target === dialog) closeHandler();
+                    };
+
+                    closeBtn.addEventListener('click', closeHandler);
+                    dialog.addEventListener('click', backdropHandler);
+
                 }).finally(() => {
                     btn.textContent = origText;
                     btn.disabled = false;
@@ -390,7 +449,7 @@ export const App = {
     </details>
 </div>`;
 
-        UI.showNotification(message, false, null, false, true); // isHtml = true
+        UI.showNotification(message, false, null, false); // html auto-detected
 
         // Bind action buttons after dialog renders
         setTimeout(() => {
@@ -659,6 +718,11 @@ export const App = {
             if (e.target.classList.contains('editable-name')) {
                 e.target.removeAttribute('contenteditable');
             }
+
+            // Re-enable readonly for inputs
+            if (e.target.classList.contains('editable-input')) {
+                e.target.readOnly = true;
+            }
         }
     },
 
@@ -669,26 +733,39 @@ export const App = {
                 e.preventDefault();
                 e.target.blur();
             }
+            // For inputs, just blur
+            if (e.target.tagName === 'INPUT' && !e.target.readOnly) {
+                e.target.blur();
+            }
         }
         // Escape key to cancel editing
-        if (e.key === 'Escape' && e.target.isContentEditable) {
-            e.target.removeAttribute('contenteditable');
-            // Restore original value by triggering a re-render would be complex
-            // For now, just blur without saving
-            e.target.blur();
+        if (e.key === 'Escape') {
+            if (e.target.isContentEditable) {
+                e.target.removeAttribute('contenteditable');
+                e.target.blur();
+            } else if (e.target.tagName === 'INPUT' && !e.target.readOnly && e.target.classList.contains('editable-input')) {
+                e.target.readOnly = true;
+                e.target.blur();
+            }
         }
     },
 
     // Enable contenteditable on an element for editing
     enableEditing(el) {
-        el.setAttribute('contenteditable', 'true');
-        el.focus();
-        // Select all text for easy replacement
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        if (el.tagName === 'INPUT') {
+            el.readOnly = false;
+            el.focus();
+            el.select();
+        } else {
+            el.setAttribute('contenteditable', 'true');
+            el.focus();
+            // Select all text for easy replacement
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
     },
 
     async handleGenerate(path) {

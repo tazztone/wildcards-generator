@@ -302,6 +302,41 @@
             </div>
         </dialog>
 
+        <!-- API Test Results Dialog -->
+        <dialog id="api-test-dialog"
+            class="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-xl backdrop:bg-gray-900/80 max-w-2xl w-full border border-gray-700">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span id="api-test-status-icon">🔌</span> API Test Results
+                </h3>
+                <button id="api-test-close-btn"
+                    class="p-1 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                    title="Close">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="api-test-content" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                    <div class="bg-gray-900/50 p-3 rounded border border-gray-700">
+                        <span class="text-gray-400 block">Response Time</span>
+                        <span id="api-test-time" class="text-lg font-mono text-green-400">-- ms</span>
+                    </div>
+                    <div class="bg-gray-900/50 p-3 rounded border border-gray-700">
+                        <span class="text-gray-400 block">JSON Support</span>
+                        <span id="api-test-json" class="text-lg font-mono">--</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-400 block mb-1">Raw Response</span>
+                    <pre id="api-test-response"
+                        class="bg-gray-950 p-3 rounded border border-gray-800 text-xs font-mono overflow-auto max-h-[300px] text-gray-300 custom-scrollbar"></pre>
+                </div>
+            </div>
+        </dialog>
+
         <div class="mt-6 text-left max-w-4xl mx-auto">
             <div class="flex justify-between items-center">
                 <label for="search-wildcards" class="block text-lg font-semibold text-indigo-300 mb-2">Search
