@@ -20,6 +20,21 @@ This document details the features of the Wildcard Generator application.
 
 ## Advanced Features
 
+### v2.12 Features
+
+- **Import YAML/Config**: Fully functional import buttons for YAML wildcards and JSON config files.
+- **Reset Options**: Multiple reset actions in the overflow menu:
+  - Clear Local Storage (removes saved settings)
+  - Clear Session Storage (removes temporary API keys)
+  - Reset to Defaults (full app reset)
+  - Reload Default Data (refresh from source without clearing settings)
+- **Enhanced Duplicate Detection**:
+  - Visual highlighting with pulsing amber indicators
+  - Filter view to show only duplicate-containing cards
+  - Clear highlights action
+- **Improved Help Dialog**: Structured help with sections, keyboard shortcuts table, and tips.
+- **API Test Model Button**: Test your selected model with a quick JSON request to verify response times and compatibility.
+
 ### v2.11 Features
 
 - **Statistics Dashboard**: View real-time counts of categories, wildcards, and pinned items.

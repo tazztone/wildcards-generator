@@ -38,12 +38,19 @@ export const UI = {
 
         // Search Handlers
         if (this.elements.search) {
+            // Create debounced search handler
+            let searchTimeout = null;
             this.elements.search.addEventListener('input', (e) => {
                 const val = e.target.value;
                 if (this.elements.searchClearBtn) {
                     if (val && val.length > 0) this.elements.searchClearBtn.classList.remove('hidden');
                     else this.elements.searchClearBtn.classList.add('hidden');
                 }
+                // Debounced search execution
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    this.handleSearch(val);
+                }, 300);
             });
         }
         if (this.elements.searchClearBtn) {
