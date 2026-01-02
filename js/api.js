@@ -32,6 +32,85 @@ export const Api = {
         }
     },
 
+    /**
+     * Make a streaming request to the LLM API with progress callbacks.
+     * Uses SSE (Server-Sent Events) format to receive streamed responses.
+     */
+    async _makeStreamingRequest(globalPrompt, userPrompt, generationConfig, onProgress) {
+        if (this.activeController) this.activeController.abort();
+        this.activeController = new AbortController();
+        const startTime = Date.now();
+
+        try {
+            const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
+            payload.stream = true; // Enable streaming
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload),
+                signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(60000)])
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API request failed: ${response.status} - ${errorText}`);
+            }
+
+            // Parse SSE stream
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let accumulatedText = '';
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop(); // Keep incomplete line in buffer
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6).trim();
+                        if (data === '[DONE]') continue;
+
+                        try {
+                            const parsed = JSON.parse(data);
+                            // Handle both OpenRouter/OpenAI and Gemini formats
+                            const content = parsed.choices?.[0]?.delta?.content ||
+                                parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                            if (content) {
+                                accumulatedText += content;
+                                if (onProgress) {
+                                    onProgress({
+                                        text: accumulatedText,
+                                        elapsed: Date.now() - startTime
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            // Ignore parse errors for malformed chunks
+                        }
+                    }
+                }
+            }
+
+            return {
+                result: { text: accumulatedText },
+                elapsed: Date.now() - startTime,
+                request: { url, headers, payload }
+            };
+        } catch (error) {
+            if (error.name === 'AbortError') throw new Error("Request timed out or was aborted.");
+            console.error("Error calling LLM API (streaming):", error);
+            throw error;
+        } finally {
+            this.activeController = null;
+        }
+    },
+
     async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt) {
         const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
         const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
@@ -226,11 +305,20 @@ export const Api = {
     },
 
     /**
-     * Test the currently selected model with a minimal JSON request.
-     * Returns stats including response time and JSON support confirmation.
+     * Test the currently selected model with a realistic wildcard generation request.
+     * Returns stats including response time, JSON support, and raw response for debugging.
      */
     async testModel(provider, apiKey, modelName, uiCallback) {
         const startTime = performance.now();
+
+        // Realistic test prompt simulating actual usage
+        const testPrompt = `You are a wildcard generator for Stable Diffusion prompts.
+Generate exactly 5 unique wildcard items for the category "fantasy_creatures > mythical_beasts".
+Existing items: dragon, phoenix, unicorn, griffin.
+Custom instructions: "Focus on lesser-known mythological creatures."
+
+Respond with ONLY a valid JSON array of strings, no other text.
+Example: ["kirin", "thunderbird", "basilisk"]`;
 
         try {
             let url, headers, payload;
@@ -239,10 +327,12 @@ export const Api = {
                 url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
                 headers = { 'Content-Type': 'application/json' };
                 payload = {
-                    contents: [{ parts: [{ text: 'Respond with only: {"status":"ok"}' }] }],
+                    contents: [{ parts: [{ text: testPrompt }] }],
                     generationConfig: {
-                        temperature: 0.1,
-                        maxOutputTokens: 50
+                        responseMimeType: 'application/json',
+                        responseSchema: { type: 'ARRAY', items: { type: 'STRING' } },
+                        temperature: 0.7,
+                        maxOutputTokens: 200
                     }
                 };
             } else if (provider === 'openrouter') {
@@ -254,10 +344,10 @@ export const Api = {
                 };
                 payload = {
                     model: modelName,
-                    messages: [{ role: 'user', content: 'Respond with only: {"status":"ok"}' }],
+                    messages: [{ role: 'user', content: testPrompt }],
                     response_format: { type: 'json_object' },
-                    max_tokens: 50,
-                    temperature: 0.1
+                    max_tokens: 200,
+                    temperature: 0.7
                 };
             } else { // custom
                 const baseUrl = document.getElementById('custom-api-url')?.value || Config?.API_URL_CUSTOM || '';
@@ -268,10 +358,10 @@ export const Api = {
                 };
                 payload = {
                     model: modelName,
-                    messages: [{ role: 'user', content: 'Respond with only: {"status":"ok"}' }],
+                    messages: [{ role: 'user', content: testPrompt }],
                     response_format: { type: 'json_object' },
-                    max_tokens: 50,
-                    temperature: 0.1
+                    max_tokens: 200,
+                    temperature: 0.7
                 };
             }
 
@@ -289,14 +379,29 @@ export const Api = {
             }
 
             const result = await response.json();
-            const supportsJson = result.choices?.[0]?.message?.content?.includes('{') ||
-                result.candidates?.[0]?.content?.parts?.[0]?.text?.includes('{');
+
+            // Extract the response content
+            const rawContent = result.choices?.[0]?.message?.content ||
+                result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+            // Check if it's valid JSON array
+            let parsedContent = null;
+            let supportsJson = false;
+            try {
+                parsedContent = JSON.parse(rawContent);
+                supportsJson = Array.isArray(parsedContent) && parsedContent.length > 0;
+            } catch (e) {
+                supportsJson = rawContent.includes('[') && rawContent.includes(']');
+            }
 
             const stats = {
                 responseTime: duration,
                 modelName: modelName,
                 supportsJson: supportsJson,
-                provider: provider
+                provider: provider,
+                rawResponse: rawContent,
+                parsedCount: Array.isArray(parsedContent) ? parsedContent.length : 0,
+                usage: result.usage || null
             };
 
             if (uiCallback) {

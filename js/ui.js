@@ -4,6 +4,7 @@ import { Config } from './config.js';
 
 export const UI = {
     elements: {},
+    _settingsDirty: false, // Track if settings have been modified since dialog opened
 
     init() {
         this.cacheElements();
@@ -65,14 +66,42 @@ export const UI = {
 
         // Settings Modal Handlers
         this.elements.settingsBtn?.addEventListener('click', () => {
+            this._settingsDirty = false; // Reset dirty state on open
             this.elements.settingsDialog?.showModal();
         });
-        this.elements.settingsCloseBtn?.addEventListener('click', () => {
-            this.elements.settingsDialog?.close();
-        });
+
+        // Helper to request closing settings with confirmation if dirty
+        const requestCloseSettings = () => {
+            if (this._settingsDirty) {
+                this.showNotification('You have unsaved changes. Close anyway?', true, () => {
+                    this._settingsDirty = false;
+                    this.elements.settingsDialog?.close();
+                });
+            } else {
+                this.elements.settingsDialog?.close();
+            }
+        };
+
+        this.elements.settingsCloseBtn?.addEventListener('click', requestCloseSettings);
+
         this.elements.settingsDialog?.addEventListener('click', (e) => {
             if (e.target === this.elements.settingsDialog) {
-                this.elements.settingsDialog.close();
+                requestCloseSettings();
+            }
+        });
+
+        // Handle Escape key - prevent default close behavior if dirty
+        this.elements.settingsDialog?.addEventListener('cancel', (e) => {
+            if (this._settingsDirty) {
+                e.preventDefault();
+                requestCloseSettings();
+            }
+        });
+
+        // Track changes in settings inputs to mark as dirty
+        this.elements.settingsDialog?.addEventListener('input', (e) => {
+            if (e.target.matches('input, textarea, select')) {
+                this._settingsDirty = true;
             }
         });
 
@@ -586,7 +615,7 @@ export const UI = {
         return document.querySelector(`div[data-path="${path}"]`);
     },
 
-    toggleLoader(path, isLoading) {
+    toggleLoader(path, isLoading, streamText = null) {
         const card = this.findCardElement(path);
         if (!card) return;
 
@@ -601,12 +630,35 @@ export const UI = {
             btn.disabled = true;
             btn.classList.add('opacity-75', 'cursor-not-allowed');
             if (loader) loader.classList.remove('hidden');
-            if (text) text.classList.add('hidden');
+            if (text) {
+                text.classList.remove('hidden');
+                // Start timer display
+                const startTime = Date.now();
+                text.textContent = '0.0s...';
+                btn._timerInterval = setInterval(() => {
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    if (streamText) {
+                        // Show streaming text preview (truncated)
+                        const preview = streamText.length > 20 ? streamText.slice(-20) + '...' : streamText;
+                        text.textContent = `${elapsed}s | ${preview}`;
+                    } else {
+                        text.textContent = `${elapsed}s...`;
+                    }
+                }, 100);
+            }
         } else {
             btn.disabled = false;
             btn.classList.remove('opacity-75', 'cursor-not-allowed');
             if (loader) loader.classList.add('hidden');
-            if (text) text.classList.remove('hidden');
+            if (text) {
+                text.classList.remove('hidden');
+                text.textContent = 'Generate More';
+            }
+            // Clear timer
+            if (btn._timerInterval) {
+                clearInterval(btn._timerInterval);
+                btn._timerInterval = null;
+            }
         }
     },
 
@@ -768,7 +820,7 @@ export const UI = {
             <summary class="flex justify-between items-center p-4 cursor-pointer gap-4 group">
                 <div class="flex items-center gap-3 flex-wrap flex-grow">
                     <input type="checkbox" aria-label="Select category ${sanitize(name.replace(/_/g, ' '))}" class="category-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" onclick="event.stopPropagation();">
-                    <h2 class="text-xl font-semibold text-indigo-400 select-none"><span contenteditable="true" class="category-name outline-none focus:bg-indigo-400/50 rounded px-1" aria-label="Edit category name">${name.replace(/_/g, ' ')}</span></h2>
+                    <h2 class="text-xl font-semibold text-indigo-400 select-none editable-wrapper"><span class="editable-name category-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit category name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span></h2>
                     <input type="text" aria-label="Folder instructions" class="custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 flex-grow transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}" onclick="event.stopPropagation();">
                 </div>
                 <div class="flex items-center gap-2 ml-auto flex-shrink-0">
@@ -790,7 +842,7 @@ export const UI = {
         return `
             <div class="text-xs text-gray-400 mb-1 uppercase tracking-wider">${sanitize(parentPath)}</div>
             <div class="flex justify-between items-center mb-2 group">
-                <h3 class="font-bold text-lg text-gray-100 flex-grow"><span contenteditable="true" class="wildcard-name outline-none focus:bg-indigo-400/50 rounded px-1" aria-label="Edit list name">${name.replace(/_/g, ' ')}</span> <span class="wildcard-count text-gray-400 text-sm ml-2">(${(data.wildcards || []).length})</span></h3>
+                <h3 class="font-bold text-lg text-gray-100 flex-grow editable-wrapper"><span class="editable-name wildcard-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit list name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span> <span class="wildcard-count text-gray-400 text-sm ml-2">(${(data.wildcards || []).length})</span></h3>
                 <button class="delete-btn btn-action-icon text-red-400 hover:text-red-300 transition-all duration-200 p-1 rounded hover:bg-red-400/10" title="Delete this card" aria-label="Delete this card">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -818,7 +870,7 @@ export const UI = {
     },
 
     createChip(wildcard, index) {
-        return `<div class="chip bg-indigo-500/50 text-white text-sm px-2 py-1 rounded-md flex items-center gap-2 whitespace-nowrap" data-index="${index}"><input type="checkbox" aria-label="Select ${sanitize(wildcard)}" class="batch-select bg-gray-700 border-gray-500 text-indigo-600 focus:ring-indigo-500"><span contenteditable="true" class="outline-none focus:bg-indigo-400/50 rounded px-1" aria-label="Edit item">${sanitize(wildcard)}</span></div>`;
+        return `<div class="chip bg-indigo-500/50 text-white text-sm px-2 py-1 rounded-md flex items-center gap-2 whitespace-nowrap" data-index="${index}"><input type="checkbox" aria-label="Select ${sanitize(wildcard)}" class="batch-select bg-gray-700 border-gray-500 text-indigo-600 focus:ring-indigo-500"><span class="editable-name chip-text outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit item">${sanitize(wildcard)}</span></div>`;
     },
 
     createPlaceholderCategory() {
@@ -921,7 +973,22 @@ export const UI = {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
-        this.elements.toastContainer.appendChild(toast);
+
+        // Check if a dialog is open - if so, render toast inside it for visibility
+        const openDialog = document.querySelector('dialog[open]');
+        if (openDialog) {
+            // Find or create a toast container inside the dialog
+            let dialogToastContainer = openDialog.querySelector('.dialog-toast-container');
+            if (!dialogToastContainer) {
+                dialogToastContainer = document.createElement('div');
+                dialogToastContainer.className = 'dialog-toast-container toast-container';
+                openDialog.appendChild(dialogToastContainer);
+            }
+            dialogToastContainer.appendChild(toast);
+        } else {
+            this.elements.toastContainer.appendChild(toast);
+        }
+
         setTimeout(() => toast.remove(), 3000);
     },
 

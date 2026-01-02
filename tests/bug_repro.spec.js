@@ -37,7 +37,7 @@ test.describe('Bug Reproduction', () => {
         // If it appeared (it might not if bug exists), try to rename it
         if (await page.locator(childSelector).isVisible()) {
             const childTitle = page.locator(`${childSelector} > summary .category-name`);
-            await childTitle.click();
+            await childTitle.dblclick();
             await childTitle.fill('RenamedChild');
             await childTitle.blur();
 
@@ -51,13 +51,13 @@ test.describe('Bug Reproduction', () => {
     });
 
     test('renaming a top-level category works', async ({ page }) => {
-         // This is a control test to verify logic works for top-level
+        // This is a control test to verify logic works for top-level
         await page.locator('#add-category-placeholder-btn').click();
         await page.locator('#notification-dialog input').fill('TopCat');
         await page.locator('#confirm-btn').click();
 
         const catTitle = page.locator('details[data-path="TopCat"] > summary .category-name');
-        await catTitle.click();
+        await catTitle.dblclick();
         await catTitle.fill('RenamedTop');
         await catTitle.blur();
 

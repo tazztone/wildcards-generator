@@ -27,6 +27,26 @@ export const App = {
         UI.elements.container.addEventListener('blur', (e) => this.handleContainerBlur(e), true);
         UI.elements.container.addEventListener('keydown', (e) => this.handleContainerKeydown(e));
 
+        // Double-click to edit names (category names, wildcard names, chip text)
+        UI.elements.container.addEventListener('dblclick', (e) => {
+            const editableEl = e.target.closest('.editable-name');
+            if (editableEl && !editableEl.isContentEditable) {
+                this.enableEditing(editableEl);
+            }
+        });
+
+        // Click on pencil icon also enables editing
+        UI.elements.container.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-icon')) {
+                const wrapper = e.target.closest('.editable-wrapper') || e.target.closest('.chip');
+                const editableEl = wrapper?.querySelector('.editable-name');
+                if (editableEl && !editableEl.isContentEditable) {
+                    e.stopPropagation();
+                    this.enableEditing(editableEl);
+                }
+            }
+        });
+
         // Drag and Drop
         UI.elements.container.addEventListener('dragstart', (e) => this.handleDragStart(e));
         UI.elements.container.addEventListener('dragover', (e) => this.handleDragOver(e));
@@ -634,6 +654,11 @@ export const App = {
                     e.target.textContent = oldKey.replace(/_/g, ' ');
                 }
             }
+
+            // Disable contenteditable after blur (for double-click edit mode)
+            if (e.target.classList.contains('editable-name')) {
+                e.target.removeAttribute('contenteditable');
+            }
         }
     },
 
@@ -645,6 +670,25 @@ export const App = {
                 e.target.blur();
             }
         }
+        // Escape key to cancel editing
+        if (e.key === 'Escape' && e.target.isContentEditable) {
+            e.target.removeAttribute('contenteditable');
+            // Restore original value by triggering a re-render would be complex
+            // For now, just blur without saving
+            e.target.blur();
+        }
+    },
+
+    // Enable contenteditable on an element for editing
+    enableEditing(el) {
+        el.setAttribute('contenteditable', 'true');
+        el.focus();
+        // Select all text for easy replacement
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        selection.removeAllRanges();
+        selection.addRange(range);
     },
 
     async handleGenerate(path) {
