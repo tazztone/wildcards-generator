@@ -18,6 +18,59 @@ export const App = {
         const theme = localStorage.getItem('wildcards-theme') || 'dark';
         document.documentElement.className = theme;
         this.updateThemeIcon(theme);
+
+        // Auto-verify stored keys
+        setTimeout(() => this.verifyStoredApiKeys(), 500);
+    },
+
+    async verifyStoredApiKeys() {
+        const providers = ['openrouter', 'gemini', 'custom'];
+        for (const provider of providers) {
+            const panel = document.getElementById(`settings-${provider}`);
+            if (!panel) continue;
+
+            const input = panel.querySelector('.api-key-input');
+            const key = input ? input.value.trim() : '';
+
+            if (key) {
+                const btn = panel.querySelector('.test-conn-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = '⏳ ...'; // Minimal loading text
+
+                    try {
+                        // Pass validation callback to update UI or null to silent toast
+                        // We want to fetch models silently but update button state
+                        const models = await Api.testConnection(provider, null, key);
+                        UI.populateModelList(provider, models);
+
+                        btn.textContent = '✓ Verified';
+                        btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                        btn.classList.add('bg-green-600', 'hover:bg-green-700');
+
+                        setTimeout(() => {
+                            btn.textContent = '🔌 Test';
+                            btn.disabled = false;
+                            btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                        }, 2000);
+                    } catch (e) {
+                        console.warn(`Auto-verify failed for ${provider}:`, e);
+                        btn.textContent = '⚠️ Invalid';
+                        btn.className = 'test-conn-btn bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap';
+                        btn.disabled = false;
+
+                        // Reset on input
+                        input.addEventListener('input', () => {
+                            if (btn.textContent === '⚠️ Invalid') {
+                                btn.textContent = '🔌 Test';
+                                btn.className = 'test-conn-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap';
+                            }
+                        }, { once: true });
+                    }
+                }
+            }
+        }
     },
 
     bindEvents() {
@@ -126,7 +179,7 @@ export const App = {
                 const btn = e.target.closest('.test-model-btn') || e.target;
                 const provider = btn.dataset.provider;
                 const panel = document.querySelector(`#settings-${provider}`);
-                const apiKey = panel?.querySelector('.api-key-input')?.value;
+                const apiKey = panel?.querySelector('.api-key-input')?.value?.trim();
                 const modelName = panel?.querySelector('.model-name-input')?.value;
                 const statsEl = panel?.querySelector('.model-stats');
 
@@ -669,8 +722,8 @@ export const App = {
             if (!card) return;
             const checked = card.querySelectorAll('.batch-select:checked');
             if (checked.length === 0) {
-                 UI.showToast('No items selected', 'info');
-                 return;
+                UI.showToast('No items selected', 'info');
+                return;
             }
 
             // Delete selected items

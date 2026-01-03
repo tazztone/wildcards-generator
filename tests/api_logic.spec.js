@@ -119,7 +119,11 @@ test.describe('API Logic Tests', () => {
                 await window.Api.testConnection('openrouter');
                 throw new Error('Should have failed');
             } catch (e) {
-                if (!e.message.includes('Request failed: 401')) throw new Error('Wrong error message: ' + e.message);
+                // Modified error message for OpenRouter specific verification
+                const validErrors = ['Request failed: 401', 'Invalid OpenRouter API Key', 'OpenRouter Auth Check Failed'];
+                if (!validErrors.some(msg => e.message.includes(msg))) {
+                    throw new Error('Wrong error message: ' + e.message);
+                }
             } finally {
                 window.fetch = originalFetch;
             }
@@ -155,15 +159,29 @@ test.describe('API Logic Tests', () => {
     test('should test connection successfully for OpenRouter', async ({ page }) => {
         await page.evaluate(async () => {
             const originalFetch = window.fetch;
-            window.fetch = async (url) => {
+            window.fetch = async (url, options) => {
+                // Mock /auth/key endpoint
+                if (url === 'https://openrouter.ai/api/v1/auth/key') {
+                    if (options.headers['Authorization'] === 'Bearer sk-test-key') {
+                        return { ok: true, json: async () => ({}) };
+                    }
+                    return { ok: false, status: 401 };
+                }
+
+                // Mock /models endpoint
                 if (url === 'https://openrouter.ai/api/v1/models') {
                     return {
                         ok: true,
                         json: async () => ({ data: [{ id: 'openai/gpt-4' }] })
                     };
                 }
-                return { ok: false, status: 400 };
+                return { ok: false, status: 400, text: async () => 'Not Found' };
             };
+
+            // Set up DOM with API key
+            document.body.innerHTML = `
+                <input id="openrouter-api-key" value="sk-test-key">
+            `;
 
             try {
                 const models = await window.Api.testConnection('openrouter');

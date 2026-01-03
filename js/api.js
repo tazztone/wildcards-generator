@@ -149,22 +149,14 @@ export const Api = {
         return { suggestions: this._parseResponse(result), request };
     },
 
-    async testConnection(provider, uiCallback) {
+    async testConnection(provider, uiCallback, explicitKey = null) {
         if (uiCallback) uiCallback(`Testing connection to ${provider}...`, 'info');
 
         try {
-            let url, requestOptions = { method: 'GET' };
+            let url, requestOptions = { method: 'GET', headers: {} };
 
-            // We need to read values from DOM here because they might not be saved to Config yet
-            // or we might want to pass them in. For now, reading DOM in api.js is dirty. 
-            // Better pattern: Pass the specific key/url as arguments. 
-            // For now, to match legacy behavior without massive refactor of call sites, we'll access DOM elements if needed, 
-            // OR prefer using Config if keys are synced.
-            // Let's assume the UI updates Config before calling this, OR we look up elements. 
-            // Looking up elements is "God Object" style. Let's try to be cleaner.
-            // Actually, the original code read from DOM inputs.
-
-            const getKey = (id) => document.getElementById(id)?.value?.trim() || '';
+            // Helper to get key: use explicit argument first, then DOM
+            const getKey = (id) => explicitKey || document.getElementById(id)?.value?.trim() || '';
             const getVal = (id) => document.getElementById(id)?.value?.trim() || '';
 
             if (provider === 'gemini') {
@@ -172,18 +164,35 @@ export const Api = {
                 if (!apiKey) throw new Error("Gemini API key not provided.");
                 url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
             } else if (provider === 'openrouter') {
+                const apiKey = getKey('openrouter-api-key');
+                if (!apiKey) throw new Error("OpenRouter API key not provided.");
+
+                // 1. Verify Key first using /auth/key endpoint
+                const authUrl = 'https://openrouter.ai/api/v1/auth/key';
+                const authResponse = await fetch(authUrl, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${apiKey}` }
+                });
+
+                if (authResponse.status === 401) {
+                    throw new Error("Invalid OpenRouter API Key.");
+                } else if (!authResponse.ok) {
+                    // Some other error, but let's try reading text
+                    const text = await authResponse.text();
+                    throw new Error(`OpenRouter Auth Check Failed: ${authResponse.status} - ${text}`);
+                }
+
+                // 2. Fetch Models
                 url = `https://openrouter.ai/api/v1/models`;
+                requestOptions.headers['Authorization'] = `Bearer ${apiKey}`;
+
             } else if (provider === 'custom') {
                 const customUrl = getVal('custom-api-url');
                 if (!customUrl) throw new Error("Custom API URL is not provided.");
                 url = `${customUrl.replace(/\/$/, '')}/models`;
                 const apiKey = getKey('custom-api-key');
-                const headers = {};
                 if (apiKey) {
-                    headers['Authorization'] = `Bearer ${apiKey}`;
-                }
-                if (Object.keys(headers).length > 0) {
-                    requestOptions.headers = headers;
+                    requestOptions.headers['Authorization'] = `Bearer ${apiKey}`;
                 }
             }
 
@@ -204,17 +213,13 @@ export const Api = {
                 successMessage = `Gemini connection successful! Found ${data.models.length} models.`;
                 models = data.models;
             } else if (provider === 'openrouter') {
-                // OpenRouter sometimes returns { data: [...] } and sometimes might return [...] depending on the endpoint/proxy.
-                // Standard is { data: [...] }
                 const list = Array.isArray(data) ? data : (data.data || []);
                 if (!list.length && !Array.isArray(list)) throw new Error('Invalid response from OpenRouter API.');
 
-                successMessage = `OpenRouter connection successful! Found ${list.length} models.`;
+                successMessage = `OpenRouter key verified! Found ${list.length} models.`;
                 models = list;
             } else if (provider === 'custom') {
-                // OpenAI compatible usually { data: [...] }
                 const list = Array.isArray(data) ? data : (data.data || []);
-                // Allow empty list if compatible but no models found?
                 successMessage = `Custom API connection successful! Found ${list.length} models.`;
                 models = list;
             }
@@ -365,32 +370,90 @@ Example: ["kirin", "thunderbird", "basilisk"]`;
                 };
             }
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(payload)
-            });
+            // Fallback logic for models that don't support json_object
+            const makeRequest = async (currentPayload) => {
+                const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(currentPayload) });
+                if (!res.ok) {
+                    const text = await res.text();
+                    return { ok: false, status: res.status, text };
+                }
+                return { ok: true, json: await res.json() };
+            };
 
+            let reqResult = await makeRequest(payload);
             const duration = Math.round(performance.now() - startTime);
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText.slice(0, 100)}`);
+            // Retry if 400 error regarding JSON mode
+            if (!reqResult.ok && reqResult.status === 400 &&
+                (reqResult.text.includes('JSON mode') || reqResult.text.includes('not supported') || reqResult.text.includes('INVALID_ARGUMENT')) &&
+                payload.response_format) {
+
+                console.warn("JSON mode failed, retrying without response_format...");
+                delete payload.response_format;
+                reqResult = await makeRequest(payload);
             }
 
-            const result = await response.json();
+            if (!reqResult.ok) {
+                let params = `HTTP ${reqResult.status}`;
+                try {
+                    const errJson = JSON.parse(reqResult.text);
+                    if (errJson.error && errJson.error.message) {
+                        params += `: ${errJson.error.message}`;
+                        if (errJson.error.metadata && errJson.error.metadata.raw) {
+                            params += `\nDetails: ${errJson.error.metadata.raw}`;
+                        }
+                    } else if (errJson.message) {
+                        params += `: ${errJson.message}`;
+                    } else {
+                        params += `: ${reqResult.text}`;
+                    }
+                } catch (e) {
+                    params += `: ${reqResult.text}`;
+                }
+                throw new Error(params);
+            }
+
+            const result = reqResult.json;
 
             // Extract the response content
             const rawContent = result.choices?.[0]?.message?.content ||
                 result.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-            // Check if it's valid JSON array
+            // Check if it's valid JSON array or object
             let parsedContent = null;
             let supportsJson = false;
             try {
-                parsedContent = JSON.parse(rawContent);
-                supportsJson = Array.isArray(parsedContent) && parsedContent.length > 0;
+                let contentToParse = rawContent.trim();
+                // Handle markdown code blocks
+                const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentToParse);
+                if (match) {
+                    contentToParse = match[1];
+                }
+
+                parsedContent = JSON.parse(contentToParse);
+
+                if (Array.isArray(parsedContent)) {
+                    supportsJson = parsedContent.length > 0;
+                } else if (typeof parsedContent === 'object' && parsedContent !== null) {
+                    // Check for common wrapper keys or if it's just a valid object (which implies JSON support)
+                    // If the user requested an array but got an object, strictly speaking that's a "No" for "Returns Array", 
+                    // but "JSON Support" usually means "Can output valid JSON".
+                    // The prompt asked for "ONLY a valid JSON array".
+                    // However, 'json_object' mode often forces an object wrapper. 
+                    // Let's accept Object as "Supports JSON" but maybe note the count is 0 if not array.
+                    supportsJson = true;
+
+                    // Try to find array for count
+                    const values = Object.values(parsedContent);
+                    const foundArray = values.find(v => Array.isArray(v));
+                    if (foundArray) {
+                        parsedContent = foundArray; // Use this for count
+                    } else {
+                        parsedContent = []; // Valid JSON but not containing our items
+                    }
+                }
             } catch (e) {
+                // Fallback: loose check
                 supportsJson = rawContent.includes('[') && rawContent.includes(']');
             }
 

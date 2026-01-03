@@ -498,12 +498,22 @@ export const UI = {
                 const urlSection = clone.querySelector('.custom-url-section');
                 urlSection.classList.remove('hidden');
                 urlSection.querySelector('input').id = p.apiUrlId;
+                // Populate Custom URL
+                if (Config[p.apiUrlId] || Config.API_URL_CUSTOM) {
+                    urlSection.querySelector('input').value = Config[p.apiUrlId] || Config.API_URL_CUSTOM;
+                }
             }
 
             // API Key
             const apiKeyInput = clone.querySelector('.api-key-input');
             apiKeyInput.id = p.apiKeyId;
             apiKeyInput.placeholder = p.apiKeyPlaceholder;
+
+            // POPULATE KEY FROM CONFIG
+            const configKey = `API_KEY_${p.id.toUpperCase()}`;
+            if (Config[configKey]) {
+                apiKeyInput.value = Config[configKey];
+            }
 
             // Associate label with API key input
             const apiKeyLabel = apiKeyInput.closest('div').previousElementSibling;
@@ -531,14 +541,49 @@ export const UI = {
                 clone.querySelector('.api-key-remember').checked = true;
             }
 
-            // Model Name
+            // Model Name Input Wrapper
+            const modelInputWrapper = document.createElement('div');
+            modelInputWrapper.className = 'relative w-full';
+
             const modelInput = clone.querySelector('.model-name-input');
             modelInput.id = p.modelNameId;
             modelInput.setAttribute('list', p.modelListId);
             modelInput.placeholder = p.modelPlaceholder;
+            modelInput.classList.add('pr-8'); // Space for X button
+
+            // Clear Button
+            const clearBtn = document.createElement('button');
+            clearBtn.type = 'button';
+            clearBtn.className = 'model-clear-btn absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white hidden';
+            clearBtn.innerHTML = '✕';
+            clearBtn.ariaLabel = 'Clear model name';
+
+            // Logic for clear button
+            const updateClearBtn = () => {
+                if (modelInput.value) clearBtn.classList.remove('hidden');
+                else clearBtn.classList.add('hidden');
+            };
+
+            modelInput.addEventListener('input', updateClearBtn);
+            // Initial check
+            setTimeout(updateClearBtn, 100);
+
+            clearBtn.addEventListener('click', () => {
+                modelInput.value = '';
+                updateClearBtn();
+                modelInput.focus();
+                modelInput.dispatchEvent(new Event('change', { bubbles: true })); // Notify app
+            });
+
+            // Move input into wrapper and insert wrapper
+            modelInput.parentNode.insertBefore(modelInputWrapper, modelInput);
+            modelInputWrapper.appendChild(modelInput);
+            modelInputWrapper.appendChild(clearBtn);
 
             // Associate label with Model Name input
-            const modelLabel = modelInput.closest('div').parentNode.previousElementSibling;
+            // (Parent node changed)
+            const wrapperContainer = modelInputWrapper.parentNode;
+            const modelLabel = wrapperContainer.previousElementSibling;
             if (modelLabel && modelLabel.tagName === 'LABEL') {
                 modelLabel.htmlFor = p.modelNameId;
             }
@@ -552,12 +597,23 @@ export const UI = {
                 refreshBtn.setAttribute('aria-label', 'Refresh Model List');
                 refreshBtn.title = 'Refresh Model List';
                 refreshBtn.dataset.provider = p.id;
-                modelInput.parentNode.appendChild(refreshBtn);
+
+                // Append refresh button AFTER the wrapper (sibling to wrapper)
+                // Use a flex container for wrapper + refresh btn?
+                // The current layout seems to expect input to be direct child of a flex/grid cell?
+                // Let's ensure structure.
+
+                const containerDiv = document.createElement('div');
+                containerDiv.className = 'flex items-center w-full';
+                modelInputWrapper.parentNode.replaceChild(containerDiv, modelInputWrapper);
+                containerDiv.appendChild(modelInputWrapper);
+                containerDiv.appendChild(refreshBtn);
 
                 // Checkboxes Container
                 const filtersDiv = document.createElement('div');
                 filtersDiv.className = 'flex flex-wrap gap-4 mt-2 text-sm text-gray-300';
 
+                // ... checkboxes ...
                 // Free Only
                 const freeLabel = document.createElement('label');
                 freeLabel.className = 'flex items-center gap-2 cursor-pointer';
@@ -570,7 +626,24 @@ export const UI = {
 
                 filtersDiv.appendChild(freeLabel);
                 filtersDiv.appendChild(jsonLabel);
-                modelInput.closest('div').parentNode.insertBefore(filtersDiv, modelInput.closest('div').nextSibling);
+
+                // Insert filters after the container
+                containerDiv.parentNode.insertBefore(filtersDiv, containerDiv.nextSibling);
+
+                // Re-bind refresh click manually or delegate? 
+                // Currently handled? ui.js doesn't seem to bind refresh click in bindGlobalEvents for these dynamic ones?
+                // Ah, bindGlobalEvents might need to delegate.
+                // Or I bind it here.
+                refreshBtn.addEventListener('click', (e) => {
+                    // Trigger refresh logic
+                    // For now, let's trigger the testConnection logic again to refresh list
+                    const btn = e.currentTarget;
+                    btn.classList.add('animate-spin');
+                    Api.testConnection(p.id, null, Config[`API_KEY_${p.id.toUpperCase()}`]).then(models => {
+                        this.populateModelList(p.id, models);
+                        btn.classList.remove('animate-spin');
+                    }).catch(() => btn.classList.remove('animate-spin'));
+                });
             }
 
             const datalist = clone.querySelector('.model-list');
@@ -1161,16 +1234,12 @@ export const UI = {
         });
 
         // Sort: Free ones first? Or just alphabetical?
-        // Let's sort alphabetically by name
-        filtered.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+        filtered.sort((a, b) => a.id.localeCompare(b.id));
 
         filtered.forEach(m => {
             const option = document.createElement('option');
             option.value = m.id;
-            // Label format: "Name (Free?)" or just Name
-            const isFree = m.pricing && parseFloat(m.pricing.prompt) === 0;
-            const label = `${m.name || m.id}${isFree ? ' [FREE]' : ''}`;
-            option.textContent = label; // In some browsers this shows in the list
+            // Removed secondary text label for cleaner UI as requested
             datalist.appendChild(option);
         });
 
