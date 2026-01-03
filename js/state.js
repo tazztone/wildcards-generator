@@ -262,7 +262,27 @@ const State = {
     },
 
     _saveHistoryToStorage() {
-        localStorage.setItem(Config.HISTORY_KEY, JSON.stringify(this.history));
+        try {
+            localStorage.setItem(Config.HISTORY_KEY, JSON.stringify(this.history));
+        } catch (e) {
+            // Handle QuotaExceededError - localStorage limit (~5-10MB depending on browser)
+            if (e.name === 'QuotaExceededError' || e.code === 22) {
+                console.warn('LocalStorage quota exceeded, trimming history...');
+                // Trim history to half its size
+                const halfSize = Math.max(5, Math.floor(this.history.length / 2));
+                this.history = this.history.slice(-halfSize);
+                this.historyIndex = Math.min(this.historyIndex, this.history.length - 1);
+                try {
+                    localStorage.setItem(Config.HISTORY_KEY, JSON.stringify(this.history));
+                } catch (e2) {
+                    // Still over quota - clear history entirely
+                    console.error('Still over quota after trim, clearing history');
+                    this.clearHistory();
+                }
+            } else {
+                console.error('Failed to save history:', e);
+            }
+        }
     },
 
     undo() {

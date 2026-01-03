@@ -129,21 +129,64 @@ export const ImportExport = {
             try {
                 const text = await file.text();
                 const YAML = (await import('https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js')).default;
-                const data = YAML.parse(text);
 
-                if (!data || typeof data !== 'object') {
+                // Use parseDocument to preserve comments (for # instruction: format)
+                const doc = YAML.parseDocument(text);
+                if (doc.errors && doc.errors.length > 0) {
+                    console.error('YAML Parse Errors:', doc.errors);
+                    throw new Error('YAML parsing failed');
+                }
+
+                // Process with State.processYamlNode to extract comment-based instructions
+                let processedData = State.processYamlNode(doc.contents);
+
+                // Also try simple parse for pre-processed YAML (exported format)
+                const simpleParsed = YAML.parse(text);
+
+                // If simple parse has wildcards property with instructions, use that instead
+                if (simpleParsed && simpleParsed.wildcards && typeof simpleParsed.wildcards === 'object') {
+                    // Check if it looks like already-processed format (has instruction properties)
+                    const firstKey = Object.keys(simpleParsed.wildcards)[0];
+                    if (firstKey && simpleParsed.wildcards[firstKey] &&
+                        (simpleParsed.wildcards[firstKey].instruction !== undefined ||
+                            simpleParsed.wildcards[firstKey].wildcards !== undefined)) {
+                        processedData = simpleParsed.wildcards;
+                    }
+                }
+
+                if (!processedData || typeof processedData !== 'object') {
                     throw new Error('Invalid YAML structure');
                 }
 
                 // Check if merging is needed
                 const hasExisting = Object.keys(State.state.wildcards).length > 0;
                 if (hasExisting) {
-                    UI.showNotification('Merge with existing data or replace everything?', true, () => {
-                        // Replace mode (confirm = replace)
-                        this._applyImportedData(data, file.name, 'replaced');
-                    });
+                    // Show Replace/Merge/Cancel dialog
+                    UI.showNotification('How would you like to import this file?', false, null, false, [
+                        {
+                            text: 'Replace All',
+                            class: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded',
+                            onClick: () => {
+                                UI.elements.dialog.close();
+                                this._applyProcessedData(processedData, simpleParsed, file.name, 'replaced');
+                            }
+                        },
+                        {
+                            text: 'Merge',
+                            class: 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
+                            onClick: () => {
+                                UI.elements.dialog.close();
+                                this._mergeProcessedData(processedData, simpleParsed, file.name);
+                            }
+                        },
+                        {
+                            text: 'Cancel',
+                            class: 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded',
+                            onClick: () => UI.elements.dialog.close()
+                        }
+                    ]);
                 } else {
-                    this._applyImportedData(data, file.name, 'imported');
+                    this._applyProcessedData(processedData, simpleParsed, file.name, 'imported');
                 }
             } catch (err) {
                 console.error('Import YAML failed:', err);
@@ -154,20 +197,48 @@ export const ImportExport = {
     },
 
     /**
-     * Applies imported YAML data to state.
-     * @param {object} data - Parsed YAML data
+     * Deep merges processed YAML data with existing state.
+     * @param {object} processedData - Data processed by State.processYamlNode
+     * @param {object} simpleParsed - Simple YAML.parse result for prompts
+     * @param {string} filename - Original filename for toast
+     */
+    _mergeProcessedData(processedData, simpleParsed, filename) {
+        State.saveStateToHistory();
+
+        // Deep merge function
+        const deepMerge = (target, source) => {
+            for (const key of Object.keys(source)) {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    if (!target[key]) target[key] = {};
+                    deepMerge(target[key], source[key]);
+                } else if (Array.isArray(source[key]) && Array.isArray(target[key])) {
+                    // Merge arrays (wildcards), avoiding duplicates
+                    const combined = [...new Set([...target[key], ...source[key]])];
+                    target[key] = combined;
+                } else {
+                    target[key] = source[key];
+                }
+            }
+        };
+
+        deepMerge(State.state.wildcards, processedData);
+        if (simpleParsed && simpleParsed.systemPrompt) State.state.systemPrompt = simpleParsed.systemPrompt;
+        if (simpleParsed && simpleParsed.suggestItemPrompt) State.state.suggestItemPrompt = simpleParsed.suggestItemPrompt;
+        UI.showToast(`Merged ${filename}`, 'success');
+    },
+
+    /**
+     * Applies processed YAML data to state.
+     * @param {object} processedData - Data processed by State.processYamlNode  
+     * @param {object} simpleParsed - Simple YAML.parse result for prompts
      * @param {string} filename - Original filename for toast message
      * @param {string} action - 'replaced' or 'imported' for toast
      */
-    _applyImportedData(data, filename, action) {
+    _applyProcessedData(processedData, simpleParsed, filename, action) {
         State.saveStateToHistory();
-        if (data.wildcards) {
-            State.state.wildcards = data.wildcards;
-        } else {
-            State.state.wildcards = data;
-        }
-        if (data.systemPrompt) State.state.systemPrompt = data.systemPrompt;
-        if (data.suggestItemPrompt) State.state.suggestItemPrompt = data.suggestItemPrompt;
+        State.state.wildcards = processedData;
+        if (simpleParsed && simpleParsed.systemPrompt) State.state.systemPrompt = simpleParsed.systemPrompt;
+        if (simpleParsed && simpleParsed.suggestItemPrompt) State.state.suggestItemPrompt = simpleParsed.suggestItemPrompt;
         UI.showToast(`Imported ${filename} (${action})`, 'success');
     },
 

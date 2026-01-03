@@ -362,10 +362,11 @@ export const App = {
             if (e.target.matches('#add-category-placeholder-btn')) {
                 UI.showNotification('Enter new top-level category name:', true, (name) => {
                     if (name && name.trim()) {
-                        const key = name.trim().replace(/\\s+/g, '_');
+                        const key = name.trim().replace(/\s+/g, '_');
                         if (State.state.wildcards[key]) { UI.showToast('Category already exists', 'error'); return; }
                         State.saveStateToHistory();
                         State.state.wildcards[key] = { instruction: '' };
+                        UI.showToast(`Created "${name.trim()}"`, 'success');
                     }
                 }, true);
             }
@@ -411,7 +412,7 @@ export const App = {
             if (e.target.matches('#reload-default-data')) {
                 UI.showNotification('Reload default wildcard data? This will overwrite your current wildcards but keep settings.', true, async () => {
                     UI.toggleOverflowMenu(false);
-                    await State.resetToDefaults(); // Actually reloads data
+                    await State.resetState(); // Actually reloads data
                 });
             }
             if (e.target.matches('#factory-reset')) {
@@ -971,13 +972,84 @@ export const App = {
 
             State.saveStateToHistory();
             parent[key] = type === 'list' ? { instruction: '', wildcards: [] } : { instruction: '' };
+            UI.showToast(`Created "${name.trim()}"`, 'success');
         }, true);
     },
 
-    suggestItems(parentPath, type) {
-        // Call API suggest
-        // Then show modal
-        // On confirm, update State
+    async suggestItems(parentPath, type) {
+        // Get parent object and existing structure
+        const parent = parentPath ? State.getObjectByPath(parentPath) : State.state.wildcards;
+        if (!parent) {
+            UI.showToast('Could not find parent category', 'error');
+            return;
+        }
+
+        // Get existing sibling names for context
+        const existingStructure = Object.keys(parent).filter(k => k !== 'instruction' && k !== 'wildcards');
+
+        UI.showToast('Generating suggestions...', 'info');
+
+        try {
+            const { suggestions } = await Api.suggestItems(
+                parentPath,
+                existingStructure,
+                State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT
+            );
+
+            if (!suggestions || suggestions.length === 0) {
+                UI.showToast('No suggestions returned', 'info');
+                return;
+            }
+
+            // Build selection dialog HTML - compact styling
+            const dialogContent = `
+                <div class="space-y-2">
+                    <p class="text-sm text-gray-300 mb-2">Select ${type === 'list' ? 'wildcard lists' : 'subcategories'} to add:</p>
+                    <div class="max-h-64 overflow-y-auto space-y-1">
+                        ${suggestions.map((item, i) => `
+                            <label class="flex items-center gap-2 py-1 px-2 rounded hover:bg-gray-700 cursor-pointer">
+                                <input type="checkbox" checked data-index="${i}" class="suggestion-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500">
+                                <span class="font-medium text-white">${item.name?.replace(/_/g, ' ') || item}</span>
+                                ${item.instruction ? `<span class="text-xs text-gray-400 truncate">- ${item.instruction}</span>` : ''}
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Show confirmation dialog
+            UI.showNotification(dialogContent, true, () => {
+                // Get selected suggestions
+                const checkboxes = document.querySelectorAll('.suggestion-checkbox:checked');
+                const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
+                const selectedSuggestions = selectedIndices.map(i => suggestions[i]);
+
+                if (selectedSuggestions.length === 0) {
+                    UI.showToast('No items selected', 'info');
+                    return;
+                }
+
+                // Add selected items to state
+                State.saveStateToHistory();
+                selectedSuggestions.forEach(item => {
+                    const name = item.name || item;
+                    const key = String(name).trim().replace(/\s+/g, '_');
+                    if (!parent[key]) {
+                        if (type === 'list') {
+                            parent[key] = { instruction: item.instruction || '', wildcards: [] };
+                        } else {
+                            parent[key] = { instruction: item.instruction || '' };
+                        }
+                    }
+                });
+
+                UI.showToast(`Added ${selectedSuggestions.length} ${type === 'list' ? 'lists' : 'categories'}`, 'success');
+            });
+
+        } catch (e) {
+            console.error('Suggest items error:', e);
+            UI.showNotification(`Failed to get suggestions: ${e.message}`);
+        }
     }
     // Drag-and-drop functionality is now in js/modules/drag-drop.js
     // Import/export functionality is now in js/modules/import-export.js

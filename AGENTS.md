@@ -20,6 +20,19 @@ This file contains context and rules for AI agents working on this repository.
 ├── docs/                # Documentation
 └── tests/               # Playwright tests
 
+## Data Format
+
+The `data/initial-data.yaml` uses a **comment-based instruction format**:
+
+```yaml
+Category_Name: # instruction: Description of the category
+  Subcategory: # instruction: Description of subcategory
+    - wildcard1
+    - wildcard2
+```
+
+> **IMPORTANT**: When parsing this YAML, use `YAML.parseDocument()` + `State.processYamlNode()` to preserve the `# instruction:` comments. Simple `YAML.parse()` will lose them!
+
 ## API Keys & Security
 
 - **Session Only**: API keys are stored in `sessionStorage` or memory variables. **Never** persist them to `localStorage` or disk.
