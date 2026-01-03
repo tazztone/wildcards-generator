@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Config } from './config.js';
 
 export const Api = {
@@ -245,45 +246,70 @@ export const Api = {
         const getKey = (id) => document.getElementById(id)?.value?.trim() || '';
         const getVal = (id) => document.getElementById(id)?.value?.trim() || '';
 
+        // Common Parameters from Config
+        const temp = Config.MODEL_TEMPERATURE ?? 0.7;
+        const maxTokens = Config.MODEL_MAX_TOKENS ?? 1000;
+        const topP = Config.MODEL_TOP_P ?? 1.0;
+        const topK = Config.MODEL_TOP_K ?? 0;
+
         if (endpoint === 'gemini') {
             apiKey = getKey('gemini-api-key');
             const model = getVal('gemini-model-name') || 'gemini-1.5-flash';
             if (!apiKey) throw new Error("Gemini API key is not provided.");
             url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+            const geminiGenConfig = {
+                temperature: temp,
+                maxOutputTokens: maxTokens,
+                topP: topP,
+                ...generationConfig // Allow overrides
+            };
+            if (topK > 0) geminiGenConfig.topK = topK;
+
             payload = {
                 contents: [
                     { role: "user", parts: [{ text: globalPrompt }] },
                     { role: "model", parts: [{ text: "Understood." }] },
                     { role: "user", parts: [{ text: userPrompt }] }
                 ],
-                generationConfig: generationConfig
+                generationConfig: geminiGenConfig
             };
-        } else if (endpoint === 'openrouter') {
-            apiKey = getKey('openrouter-api-key');
-            const model = getVal('openrouter-model-name') || ":free";
-            if (!apiKey) throw new Error("OpenRouter API key is not provided.");
-            url = `https://openrouter.ai/api/v1/chat/completions`;
-            headers['Authorization'] = `Bearer ${apiKey}`;
-            payload = {
-                model,
-                messages: [
-                    { role: "user", content: `${globalPrompt}\n\n${userPrompt}` }
-                ]
-            };
-            payload.response_format = { type: "json_object" };
-        } else if (endpoint === 'custom') {
-            apiKey = getKey('custom-api-key');
-            const model = getVal('custom-model-name');
-            const customUrl = getVal('custom-api-url');
-            if (!customUrl) throw new Error("Custom API URL is not provided.");
-            url = `${customUrl.replace(/\/$/, '')}/chat/completions`;
+        } else if (endpoint === 'openrouter' || endpoint === 'custom') {
+            const isCustom = endpoint === 'custom';
+            apiKey = getKey(isCustom ? 'custom-api-key' : 'openrouter-api-key');
+            const model = getVal(isCustom ? 'custom-model-name' : 'openrouter-model-name') || (isCustom ? "" : ":free");
+
+            if (!isCustom && !apiKey) throw new Error("OpenRouter API key is not provided.");
+
+            if (isCustom) {
+                const customUrl = getVal('custom-api-url');
+                if (!customUrl) throw new Error("Custom API URL is not provided.");
+                url = `${customUrl.replace(/\/$/, '')}/chat/completions`;
+            } else {
+                url = `https://openrouter.ai/api/v1/chat/completions`;
+            }
+
             if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
             payload = {
                 model,
                 messages: [
                     { role: "user", content: `${globalPrompt}\n\n${userPrompt}` }
-                ]
+                ],
+                temperature: temp,
+                max_tokens: maxTokens,
+                top_p: topP
             };
+
+            // Add extended parameters if not default
+            if (topK > 0) payload.top_k = topK;
+            if (Config.MODEL_FREQUENCY_PENALTY !== 0) payload.frequency_penalty = Config.MODEL_FREQUENCY_PENALTY;
+            if (Config.MODEL_PRESENCE_PENALTY !== 0) payload.presence_penalty = Config.MODEL_PRESENCE_PENALTY;
+            if (Config.MODEL_REPETITION_PENALTY !== 1) payload.repetition_penalty = Config.MODEL_REPETITION_PENALTY;
+            if (Config.MODEL_MIN_P > 0) payload.min_p = Config.MODEL_MIN_P;
+            if (Config.MODEL_TOP_A > 0) payload.top_a = Config.MODEL_TOP_A;
+            if (Config.MODEL_SEED > 0) payload.seed = Config.MODEL_SEED;
+
             payload.response_format = { type: "json_object" };
         } else {
             throw new Error("Invalid API endpoint.");
@@ -328,46 +354,61 @@ Example: ["kirin", "thunderbird", "basilisk"]`;
         try {
             let url, headers, payload;
 
+            const temp = Config.MODEL_TEMPERATURE ?? 0.7;
+            const maxTokens = Config.MODEL_MAX_TOKENS ?? 1000;
+            const topP = Config.MODEL_TOP_P ?? 1.0;
+            const topK = Config.MODEL_TOP_K ?? 0;
+
             if (provider === 'gemini') {
                 url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
                 headers = { 'Content-Type': 'application/json' };
+
+                const geminiGenConfig = {
+                    responseMimeType: 'application/json',
+                    responseSchema: { type: 'ARRAY', items: { type: 'STRING' } },
+                    temperature: temp,
+                    maxOutputTokens: maxTokens,
+                    topP: topP
+                };
+                if (topK > 0) geminiGenConfig.topK = topK;
+
                 payload = {
                     contents: [{ parts: [{ text: testPrompt }] }],
-                    generationConfig: {
-                        responseMimeType: 'application/json',
-                        responseSchema: { type: 'ARRAY', items: { type: 'STRING' } },
-                        temperature: 0.7,
-                        maxOutputTokens: 200
-                    }
+                    generationConfig: geminiGenConfig
                 };
-            } else if (provider === 'openrouter') {
-                url = 'https://openrouter.ai/api/v1/chat/completions';
+            } else if (provider === 'openrouter' || provider === 'custom') {
+                const isCustom = provider === 'custom';
+
+                if (isCustom) {
+                    const baseUrl = document.getElementById('custom-api-url')?.value || Config?.API_URL_CUSTOM || '';
+                    url = baseUrl.replace(/\/$/, '') + '/chat/completions';
+                } else {
+                    url = 'https://openrouter.ai/api/v1/chat/completions';
+                }
+
                 headers = {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
-                    'HTTP-Referer': window.location.origin
+                    ...(apiKey && { 'Authorization': `Bearer ${apiKey}` }),
+                    ...(provider === 'openrouter' && { 'HTTP-Referer': window.location.origin })
                 };
+
                 payload = {
                     model: modelName,
                     messages: [{ role: 'user', content: testPrompt }],
                     response_format: { type: 'json_object' },
-                    max_tokens: 200,
-                    temperature: 0.7
+                    temperature: temp,
+                    max_tokens: maxTokens,
+                    top_p: topP
                 };
-            } else { // custom
-                const baseUrl = document.getElementById('custom-api-url')?.value || Config?.API_URL_CUSTOM || '';
-                url = baseUrl.replace(/\/$/, '') + '/chat/completions';
-                headers = {
-                    'Content-Type': 'application/json',
-                    ...(apiKey && { 'Authorization': `Bearer ${apiKey}` })
-                };
-                payload = {
-                    model: modelName,
-                    messages: [{ role: 'user', content: testPrompt }],
-                    response_format: { type: 'json_object' },
-                    max_tokens: 200,
-                    temperature: 0.7
-                };
+
+                // Add extended parameters if not default
+                if (topK > 0) payload.top_k = topK;
+                if (Config.MODEL_FREQUENCY_PENALTY !== 0) payload.frequency_penalty = Config.MODEL_FREQUENCY_PENALTY;
+                if (Config.MODEL_PRESENCE_PENALTY !== 0) payload.presence_penalty = Config.MODEL_PRESENCE_PENALTY;
+                if (Config.MODEL_REPETITION_PENALTY !== 1) payload.repetition_penalty = Config.MODEL_REPETITION_PENALTY;
+                if (Config.MODEL_MIN_P > 0) payload.min_p = Config.MODEL_MIN_P;
+                if (Config.MODEL_TOP_A > 0) payload.top_a = Config.MODEL_TOP_A;
+                if (Config.MODEL_SEED > 0) payload.seed = Config.MODEL_SEED;
             }
 
             // Fallback logic for models that don't support json_object
@@ -416,14 +457,27 @@ Example: ["kirin", "thunderbird", "basilisk"]`;
             const result = reqResult.json;
 
             // Extract the response content
-            const rawContent = result.choices?.[0]?.message?.content ||
-                result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const message = result.choices?.[0]?.message;
+            let rawContent = message?.content || result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+            // Check for reasoning content (OpenRouter/thinking models)
+            if (message?.reasoning) {
+                rawContent = `[Reasoning]\n${message.reasoning}\n\n[Content]\n${rawContent}`;
+            } else if (message?.reasoning_content) {
+                rawContent = `[Reasoning]\n${message.reasoning_content}\n\n[Content]\n${rawContent}`;
+            }
 
             // Check if it's valid JSON array or object
             let parsedContent = null;
             let supportsJson = false;
             try {
-                let contentToParse = rawContent.trim();
+                let contentToParse = rawContent;
+                // If we combined reasoning and content, we only want to parse the actual content part for JSON
+                if (contentToParse.includes('[Content]\n')) {
+                    contentToParse = contentToParse.split('[Content]\n')[1] || '';
+                }
+                contentToParse = contentToParse.trim();
+
                 // Handle markdown code blocks
                 const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentToParse);
                 if (match) {

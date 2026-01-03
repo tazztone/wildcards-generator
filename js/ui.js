@@ -688,6 +688,29 @@ export const UI = {
                 tipBox.querySelector('.tip-text').textContent = p.tipText;
             }
 
+            // Advanced Model Settings Binding
+            const settingsInputs = clone.querySelectorAll('[data-setting]');
+            settingsInputs.forEach(input => {
+                const settingKey = input.dataset.setting;
+                const displayEl = clone.querySelector(`[data-for="setting-${settingKey.replace('MODEL_', '').toLowerCase().replace(/_/g, '-')}"]`);
+
+                // Set initial value
+                if (Config[settingKey] !== undefined) {
+                    input.value = Config[settingKey];
+                    // Update display if exists
+                    if (displayEl) displayEl.textContent = Config[settingKey];
+                }
+
+                // Bind Event
+                input.addEventListener('input', (e) => {
+                    const val = (input.type === 'number' || input.type === 'range') ? parseFloat(e.target.value) : e.target.value;
+                    Config[settingKey] = val;
+                    saveConfig();
+
+                    if (displayEl) displayEl.textContent = val;
+                });
+            });
+
             container.appendChild(clone);
         });
 

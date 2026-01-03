@@ -18,7 +18,18 @@ export async function loadConfig() {
             MODEL_NAME_CUSTOM: "",
             API_ENDPOINT: "openrouter",
             CUSTOM_SYSTEM_PROMPT: null,  // null = use default from config.json
-            CUSTOM_SUGGEST_PROMPT: null  // null = use default from config.json
+            CUSTOM_SUGGEST_PROMPT: null,  // null = use default from config.json
+            // Advanced Model Defaults
+            MODEL_TEMPERATURE: 0.7,
+            MODEL_MAX_TOKENS: 1000,
+            MODEL_TOP_P: 1.0,
+            MODEL_TOP_K: 0,
+            MODEL_FREQUENCY_PENALTY: 0.0,
+            MODEL_PRESENCE_PENALTY: 0.0,
+            MODEL_REPETITION_PENALTY: 1.0,
+            MODEL_MIN_P: 0.0,
+            MODEL_TOP_A: 0.0,
+            MODEL_SEED: 0
         };
 
         Object.assign(Config, defaultConfig, userDefaults, savedConfig ? JSON.parse(savedConfig) : {});
@@ -62,7 +73,17 @@ export async function saveConfig() {
             MODEL_NAME_CUSTOM: "",
             API_ENDPOINT: "openrouter",
             CUSTOM_SYSTEM_PROMPT: null,
-            CUSTOM_SUGGEST_PROMPT: null
+            CUSTOM_SUGGEST_PROMPT: null,
+            MODEL_TEMPERATURE: 0.7,
+            MODEL_MAX_TOKENS: 1000,
+            MODEL_TOP_P: 1.0,
+            MODEL_TOP_K: 0,
+            MODEL_FREQUENCY_PENALTY: 0.0,
+            MODEL_PRESENCE_PENALTY: 0.0,
+            MODEL_REPETITION_PENALTY: 1.0,
+            MODEL_MIN_P: 0.0,
+            MODEL_TOP_A: 0.0,
+            MODEL_SEED: 0
         };
         const allDefaults = { ...defaultConfig, ...userDefaults };
 
@@ -80,7 +101,9 @@ export async function saveConfig() {
                     }
                 }
                 // If it's a user setting loaded from storage (not in static defaults but valid config)
-                else if (['API_URL_CUSTOM', 'MODEL_NAME_GEMINI', 'MODEL_NAME_OPENROUTER', 'MODEL_NAME_CUSTOM', 'API_ENDPOINT', 'CUSTOM_SYSTEM_PROMPT', 'CUSTOM_SUGGEST_PROMPT'].includes(key)) {
+                else if (['API_URL_CUSTOM', 'MODEL_NAME_GEMINI', 'MODEL_NAME_OPENROUTER', 'MODEL_NAME_CUSTOM', 'API_ENDPOINT', 'CUSTOM_SYSTEM_PROMPT', 'CUSTOM_SUGGEST_PROMPT',
+                    'MODEL_TEMPERATURE', 'MODEL_MAX_TOKENS', 'MODEL_TOP_P', 'MODEL_TOP_K', 'MODEL_FREQUENCY_PENALTY', 'MODEL_PRESENCE_PENALTY', 'MODEL_REPETITION_PENALTY', 'MODEL_MIN_P', 'MODEL_TOP_A', 'MODEL_SEED'
+                ].includes(key)) {
                     changedConfig[key] = Config[key];
                 }
             }

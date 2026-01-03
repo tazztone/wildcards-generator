@@ -260,235 +260,380 @@
                                 </div>
                             </div>
 
-                            <div
-                                class="tip-box hidden bg-blue-900/20 border border-blue-800/50 rounded p-3 text-sm text-blue-200">
-                                <strong>Tip:</strong> <span class="tip-text"></span>
-                            </div>
+                            <details class="advanced-model-settings bg-gray-900/30 rounded border border-gray-700/50">
+                                <summary
+                                    class="p-3 cursor-pointer text-sm font-medium text-gray-300 hover:text-white flex justify-between items-center select-none">
+                                    <span>Advanced Model Parameters</span>
+                                    <span class="arrow-down transition-transform duration-300 text-xs">▼</span>
+                                </summary>
+                                <div class="p-4 border-t border-gray-700/50 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <!-- Temperature -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Controls randomness: Higher values (e.g., 1.0+) make output more random and creative. Lower values (e.g., 0.2) make it more focused and deterministic.">Temperature</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-temperature">0.7</span>
+                                        </div>
+                                        <input type="range"
+                                            class="setting-input w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                            data-setting="MODEL_TEMPERATURE" min="0" max="2" step="0.1" value="0.7">
+                                    </div>
+
+                                    <!-- Max Tokens -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="The maximum number of tokens to generate. Shared between prompt and completion.">Max
+                                                Tokens</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-max-tokens">1000</span>
+                                        </div>
+                                        <input type="number"
+                                            class="setting-input w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500"
+                                            data-setting="MODEL_MAX_TOKENS" min="1" step="1" value="1000">
+                                    </div>
+
+                                    <!-- Top P -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Nucleus Sampling: Limits the model to the top P percentage of probability mass. 1.0 = consider all. 0.1 = consider only top 10%.">Top
+                                                P</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-top-p">1.0</span>
+                                        </div>
+                                        <input type="range"
+                                            class="setting-input w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                            data-setting="MODEL_TOP_P" min="0" max="1" step="0.01" value="1.0">
+                                    </div>
+
+                                    <!-- Top K -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Limits the model to the top K most likely tokens. 0 = disabled.">Top
+                                                K</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-top-k">0</span>
+                                        </div>
+                                        <input type="number"
+                                            class="setting-input w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500"
+                                            data-setting="MODEL_TOP_K" min="0" step="1" value="0">
+                                    </div>
+
+                                    <!-- Frequency Penalty -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Penalizes tokens based on their frequency in the text so far. Positive values decrease likelihood of repetition.">Freq.
+                                                Penalty</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-freq-penalty">0.0</span>
+                                        </div>
+                                        <input type="range"
+                                            class="setting-input w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                            data-setting="MODEL_FREQUENCY_PENALTY" min="-2" max="2" step="0.1"
+                                            value="0.0">
+                                    </div>
+
+                                    <!-- Presence Penalty -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Penalizes tokens based on whether they have appeared in the text so far. Encourages new topics.">Pres.
+                                                Penalty</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-pres-penalty">0.0</span>
+                                        </div>
+                                        <input type="range"
+                                            class="setting-input w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                            data-setting="MODEL_PRESENCE_PENALTY" min="-2" max="2" step="0.1"
+                                            value="0.0">
+                                    </div>
+
+                                    <!-- Repetition Penalty -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Penalty for exact repetition of tokens. 1.0 = no penalty. > 1.0 = penalty.">Rep.
+                                                Penalty</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-rep-penalty">1.0</span>
+                                        </div>
+                                        <input type="range"
+                                            class="setting-input w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                            data-setting="MODEL_REPETITION_PENALTY" min="0" max="2" step="0.01"
+                                            value="1.0">
+                                    </div>
+
+                                    <!-- Min P -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Minimum probability relative to the most likely token. Tokens with probability < Min P * Top Prob are discarded.">Min
+                                                P</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-min-p">0.0</span>
+                                        </div>
+                                        <input type="range"
+                                            class="setting-input w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                            data-setting="MODEL_MIN_P" min="0" max="1" step="0.01" value="0.0">
+                                    </div>
+
+                                    <!-- Top A -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Dynamic truncation based on the confidence of the top token. Higher Top A = more truncation when confident.">Top
+                                                A</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-top-a">0.0</span>
+                                        </div>
+                                        <input type="range"
+                                            class="setting-input w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                            data-setting="MODEL_TOP_A" min="0" max="1" step="0.01" value="0.0">
+                                    </div>
+
+                                    <!-- Seed -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Integer seed for deterministic generation. 0 = random.">Seed</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-seed">0</span>
+                                        </div>
+                                        <input type="number"
+                                            class="setting-input w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500"
+                                            data-setting="MODEL_SEED" step="1" value="0">
+                                    </div>
+                                </div>
+                            </details>
                         </div>
-                    </template>
-                    <details class="bg-gray-900/50 rounded-lg border border-gray-700 mt-6">
-                        <summary
-                            class="p-4 cursor-pointer font-semibold text-indigo-300 flex justify-between items-center">
-                            <span>Advanced Configuration</span>
-                            <span class="arrow-down transition-transform duration-300"><svg class="h-6 w-6" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7"></path>
-                                </svg></span>
-                        </summary>
-                        <div class="p-4 border-t border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="config-history-limit"
-                                    class="block text-sm font-medium text-gray-300 mb-1">History Limit</label>
-                                <input type="number" id="config-history-limit"
-                                    class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="e.g., 20">
-                                <p class="text-xs text-gray-400 mt-1">Max number of undo steps. Reload required.</p>
-                            </div>
-                            <div>
-                                <label for="config-search-debounce"
-                                    class="block text-sm font-medium text-gray-300 mb-1">Search Debounce Delay
-                                    (ms)</label>
-                                <input type="number" id="config-search-debounce"
-                                    class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="e.g., 300">
-                                <p class="text-xs text-gray-400 mt-1">Delay before search is triggered. Reload required.
-                                </p>
-                            </div>
-                            <div>
-                                <label for="config-storage-key"
-                                    class="block text-sm font-medium text-gray-300 mb-1">State
-                                    Storage Key</label>
-                                <input type="text" id="config-storage-key"
-                                    class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <p class="text-xs text-gray-400 mt-1">LocalStorage key for app state. Change with
-                                    caution. Reload required.</p>
-                            </div>
-                            <div>
-                                <label for="config-history-key"
-                                    class="block text-sm font-medium text-gray-300 mb-1">History
-                                    Storage Key</label>
-                                <input type="text" id="config-history-key"
-                                    class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <p class="text-xs text-gray-400 mt-1">LocalStorage key for history. Change with caution.
-                                    Reload required.</p>
-                            </div>
+
+                        <div
+                            class="tip-box hidden bg-blue-900/20 border border-blue-800/50 rounded p-3 text-sm text-blue-200">
+                            <strong>Tip:</strong> <span class="tip-text"></span>
                         </div>
-                    </details>
                 </div>
-                <!-- Settings Modal Footer -->
-                <div class="p-5 border-t border-gray-700/50 flex flex-wrap gap-3 justify-between bg-gray-900/30">
-                    <div class="flex gap-2">
-                        <button id="load-settings-btn"
-                            class="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2">
-                            📥 Load Settings
-                        </button>
-                        <button id="export-settings-btn"
-                            class="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2">
-                            📤 Export Settings
-                        </button>
+                </template>
+                <details class="bg-gray-900/50 rounded-lg border border-gray-700 mt-6">
+                    <summary class="p-4 cursor-pointer font-semibold text-indigo-300 flex justify-between items-center">
+                        <span>Advanced Configuration</span>
+                        <span class="arrow-down transition-transform duration-300"><svg class="h-6 w-6" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg></span>
+                    </summary>
+                    <div class="p-4 border-t border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="config-history-limit"
+                                class="block text-sm font-medium text-gray-300 mb-1">History Limit</label>
+                            <input type="number" id="config-history-limit"
+                                class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., 20">
+                            <p class="text-xs text-gray-400 mt-1">Max number of undo steps. Reload required.</p>
+                        </div>
+                        <div>
+                            <label for="config-search-debounce"
+                                class="block text-sm font-medium text-gray-300 mb-1">Search Debounce Delay
+                                (ms)</label>
+                            <input type="number" id="config-search-debounce"
+                                class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., 300">
+                            <p class="text-xs text-gray-400 mt-1">Delay before search is triggered. Reload required.
+                            </p>
+                        </div>
+                        <div>
+                            <label for="config-storage-key" class="block text-sm font-medium text-gray-300 mb-1">State
+                                Storage Key</label>
+                            <input type="text" id="config-storage-key"
+                                class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <p class="text-xs text-gray-400 mt-1">LocalStorage key for app state. Change with
+                                caution. Reload required.</p>
+                        </div>
+                        <div>
+                            <label for="config-history-key" class="block text-sm font-medium text-gray-300 mb-1">History
+                                Storage Key</label>
+                            <input type="text" id="config-history-key"
+                                class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <p class="text-xs text-gray-400 mt-1">LocalStorage key for history. Change with caution.
+                                Reload required.</p>
+                        </div>
                     </div>
-                    <button id="reset-settings-btn"
-                        class="bg-red-900/30 hover:bg-red-900/50 text-red-300 hover:text-red-200 border border-red-800/50 text-sm font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2">
-                        🗑️ Reset Settings
+                </details>
+            </div>
+            <!-- Settings Modal Footer -->
+            <div class="p-5 border-t border-gray-700/50 flex flex-wrap gap-3 justify-between bg-gray-900/30">
+                <div class="flex gap-2">
+                    <button id="load-settings-btn"
+                        class="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2">
+                        📥 Load Settings
+                    </button>
+                    <button id="export-settings-btn"
+                        class="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2">
+                        📤 Export Settings
                     </button>
                 </div>
-                <input type="file" id="settings-file-input" accept=".json" class="hidden">
-            </div>
-        </dialog>
-
-        <!-- API Test Results Dialog -->
-        <dialog id="api-test-dialog"
-            class="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-xl backdrop:bg-gray-900/80 max-w-2xl w-full border border-gray-700">
-            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                    <span id="api-test-status-icon">🔌</span> API Test Results
-                </h3>
-                <button id="api-test-close-btn"
-                    class="p-1 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                    title="Close">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                <button id="reset-settings-btn"
+                    class="bg-red-900/30 hover:bg-red-900/50 text-red-300 hover:text-red-200 border border-red-800/50 text-sm font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2">
+                    🗑️ Reset Settings
                 </button>
             </div>
-            <div id="api-test-content" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div class="bg-gray-900/50 p-3 rounded border border-gray-700">
-                        <span class="text-gray-400 block">Response Time</span>
-                        <span id="api-test-time" class="text-lg font-mono text-green-400">-- ms</span>
-                    </div>
-                    <div class="bg-gray-900/50 p-3 rounded border border-gray-700">
-                        <span class="text-gray-400 block">JSON Support</span>
-                        <span id="api-test-json" class="text-lg font-mono">--</span>
-                    </div>
-                </div>
-                <div>
-                    <span class="text-sm text-gray-400 block mb-1">Raw Response</span>
-                    <pre id="api-test-response"
-                        class="bg-gray-950 p-3 rounded border border-gray-800 text-xs font-mono overflow-auto max-h-[300px] text-gray-300 custom-scrollbar"></pre>
-                </div>
-            </div>
-        </dialog>
+            <input type="file" id="settings-file-input" accept=".json" class="hidden">
+    </div>
+    </dialog>
 
-        <div class="mt-6 text-left max-w-4xl mx-auto">
-            <div class="flex justify-between items-center">
-                <label for="search-wildcards" class="block text-lg font-semibold text-indigo-300 mb-2">Search
-                    Wildcards</label>
-                <span id="search-results-count" class="text-sm text-gray-400 mb-2"></span>
-            </div>
-            <div class="relative">
-                <input type="text" id="search-wildcards" class="input-primary bg-gray-800 pr-10"
-                    placeholder="Search for wildcards...">
-                <button id="search-clear-btn"
-                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white hidden transition-colors"
-                    aria-label="Clear search">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <!-- Statistics Dashboard -->
-        <div id="stats-bar" class="mt-4 flex flex-wrap justify-center gap-6 text-sm">
-            <div class="bg-gray-800 px-4 py-2 rounded-lg">
-                <span class="text-gray-400">Categories:</span>
-                <span id="stat-categories" class="text-indigo-400 font-bold ml-1">0</span>
-            </div>
-            <div class="bg-gray-800 px-4 py-2 rounded-lg">
-                <span class="text-gray-400">Total Wildcards:</span>
-                <span id="stat-wildcards" class="text-green-400 font-bold ml-1">0</span>
-            </div>
-            <div class="bg-gray-800 px-4 py-2 rounded-lg">
-                <span class="text-gray-400">Pinned:</span>
-                <span id="stat-pinned" class="text-yellow-400 font-bold ml-1">0</span>
-            </div>
-        </div>
-        <!-- Primary Toolbar -->
-        <div class="mt-6 flex flex-wrap justify-center items-center gap-3">
-            <!-- Primary Actions -->
-            <button id="export-yaml" class="btn-toolbar btn-primary" title="Export all wildcards to a YAML file">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    <!-- API Test Results Dialog -->
+    <dialog id="api-test-dialog"
+        class="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-xl backdrop:bg-gray-900/80 max-w-2xl w-full border border-gray-700">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span id="api-test-status-icon">🔌</span> API Test Results
+            </h3>
+            <button id="api-test-close-btn"
+                class="p-1 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                title="Close">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Export YAML
             </button>
-            <button id="import-yaml" class="btn-toolbar btn-success" title="Import wildcards from a YAML file">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                Import YAML
-            </button>
-            <button id="download-all-zip" class="btn-toolbar btn-primary"
-                title="Download all wildcards as a ZIP archive">
-                📦 Download ZIP
-            </button>
-            <button id="check-duplicates" class="btn-toolbar btn-warning"
-                title="Find and highlight duplicate wildcard entries">
-                🔍 Check Duplicates
-            </button>
-            <button id="help-btn" class="btn-toolbar btn-accent" title="View keyboard shortcuts and usage help">
-                ❓ Help
-            </button>
-
-            <!-- Overflow Dropdown -->
-            <div class="relative" id="overflow-menu-container">
-                <button id="overflow-menu-btn" class="btn-toolbar btn-secondary" title="More actions">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                    </svg>
-                </button>
-                <div id="overflow-menu-dropdown"
-                    class="hidden absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-                    <button id="undo-btn" class="dropdown-item" title="Undo last action (Ctrl+Z)">
-                        ↩️ Undo <span class="text-gray-500 text-xs ml-auto">Ctrl+Z</span>
-                    </button>
-                    <button id="redo-btn" class="dropdown-item" title="Redo last undone action (Ctrl+Y)">
-                        ↪️ Redo <span class="text-gray-500 text-xs ml-auto">Ctrl+Y</span>
-                    </button>
-                    <div class="border-t border-gray-700 my-1"></div>
-                    <div class="dropdown-label text-xs text-gray-500 px-3 py-1 uppercase tracking-wider">Data Management
-                    </div>
-                    <button id="reload-default-data" class="dropdown-item"
-                        title="Reload the default wildcard data without clearing settings">
-                        🔄 Restore Default Wildcards
-                    </button>
-                    <button id="factory-reset" class="dropdown-item text-orange-400 hover:text-orange-300"
-                        title="Reset app to initial state (clears all wildcards and settings)">
-                        ⚠️ Factory Reset
-                    </button>
+        </div>
+        <div id="api-test-content" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                <div class="bg-gray-900/50 p-3 rounded border border-gray-700">
+                    <span class="text-gray-400 block">Response Time</span>
+                    <span id="api-test-time" class="text-lg font-mono text-green-400">-- ms</span>
+                </div>
+                <div class="bg-gray-900/50 p-3 rounded border border-gray-700">
+                    <span class="text-gray-400 block">JSON Support</span>
+                    <span id="api-test-json" class="text-lg font-mono">--</span>
                 </div>
             </div>
-        </div>
-
-        <!-- Batch Operations Bar -->
-        <div id="batch-ops-bar" class="mb-4 flex flex-wrap items-center gap-4 bg-gray-800 p-3 rounded-lg hidden">
-            <label class="flex items-center gap-2 cursor-pointer text-sm">
-                <input type="checkbox" id="batch-select-all"
-                    class="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500">
-                <span class="text-gray-300">Select All Categories</span>
-            </label>
-            <span id="batch-count" class="text-sm text-gray-400">(0 selected)</span>
-            <div class="flex gap-2 ml-auto">
-                <button id="batch-expand"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
-                    title="Expand all selected categories" disabled>Expand Selected</button>
-                <button id="batch-collapse"
-                    class="bg-gray-600 hover:bg-gray-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
-                    title="Collapse all selected categories" disabled>Collapse Selected</button>
-                <button id="batch-delete"
-                    class="bg-red-600 hover:bg-red-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
-                    title="Delete all selected categories" disabled>Delete Selected</button>
+            <div>
+                <span class="text-sm text-gray-400 block mb-1">Raw Response</span>
+                <pre id="api-test-response"
+                    class="bg-gray-950 p-3 rounded border border-gray-800 text-xs font-mono overflow-auto max-h-[300px] text-gray-300 custom-scrollbar"></pre>
             </div>
         </div>
+    </dialog>
 
-        <div id="breadcrumbs-container" class="hidden"></div>
-        <main id="wildcard-container" class="space-y-4" tabindex="-1"></main>
+    <div class="mt-6 text-left max-w-4xl mx-auto">
+        <div class="flex justify-between items-center">
+            <label for="search-wildcards" class="block text-lg font-semibold text-indigo-300 mb-2">Search
+                Wildcards</label>
+            <span id="search-results-count" class="text-sm text-gray-400 mb-2"></span>
+        </div>
+        <div class="relative">
+            <input type="text" id="search-wildcards" class="input-primary bg-gray-800 pr-10"
+                placeholder="Search for wildcards...">
+            <button id="search-clear-btn"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white hidden transition-colors"
+                aria-label="Clear search">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- Statistics Dashboard -->
+    <div id="stats-bar" class="mt-4 flex flex-wrap justify-center gap-6 text-sm">
+        <div class="bg-gray-800 px-4 py-2 rounded-lg">
+            <span class="text-gray-400">Categories:</span>
+            <span id="stat-categories" class="text-indigo-400 font-bold ml-1">0</span>
+        </div>
+        <div class="bg-gray-800 px-4 py-2 rounded-lg">
+            <span class="text-gray-400">Total Wildcards:</span>
+            <span id="stat-wildcards" class="text-green-400 font-bold ml-1">0</span>
+        </div>
+        <div class="bg-gray-800 px-4 py-2 rounded-lg">
+            <span class="text-gray-400">Pinned:</span>
+            <span id="stat-pinned" class="text-yellow-400 font-bold ml-1">0</span>
+        </div>
+    </div>
+    <!-- Primary Toolbar -->
+    <div class="mt-6 flex flex-wrap justify-center items-center gap-3">
+        <!-- Primary Actions -->
+        <button id="export-yaml" class="btn-toolbar btn-primary" title="Export all wildcards to a YAML file">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export YAML
+        </button>
+        <button id="import-yaml" class="btn-toolbar btn-success" title="Import wildcards from a YAML file">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Import YAML
+        </button>
+        <button id="download-all-zip" class="btn-toolbar btn-primary" title="Download all wildcards as a ZIP archive">
+            📦 Download ZIP
+        </button>
+        <button id="check-duplicates" class="btn-toolbar btn-warning"
+            title="Find and highlight duplicate wildcard entries">
+            🔍 Check Duplicates
+        </button>
+        <button id="help-btn" class="btn-toolbar btn-accent" title="View keyboard shortcuts and usage help">
+            ❓ Help
+        </button>
+
+        <!-- Overflow Dropdown -->
+        <div class="relative" id="overflow-menu-container">
+            <button id="overflow-menu-btn" class="btn-toolbar btn-secondary" title="More actions">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+            </button>
+            <div id="overflow-menu-dropdown"
+                class="hidden absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+                <button id="undo-btn" class="dropdown-item" title="Undo last action (Ctrl+Z)">
+                    ↩️ Undo <span class="text-gray-500 text-xs ml-auto">Ctrl+Z</span>
+                </button>
+                <button id="redo-btn" class="dropdown-item" title="Redo last undone action (Ctrl+Y)">
+                    ↪️ Redo <span class="text-gray-500 text-xs ml-auto">Ctrl+Y</span>
+                </button>
+                <div class="border-t border-gray-700 my-1"></div>
+                <div class="dropdown-label text-xs text-gray-500 px-3 py-1 uppercase tracking-wider">Data Management
+                </div>
+                <button id="reload-default-data" class="dropdown-item"
+                    title="Reload the default wildcard data without clearing settings">
+                    🔄 Restore Default Wildcards
+                </button>
+                <button id="factory-reset" class="dropdown-item text-orange-400 hover:text-orange-300"
+                    title="Reset app to initial state (clears all wildcards and settings)">
+                    ⚠️ Factory Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Operations Bar -->
+    <div id="batch-ops-bar" class="mb-4 flex flex-wrap items-center gap-4 bg-gray-800 p-3 rounded-lg hidden">
+        <label class="flex items-center gap-2 cursor-pointer text-sm">
+            <input type="checkbox" id="batch-select-all"
+                class="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500">
+            <span class="text-gray-300">Select All Categories</span>
+        </label>
+        <span id="batch-count" class="text-sm text-gray-400">(0 selected)</span>
+        <div class="flex gap-2 ml-auto">
+            <button id="batch-expand"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
+                title="Expand all selected categories" disabled>Expand Selected</button>
+            <button id="batch-collapse"
+                class="bg-gray-600 hover:bg-gray-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
+                title="Collapse all selected categories" disabled>Collapse Selected</button>
+            <button id="batch-delete"
+                class="bg-red-600 hover:bg-red-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
+                title="Delete all selected categories" disabled>Delete Selected</button>
+        </div>
+    </div>
+
+    <div id="breadcrumbs-container" class="hidden"></div>
+    <main id="wildcard-container" class="space-y-4" tabindex="-1"></main>
     </div>
 
     <script src="js/main.js" type="module"></script>
