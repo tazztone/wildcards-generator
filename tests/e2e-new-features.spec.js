@@ -42,7 +42,7 @@ test.describe('New UI Features', () => {
             const btn = page.locator('#overflow-menu-btn');
             await btn.click();
 
-            const exportBtn = page.locator('#export-config');
+            const exportBtn = page.locator('#undo-btn');
             await expect(exportBtn).toBeVisible();
         });
     });
