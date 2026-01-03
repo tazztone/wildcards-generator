@@ -310,6 +310,21 @@ export const Api = {
             if (Config.MODEL_TOP_A > 0) payload.top_a = Config.MODEL_TOP_A;
             if (Config.MODEL_SEED > 0) payload.seed = Config.MODEL_SEED;
 
+
+
+            // Reasoning Parameters
+            const reasoning = {};
+            if (Config.MODEL_REASONING_EFFORT && Config.MODEL_REASONING_EFFORT !== 'default') {
+                reasoning.effort = Config.MODEL_REASONING_EFFORT;
+            }
+            if (Config.MODEL_REASONING_MAX_TOKENS > 0) {
+                reasoning.max_tokens = Config.MODEL_REASONING_MAX_TOKENS;
+            }
+            // Only add reasoning object if it has properties
+            if (Object.keys(reasoning).length > 0) {
+                payload.reasoning = reasoning;
+            }
+
             payload.response_format = { type: "json_object" };
         } else {
             throw new Error("Invalid API endpoint.");
@@ -409,6 +424,18 @@ Example: ["kirin", "thunderbird", "basilisk"]`;
                 if (Config.MODEL_MIN_P > 0) payload.min_p = Config.MODEL_MIN_P;
                 if (Config.MODEL_TOP_A > 0) payload.top_a = Config.MODEL_TOP_A;
                 if (Config.MODEL_SEED > 0) payload.seed = Config.MODEL_SEED;
+
+                // Reasoning Parameters
+                const reasoning = {};
+                if (Config.MODEL_REASONING_EFFORT && Config.MODEL_REASONING_EFFORT !== 'default') {
+                    reasoning.effort = Config.MODEL_REASONING_EFFORT;
+                }
+                if (Config.MODEL_REASONING_MAX_TOKENS > 0) {
+                    reasoning.max_tokens = Config.MODEL_REASONING_MAX_TOKENS;
+                }
+                if (Object.keys(reasoning).length > 0) {
+                    payload.reasoning = reasoning;
+                }
             }
 
             // Fallback logic for models that don't support json_object

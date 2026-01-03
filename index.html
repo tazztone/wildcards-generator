@@ -407,6 +407,40 @@
                                             class="setting-input w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500"
                                             data-setting="MODEL_SEED" step="1" value="0">
                                     </div>
+
+                                    <!-- Reasoning Effort -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Controls how much time/effort the model spends on reasoning (o1/o3/thinking models).">Reasoning
+                                                Effort</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display hidden"
+                                                data-for="setting-reasoning-effort">default</span>
+                                        </div>
+                                        <select
+                                            class="setting-input w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500"
+                                            data-setting="MODEL_REASONING_EFFORT">
+                                            <option value="default">Default</option>
+                                            <option value="high">High</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="low">Low</option>
+                                            <option value="none">None (Disabled)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Reasoning Max Tokens -->
+                                    <div class="setting-group">
+                                        <div class="flex justify-between mb-1">
+                                            <label class="text-xs text-gray-400 cursor-help"
+                                                title="Maximum tokens dedicated to reasoning/thinking. 0 = model default/disabled.">Reasoning
+                                                Tokens</label>
+                                            <span class="text-xs text-indigo-400 font-mono setting-value-display"
+                                                data-for="setting-reasoning-max-tokens">0</span>
+                                        </div>
+                                        <input type="number"
+                                            class="setting-input w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500"
+                                            data-setting="MODEL_REASONING_MAX_TOKENS" min="0" step="1" value="0">
+                                    </div>
                                 </div>
                             </details>
                         </div>
