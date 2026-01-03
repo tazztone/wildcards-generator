@@ -117,7 +117,7 @@ export const Api = {
         const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
         const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
 
-        const { result } = await this._makeRequest(systemPrompt, userPrompt, generationConfig);
+        const { result } = await this._makeRequest(globalPrompt, userPrompt, generationConfig);
         return this._parseResponse(result);
     },
 

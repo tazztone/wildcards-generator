@@ -170,7 +170,26 @@ export const DragDrop = {
         }
 
         // 3. Check for key collision in destination
-        if (destParent[srcKey]) {
+        // Allow dropping if srcParent === destParent (reordering/no-op)
+        // 3. Check for key collision in destination
+        // We must compare PATHS, not object references, because State.getParentObjectByPath returns NEW Proxy instances every time.
+        // srcParent !== destParent check implies different OBJECTS, but for proxies to same object, it's always true!
+
+        let destData = destParent[srcKey];
+        // If moving inside, destParent IS the target container.
+        // If moving before/after, destParent is the parent of the target.
+
+        // Get actual parent path of destination to compare with source parent path
+        const srcParentPath = srcPath.substring(0, srcPath.lastIndexOf('/'));
+        let destParentPath;
+        if (position === 'inside') {
+            destParentPath = destPath;
+        } else {
+            destParentPath = destPath.substring(0, destPath.lastIndexOf('/'));
+        }
+
+        // Only block if we are moving to a DIFFERENT parent and the key exists
+        if (srcParentPath !== destParentPath && destData) {
             UI.showToast("Item with this name already exists in destination", 'error');
             return;
         }

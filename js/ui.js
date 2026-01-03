@@ -184,7 +184,7 @@ export const UI = {
 
             if (isPinnedA && !isPinnedB) return -1;
             if (!isPinnedA && isPinnedB) return 1;
-            return a.localeCompare(b);
+            return String(a).localeCompare(String(b));
         });
     },
 
@@ -251,7 +251,22 @@ export const UI = {
             return;
         }
 
+        // Fix for UI Refresh issue on Import/Reset
+        // If the path is exactly ['wildcards'] or just has length 1 but we can't determine specific op,
+        // and especially if it's a 'set' operation on the root, we must re-render all.
+        if (path.length === 1 && path[0] === 'wildcards') {
+            this.renderAll();
+            return;
+        }
+
         const wildcardsPath = path.slice(1); // Remove 'wildcards' prefix
+
+        // CASE 0: Root wildcards object replaced (Import/Reset)
+        if (wildcardsPath.length === 0) {
+            this.renderAll();
+            return;
+        }
+
         const relevantKey = wildcardsPath[0];
         const stringPath = wildcardsPath.join('/');
 

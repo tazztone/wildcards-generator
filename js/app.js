@@ -338,20 +338,19 @@ export const App = {
             }
             if (e.target.matches('#reload-default-data')) {
                 UI.showNotification('Reload default wildcard data?\nYour settings will be preserved.', true, async () => {
-                    try {
-                        const response = await fetch('data/wildcards.yaml');
-                        const text = await response.text();
-                        const YAML = (await import('https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js')).default;
-                        const data = YAML.parse(text);
-                        State.saveStateToHistory();
-                        State.state.wildcards = data.wildcards || data;
-                        if (data.systemPrompt) State.state.systemPrompt = data.systemPrompt;
-                        if (data.suggestItemPrompt) State.state.suggestItemPrompt = data.suggestItemPrompt;
-                        UI.showToast('Default data reloaded', 'success');
-                    } catch (err) {
-                        console.error('Failed to reload default data:', err);
-                        UI.showToast(`Failed: ${err.message}`, 'error');
-                    }
+                    UI.toggleOverflowMenu(false);
+                    await State.resetState(); // Uses the fixed fetch('data/initial-data.yaml') in State.js
+                    UI.renderAll(); // Force UI refresh to ensure new data is shown
+                    UI.showToast('Default data reloaded', 'success');
+                });
+            }
+            // Factory Reset
+            if (e.target.matches('#factory-reset')) {
+                UI.showNotification('⚠️ Factory Reset? This will delete ALL wildcards and settings. Cannot be undone.', true, () => {
+                    UI.toggleOverflowMenu(false);
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.reload();
                 });
             }
             // Legacy reset button (if exists)
@@ -408,23 +407,6 @@ export const App = {
         document.getElementById('settings-file-input')?.addEventListener('change', (e) => ImportExport.handleLoadSettings(e));
 
         // Settings Management -> Reset Handlers
-        document.addEventListener('click', (e) => {
-            if (e.target.matches('#reload-default-data')) {
-                UI.showNotification('Reload default wildcard data? This will overwrite your current wildcards but keep settings.', true, async () => {
-                    UI.toggleOverflowMenu(false);
-                    await State.resetState(); // Actually reloads data
-                });
-            }
-            if (e.target.matches('#factory-reset')) {
-                UI.showNotification('⚠️ Factory Reset? This will delete ALL wildcards and settings. Cannot be undone.', true, () => {
-                    UI.toggleOverflowMenu(false);
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.reload();
-                });
-            }
-        });
-
         // Batch Select All
         document.getElementById('batch-select-all')?.addEventListener('change', (e) => {
             const checked = e.target.checked;
@@ -952,7 +934,9 @@ export const App = {
                 // Show modal to confirm addition (Legacy behavior)
                 // For now, let's just add them to demonstrate architecture
                 State.saveStateToHistory();
-                obj.wildcards.push(...newItems);
+                // Ensure we only push strings
+                const safeItems = newItems.map(item => (typeof item === 'object' && item !== null) ? (item.wildcard || item.text || item.value || JSON.stringify(item)) : String(item));
+                obj.wildcards.push(...safeItems);
                 // Sort logic is now handled in the state proxy trap.
                 UI.showToast(`Generated ${newItems.length} items`, 'success');
             }
@@ -1001,21 +985,33 @@ export const App = {
                 return;
             }
 
-            // Build selection dialog HTML - compact styling
+            // Build selection dialog HTML - compact styling (Densified)
             const dialogContent = `
-                <div class="space-y-2">
-                    <p class="text-sm text-gray-300 mb-2">Select ${type === 'list' ? 'wildcard lists' : 'subcategories'} to add:</p>
-                    <div class="max-h-64 overflow-y-auto space-y-1">
-                        ${suggestions.map((item, i) => `
-                            <label class="flex items-center gap-2 py-1 px-2 rounded hover:bg-gray-700 cursor-pointer">
-                                <input type="checkbox" checked data-index="${i}" class="suggestion-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500">
-                                <span class="font-medium text-white">${item.name?.replace(/_/g, ' ') || item}</span>
-                                ${item.instruction ? `<span class="text-xs text-gray-400 truncate">- ${item.instruction}</span>` : ''}
-                            </label>
-                        `).join('')}
+				<div class="space-y-2">
+					<div class="flex justify-between items-center mb-1">
+                        <p class="text-xs text-gray-400">Select ${type === 'list' ? 'wildcard lists' : 'subcategories'} to add:</p>
+                        <div class="flex gap-2">
+                            <button id="suggest-select-all" class="text-xs text-indigo-400 hover:text-indigo-300">All</button>
+                            <button id="suggest-select-none" class="text-xs text-indigo-400 hover:text-indigo-300">None</button>
+                        </div>
                     </div>
-                </div>
-            `;
+					
+					<div class="grid grid-cols-1 gap-1 max-h-[60vh] overflow-y-auto custom-scrollbar p-0.5">
+						${suggestions.map((item, i) => {
+                const name = (typeof item === 'object' && item.name) ? item.name : String(item);
+                return `
+							<label class="flex items-center gap-2 p-1.5 rounded bg-gray-700/40 hover:bg-indigo-900/40 border border-gray-600/30 hover:border-indigo-500/50 cursor-pointer transition-all group suggestion-item">
+								<input type="checkbox" id="suggest-${i}" data-index="${i}" class="suggestion-checkbox w-3.5 h-3.5 text-indigo-500 bg-gray-800 border-gray-600 rounded focus:ring-1 focus:ring-indigo-500 cursor-pointer" checked>
+								<span class="text-xs text-gray-300 group-hover:text-white truncate select-none" title="${name.replace(/_/g, ' ')}">${name.replace(/_/g, ' ')}</span>
+							</label>
+						`}).join('')}
+					</div>
+
+					<div class="flex justify-between items-center pt-2 border-t border-gray-700/50 mt-1">
+						<span class="text-xs text-gray-500">${suggestions.length} suggestions found</span>
+					</div>
+				</div>
+			`;
 
             // Show confirmation dialog
             UI.showNotification(dialogContent, true, () => {
@@ -1045,6 +1041,16 @@ export const App = {
 
                 UI.showToast(`Added ${selectedSuggestions.length} ${type === 'list' ? 'lists' : 'categories'}`, 'success');
             });
+
+            // Bind Select All/None helpers inside the dialog
+            setTimeout(() => {
+                document.getElementById('suggest-select-all')?.addEventListener('click', () => {
+                    document.querySelectorAll('.suggestion-checkbox').forEach(cb => cb.checked = true);
+                });
+                document.getElementById('suggest-select-none')?.addEventListener('click', () => {
+                    document.querySelectorAll('.suggestion-checkbox').forEach(cb => cb.checked = false);
+                });
+            }, 100);
 
         } catch (e) {
             console.error('Suggest items error:', e);

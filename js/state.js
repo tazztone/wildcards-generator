@@ -139,7 +139,7 @@ const State = {
             // If the target is an array and it belongs to a 'wildcards' list, sort it.
             // Check if path ends with 'wildcards' -> index (so path to array ends in 'wildcards')
             if (Array.isArray(target) && path.length >= 2 && path[path.length - 2] === 'wildcards') {
-                target.sort((a, b) => a.localeCompare(b));
+                target.sort((a, b) => String(a || '').localeCompare(String(b || '')));
             }
 
             // 1. Save to LocalStorage (debouncing could be added here if needed, but synchronous is safer for now)
@@ -186,7 +186,7 @@ const State = {
     async resetState(notify = true) {
         // Implementation of logic to load initial data
         try {
-            const response = await fetch('/data/initial-data.yaml');
+            const response = await fetch('data/initial-data.yaml');
             if (response.ok) {
                 const text = await response.text();
                 const doc = YAML.parseDocument(text);

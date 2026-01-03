@@ -224,6 +224,8 @@ export const ImportExport = {
         deepMerge(State.state.wildcards, processedData);
         if (simpleParsed && simpleParsed.systemPrompt) State.state.systemPrompt = simpleParsed.systemPrompt;
         if (simpleParsed && simpleParsed.suggestItemPrompt) State.state.suggestItemPrompt = simpleParsed.suggestItemPrompt;
+
+        UI.renderAll(); // FORCE REFRESH to ensure merged data is visible
         UI.showToast(`Merged ${filename}`, 'success');
     },
 
@@ -239,6 +241,8 @@ export const ImportExport = {
         State.state.wildcards = processedData;
         if (simpleParsed && simpleParsed.systemPrompt) State.state.systemPrompt = simpleParsed.systemPrompt;
         if (simpleParsed && simpleParsed.suggestItemPrompt) State.state.suggestItemPrompt = simpleParsed.suggestItemPrompt;
+
+        UI.renderAll(); // FORCE REFRESH to ensure replaced data is visible
         UI.showToast(`Imported ${filename} (${action})`, 'success');
     },
 
