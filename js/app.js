@@ -49,6 +49,38 @@ export const App = {
             }
         });
 
+        // Prevent category toggle when clicking buttons or during editing mode
+        // Also manually toggle when clicking readonly inputs (browsers block native toggle on <input>)
+        UI.elements.container.addEventListener('click', (e) => {
+            const summary = e.target.closest('summary');
+            if (summary) {
+                // Check if clicking on a button (pin, delete) or edit icon
+                if (e.target.closest('.pin-btn') || e.target.closest('.delete-btn') || e.target.classList.contains('edit-icon')) {
+                    e.preventDefault(); // Prevent toggle
+                    return;
+                }
+                // Check if any element in summary is in editing mode
+                const editableInEditMode = summary.querySelector('[contenteditable="true"]');
+                // Only check editable-input class (text inputs), not checkboxes
+                const inputInEditMode = summary.querySelector('.editable-input:not([readonly])');
+                if (editableInEditMode || inputInEditMode) {
+                    e.preventDefault(); // Prevent toggle while editing
+                    return;
+                }
+                // If clicking on a readonly input, manually toggle the details
+                // (Browsers prevent native toggle on interactive elements inside summary)
+                const clickedInput = e.target.closest('.editable-input');
+                if (clickedInput && clickedInput.readOnly) {
+                    const details = summary.closest('details');
+                    if (details) {
+                        details.open = !details.open;
+                    }
+                    // Remove focus to avoid showing focus border on single click
+                    clickedInput.blur();
+                }
+            }
+        });
+
         // Click on pencil icon also enables editing
         UI.elements.container.addEventListener('click', (e) => {
             if (e.target.classList.contains('edit-icon')) {
@@ -725,6 +757,21 @@ export const App = {
             this.handleGenerate(path);
         }
 
+        // Copy all wildcards
+        if (target.closest('.copy-btn')) {
+            const obj = State.getObjectByPath(path);
+            if (obj && obj.wildcards && obj.wildcards.length > 0) {
+                const text = obj.wildcards.join(', ');
+                navigator.clipboard.writeText(text).then(() => {
+                    UI.showToast(`Copied ${obj.wildcards.length} wildcards`, 'success');
+                }).catch(() => {
+                    UI.showToast('Failed to copy', 'error');
+                });
+            } else {
+                UI.showToast('No wildcards to copy', 'info');
+            }
+        }
+
         // Card Batch Actions
         if (target.closest('.batch-delete-btn')) {
             const card = target.closest('.wildcard-card');
@@ -756,9 +803,12 @@ export const App = {
             const card = target.closest('.wildcard-card');
             if (!card) return;
             const checkboxes = card.querySelectorAll('.batch-select');
+            const btn = target.closest('.select-all-btn');
             // If any is unchecked, select all. If all checked, deselect all.
             const allChecked = Array.from(checkboxes).every(cb => cb.checked);
             checkboxes.forEach(cb => cb.checked = !allChecked);
+            // Update button text
+            btn.textContent = allChecked ? 'Select All' : 'Deselect All';
         }
     },
 

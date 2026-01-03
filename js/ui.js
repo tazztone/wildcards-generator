@@ -1056,7 +1056,7 @@ export const UI = {
                     <input type="checkbox" aria-label="Select category ${sanitize(name.replace(/_/g, ' '))}" class="category-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" onclick="event.stopPropagation();">
                     <h2 class="text-xl font-semibold text-accent select-none editable-wrapper"><span class="editable-name category-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit category name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span></h2>
                     <div class="editable-wrapper flex-grow items-center">
-                    <input type="text" readonly aria-label="Folder instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 w-full transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}" onclick="event.stopPropagation();">
+                    <input type="text" readonly aria-label="Folder instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 w-full transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}">
                     <span class="edit-icon" title="Double-click to edit">✏️</span>
                 </div>
                 </div>
