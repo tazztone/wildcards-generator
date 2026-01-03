@@ -1,6 +1,6 @@
 import { State } from './state.js';
 import { sanitize } from './utils.js';
-import { Config, saveConfig, getEffectivePrompt, setCustomPrompt, isUsingDefault, resetToDefault } from './config.js';
+import { Config, saveConfig, saveApiKey, getEffectivePrompt, setCustomPrompt, isUsingDefault, resetToDefault } from './config.js';
 
 export const UI = {
     elements: {},
@@ -552,9 +552,21 @@ export const UI = {
             }
 
             // Check Persistence state
+            const rememberCheckbox = clone.querySelector('.api-key-remember');
             if (localStorage.getItem(`wildcards_api_key_${p.id}`)) {
-                clone.querySelector('.api-key-remember').checked = true;
+                rememberCheckbox.checked = true;
             }
+
+            // Bind API Key Saving
+            const handleSaveKey = () => {
+                const key = apiKeyInput.value.trim();
+                const persist = rememberCheckbox.checked;
+                saveApiKey(p.id, key, persist);
+            };
+
+            apiKeyInput.addEventListener('input', handleSaveKey);
+            apiKeyInput.addEventListener('change', handleSaveKey);
+            rememberCheckbox.addEventListener('change', handleSaveKey);
 
             // Model Name Input Wrapper
             const modelInputWrapper = document.createElement('div');
@@ -580,6 +592,21 @@ export const UI = {
             };
 
             modelInput.addEventListener('input', updateClearBtn);
+
+            // AUTO-SAVE MODEL NAME
+            const configModelKey = `MODEL_NAME_${p.id.toUpperCase()}`;
+            if (Config[configModelKey]) {
+                modelInput.value = Config[configModelKey];
+            }
+
+            const saveModelName = () => {
+                Config[configModelKey] = modelInput.value;
+                saveConfig();
+            };
+
+            modelInput.addEventListener('input', saveModelName);
+            modelInput.addEventListener('change', saveModelName);
+
             // Initial check
             setTimeout(updateClearBtn, 100);
 
