@@ -742,11 +742,36 @@ export const App = {
 
         // Copy all wildcards
         if (target.closest('.copy-btn')) {
+            const btn = target.closest('.copy-btn');
             const obj = State.getObjectByPath(path);
             if (obj && obj.wildcards && obj.wildcards.length > 0) {
                 const text = obj.wildcards.join(', ');
                 navigator.clipboard.writeText(text).then(() => {
                     UI.showToast(`Copied ${obj.wildcards.length} wildcards`, 'success');
+
+                    // Visual Feedback
+                    const originalTitle = btn.dataset.originalTitle || 'Copy all wildcards';
+                    const iconSpan = btn.querySelector('.btn-icon');
+
+                    if (iconSpan) {
+                         // Swap to Checkmark
+                         iconSpan.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    }
+
+                    btn.classList.add('text-green-400');
+                    btn.title = 'Copied!';
+                    btn.setAttribute('aria-label', 'Copied!');
+
+                    setTimeout(() => {
+                        btn.classList.remove('text-green-400');
+                        btn.title = originalTitle;
+                        btn.setAttribute('aria-label', originalTitle);
+                        if (iconSpan) {
+                            // Restore original icon (Copy)
+                            iconSpan.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+                        }
+                    }, 2000);
+
                 }).catch(() => {
                     UI.showToast('Failed to copy', 'error');
                 });
