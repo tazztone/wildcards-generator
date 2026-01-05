@@ -233,4 +233,34 @@ test.describe('Duplicate Cleaning Logic', () => {
         result = await page.evaluate(() => window.State.findDuplicates());
         expect(result.duplicates.length).toBe(1);
     });
+
+    test('Clean Duplicates - Same Category', async ({ page }) => {
+        await page.evaluate(() => {
+            window.State._rawData.wildcards = {
+                "2 ACTION POSE AND EMOTION": {
+                    "DYNAMIC ACTIONS": {
+                        "Interaction": { wildcards: ['teaching', 'teaching'] }
+                    }
+                }
+            };
+            window.State._initProxy();
+        });
+
+        // Verify setup
+        let duplicates = await page.evaluate(() => window.State.findDuplicates().duplicates);
+        expect(duplicates.length).toBe(1);
+        expect(duplicates[0].count).toBe(2);
+
+        // Execute Clean
+        const removedCount = await page.evaluate(() => {
+            const dupes = window.State.findDuplicates().duplicates;
+            return window.State.cleanDuplicates(dupes, 'shortest-path');
+        });
+
+        expect(removedCount).toBe(1);
+
+        // Verify result
+        const resultingWildcards = await page.evaluate(() => window.State._rawData.wildcards);
+        expect(resultingWildcards["2 ACTION POSE AND EMOTION"]["DYNAMIC ACTIONS"]["Interaction"].wildcards).toHaveLength(1);
+    });
 });

@@ -433,6 +433,7 @@ const State = {
         this.saveStateToHistory(); // Crucial: Undo point
 
         let removedCount = 0;
+        let requiresUpdate = false;
 
         // Process each duplicate group
         duplicates.forEach(dupe => {
@@ -458,20 +459,35 @@ const State = {
             const toRemove = sortedLocs.slice(1);
 
             toRemove.forEach(loc => {
-                const parent = this.getObjectByPath(loc.path);
-                if (parent && parent.wildcards) {
-                    // Find index again carefully as arrays mutate?
-                    // Actually, if we delete from array, indices shift.
-                    // Better approach: collect all updates then apply? 
-                    // Or since we have path + original name, we can find by name.
+                // Operate on _rawData directly to avoid Proxy traps and side effects during bulk delete
+                let parent = this._rawData.wildcards;
+                const parts = loc.path.split('/');
+                for (const part of parts) {
+                    if (parent && parent[part] !== undefined) {
+                        parent = parent[part];
+                    } else {
+                        parent = undefined;
+                        break;
+                    }
+                }
+
+                if (parent && parent.wildcards && Array.isArray(parent.wildcards)) {
+                    // Find index by value
                     const idx = parent.wildcards.findIndex(w => w.toLowerCase().trim() === dupe.normalized);
                     if (idx !== -1) {
                         parent.wildcards.splice(idx, 1);
                         removedCount++;
+                        requiresUpdate = true;
                     }
                 }
             });
         });
+
+        if (requiresUpdate) {
+            this._saveToLocalStorage();
+            // Dispatch reset to force full UI refresh since we bypassed proxy events
+            this.events.dispatchEvent(new CustomEvent('state-reset'));
+        }
 
         return removedCount;
     }
