@@ -679,7 +679,8 @@
     </div>
 
     <!-- Batch Operations Bar -->
-    <div id="batch-ops-bar" class="mb-4 flex flex-wrap items-center gap-4 bg-gray-800 p-3 rounded-lg hidden">
+    <div id="batch-ops-bar"
+        class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex flex-wrap items-center gap-4 bg-gray-900/95 backdrop-blur border border-gray-700 p-3 rounded-xl shadow-2xl hidden transition-all duration-300">
         <label class="flex items-center gap-2 cursor-pointer text-sm">
             <input type="checkbox" id="batch-select-all"
                 class="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500">
@@ -687,15 +688,26 @@
         </label>
         <span id="batch-count" class="text-sm text-gray-400">(0 selected)</span>
         <div class="flex gap-2 ml-auto">
+            <button id="batch-suggest-folders"
+                class="bg-purple-600 hover:bg-purple-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
+                title="Suggest subcategories for selected" disabled>Suggest Folders</button>
+            <button id="batch-suggest-lists"
+                class="bg-purple-600 hover:bg-purple-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
+                title="Suggest wildcard lists for selected" disabled>Suggest Lists</button>
+            <div class="w-px h-6 bg-gray-600 mx-1"></div>
+            <button id="batch-generate"
+                class="bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
+                title="Generate wildcards for all lists in selected categories" disabled>Generate Content</button>
+            <div class="w-px h-6 bg-gray-600 mx-1"></div>
             <button id="batch-expand"
                 class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
-                title="Expand all selected categories" disabled>Expand Selected</button>
+                title="Expand all selected categories" disabled>Expand</button>
             <button id="batch-collapse"
                 class="bg-gray-600 hover:bg-gray-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
-                title="Collapse all selected categories" disabled>Collapse Selected</button>
+                title="Collapse all selected categories" disabled>Collapse</button>
             <button id="batch-delete"
                 class="bg-red-600 hover:bg-red-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
-                title="Delete all selected categories" disabled>Delete Selected</button>
+                title="Delete all selected categories" disabled>Delete</button>
         </div>
     </div>
 

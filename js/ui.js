@@ -1258,7 +1258,8 @@ export const UI = {
                 </svg>
             </button>
             <div class="text-xs text-gray-400 mb-1 uppercase tracking-wider">${sanitize(parentPath)}</div>
-            <div class="flex justify-between items-center mb-2">
+            <div class="flex justify-between items-center mb-2 gap-3">
+                <input type="checkbox" aria-label="Select list ${sanitize(name.replace(/_/g, ' '))}" class="card-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500 flex-shrink-0" onclick="event.stopPropagation();">
                 <h3 class="font-bold text-lg text-gray-100 flex-grow editable-wrapper"><span class="editable-name wildcard-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit list name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span> <span class="wildcard-count text-gray-400 text-sm ml-2" title="${(data.wildcards || []).length} items in this list">(${(data.wildcards || []).length})</span></h3>
             </div>
             <div class="editable-wrapper w-full items-center my-2">

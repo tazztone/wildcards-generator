@@ -419,6 +419,9 @@ export const App = {
             if (target.matches('#batch-expand')) this.handleBatchAction('expand');
             if (target.matches('#batch-collapse')) this.handleBatchAction('collapse');
             if (target.matches('#batch-delete')) this.handleBatchAction('delete');
+            if (target.matches('#batch-generate')) this.handleBatchAction('generate');
+            if (target.matches('#batch-suggest-folders')) this.handleBatchAction('suggest-folders');
+            if (target.matches('#batch-suggest-lists')) this.handleBatchAction('suggest-lists');
         });
 
         // Settings File Input Handler
@@ -428,12 +431,12 @@ export const App = {
         // Batch Select All
         document.getElementById('batch-select-all')?.addEventListener('change', (e) => {
             const checked = /** @type {HTMLInputElement} */ (e.target).checked;
-            document.querySelectorAll('.category-batch-checkbox').forEach(cb => /** @type {HTMLInputElement} */(cb).checked = checked);
+            document.querySelectorAll('.category-batch-checkbox, .card-batch-checkbox').forEach(cb => /** @type {HTMLInputElement} */(cb).checked = checked);
             this.updateBatchUI();
         });
         UI.elements.container.addEventListener('change', (e) => {
             const containerTarget = /** @type {HTMLElement} */ (e.target);
-            if (containerTarget.matches('.category-batch-checkbox')) {
+            if (containerTarget.matches('.category-batch-checkbox') || containerTarget.matches('.card-batch-checkbox')) {
                 this.updateBatchUI();
             }
         });
@@ -490,36 +493,53 @@ export const App = {
     },
 
     handleBatchAction(action) {
-        const selectedCheckboxes = document.querySelectorAll('.category-batch-checkbox:checked');
+        const selectedCheckboxes = document.querySelectorAll('.category-batch-checkbox:checked, .card-batch-checkbox:checked');
         if (selectedCheckboxes.length === 0) return;
-        const categories = /** @type {HTMLDetailsElement[]} */ (Array.from(selectedCheckboxes).map(cb => cb.closest('details[data-path]')));
+
+        // Get all selected items (folders AND cards)
+        const items = Array.from(selectedCheckboxes).map(cb => cb.closest('[data-path]'));
+        // Separate them
+        const folders = items.filter(el => el && el.tagName === 'DETAILS');
+        // Cards are usually divs with wildcard-card class
+        // const cards = items.filter(el => el && el.classList.contains('wildcard-card'));
+
         if (action === 'expand') {
-            categories.forEach(cat => { if (cat) cat.open = true; });
-            UI.showToast(`Expanded ${categories.length} categories`, 'success');
+            folders.forEach(cat => { if (cat) /** @type {HTMLDetailsElement} */(cat).open = true; });
+            if (folders.length) UI.showToast(`Expanded ${folders.length} categories`, 'success');
         } else if (action === 'collapse') {
-            categories.forEach(cat => { if (cat) cat.open = false; });
-            UI.showToast(`Collapsed ${categories.length} categories`, 'success');
+            folders.forEach(cat => { if (cat) /** @type {HTMLDetailsElement} */(cat).open = false; });
+            if (folders.length) UI.showToast(`Collapsed ${folders.length} categories`, 'success');
         } else if (action === 'delete') {
-            UI.showNotification(`Delete ${categories.length} selected categories?`, true, () => {
+            UI.showNotification(`Delete ${items.length} selected items?`, true, () => {
                 State.saveStateToHistory();
-                categories.forEach(cat => {
-                    if (cat && cat.dataset.path) {
-                        const path = cat.dataset.path;
+                items.forEach(el => {
+                    const path = /** @type {HTMLElement} */(el).dataset.path;
+                    if (path) {
                         const parts = path.split('/');
                         const keyToDelete = parts.pop();
                         const parent = parts.length > 0 ? State.getObjectByPath(parts.join('/')) : State.state.wildcards;
                         if (parent) delete parent[keyToDelete];
                     }
                 });
-                UI.showToast(`Deleted ${categories.length} categories`, 'success');
+                UI.showToast(`Deleted ${items.length} items`, 'success');
             });
+        } else if (action === 'generate') {
+            // Can generate for both folders (recursive) and cards (direct)
+            this.handleBatchGenerate(/** @type {HTMLElement[]} */(items));
+        } else if (action === 'suggest-folders' || action === 'suggest-lists') {
+            // Only for folders
+            if (folders.length > 0) {
+                this.handleBatchSuggest(/** @type {HTMLElement[]} */(folders), action === 'suggest-folders' ? 'folder' : 'list');
+            } else {
+                UI.showToast('Select categories to use suggestions', 'warning');
+            }
         }
         /** @type {HTMLInputElement|null} */ (document.getElementById('batch-select-all')).checked = false;
         this.updateBatchUI();
     },
 
     updateBatchUI() {
-        const selected = document.querySelectorAll('.category-batch-checkbox:checked');
+        const selected = document.querySelectorAll('.category-batch-checkbox:checked, .card-batch-checkbox:checked');
         const count = selected.length;
         document.getElementById('batch-count').textContent = `(${count} selected)`;
         const hasSelection = count > 0;
@@ -528,20 +548,32 @@ export const App = {
         const expandBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-expand'));
         const collapseBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-collapse'));
         const deleteBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-delete'));
+        const generateBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-generate'));
+        const suggestFoldersBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-suggest-folders'));
+        const suggestListsBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-suggest-lists'));
 
         if (expandBtn) expandBtn.disabled = !hasSelection;
         if (collapseBtn) collapseBtn.disabled = !hasSelection;
         if (deleteBtn) deleteBtn.disabled = !hasSelection;
+        if (generateBtn) generateBtn.disabled = !hasSelection;
+        if (suggestFoldersBtn) suggestFoldersBtn.disabled = !hasSelection;
+        if (suggestListsBtn) suggestListsBtn.disabled = !hasSelection;
 
         // Update titles to explain state
         if (hasSelection) {
             if (expandBtn) expandBtn.title = `Expand ${count} selected categories`;
             if (collapseBtn) collapseBtn.title = `Collapse ${count} selected categories`;
             if (deleteBtn) deleteBtn.title = `Delete ${count} selected categories`;
+            if (generateBtn) generateBtn.title = `Generate content for wildcards inside ${count} categories`;
+            if (suggestFoldersBtn) suggestFoldersBtn.title = `Suggest subfolders for ${count} categories`;
+            if (suggestListsBtn) suggestListsBtn.title = `Suggest wildcard lists for ${count} categories`;
         } else {
             if (expandBtn) expandBtn.title = 'Select categories to expand';
             if (collapseBtn) collapseBtn.title = 'Select categories to collapse';
             if (deleteBtn) deleteBtn.title = 'Select categories to delete';
+            if (generateBtn) generateBtn.title = 'Select categories to generate content';
+            if (suggestFoldersBtn) suggestFoldersBtn.title = 'Select categories to suggest subfolders';
+            if (suggestListsBtn) suggestListsBtn.title = 'Select categories to suggest lists';
         }
 
         document.getElementById('batch-ops-bar').classList.toggle('hidden', !hasSelection);
@@ -982,9 +1014,186 @@ export const App = {
             console.error('Suggest items error:', e);
             UI.showNotification(`Failed to get suggestions: ${e.message}`);
         }
-    }
+    },
     // Drag-and-drop functionality is now in js/modules/drag-drop.js
     // Import/export functionality is now in js/modules/import-export.js
     // Settings verification is now in js/modules/settings.js
+
+    async handleBatchGenerate(categories) {
+        const tasks = [];
+        // Find all wildcard lists recursively
+        const collectLists = (obj, currentPath) => {
+            if (obj.wildcards && Array.isArray(obj.wildcards)) {
+                tasks.push({ path: currentPath, count: obj.wildcards.length });
+            } else {
+                Object.keys(obj).forEach(key => {
+                    if (key !== 'instruction' && typeof obj[key] === 'object') {
+                        collectLists(obj[key], `${currentPath}/${key}`);
+                    }
+                });
+            }
+        };
+
+        categories.forEach(cat => {
+            if (cat && cat.dataset.path) {
+                const path = cat.dataset.path;
+                const obj = State.getObjectByPath(path);
+                if (obj) collectLists(obj, path);
+            }
+        });
+
+        if (tasks.length === 0) {
+            UI.showToast('No wildcard lists found in selected categories', 'info');
+            return;
+        }
+
+        UI.showNotification(`Found ${tasks.length} wildcard lists.\nGenerate content for all of them?`, true, async () => {
+            UI.showToast('Starting batch generation...', 'info');
+
+            // Execute sequentially to be nice to API
+            for (let i = 0; i < tasks.length; i++) {
+                const task = tasks[i];
+                const cleanName = task.path.split('/').pop().replace(/_/g, ' ');
+                UI.showToast(`Generating for "${cleanName}" (${i + 1}/${tasks.length})...`, 'info');
+
+                // Scroll to item
+                const card = document.querySelector(`.wildcard-card[data-path="${task.path}"]`);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Expand parents if hidden? ensure visibility
+                }
+
+                await this.handleGenerate(task.path);
+
+                // Small delay between requests
+                await new Promise(r => setTimeout(r, 500));
+            }
+            UI.showToast('Batch generation complete!', 'success');
+        });
+    },
+
+    async handleBatchSuggest(categories, type) {
+        UI.showNotification(`Suggest ${type === 'folder' ? 'sub-folders' : 'wildcard lists'} for ${categories.length} selected categories?`, true, async () => {
+
+            UI.showToast('Generating suggestions batch...', 'info');
+            const allResults = [];
+
+            // 1. Fetch suggestions for all categories
+            for (let i = 0; i < categories.length; i++) {
+                const cat = categories[i];
+                if (!cat.dataset.path) continue;
+                const path = cat.dataset.path;
+                const parent = State.getObjectByPath(path);
+                if (!parent) continue;
+
+                const cleanName = path.split('/').pop().replace(/_/g, ' ');
+                const existingStructure = Object.keys(parent).filter(k => k !== 'instruction' && k !== 'wildcards');
+
+                try {
+                    const { suggestions } = await Api.suggestItems(
+                        path,
+                        existingStructure,
+                        State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT
+                    );
+                    if (suggestions && suggestions.length > 0) {
+                        allResults.push({ path, name: cleanName, suggestions, parent });
+                    }
+                } catch (e) {
+                    console.error(`Failed to suggest for ${path}`, e);
+                }
+            }
+
+            if (allResults.length === 0) {
+                UI.showToast('No suggestions returned', 'info');
+                return;
+            }
+
+            // 2. Build Combined Selection Dialog
+            // We need a way to map checkboxes back to specific suggestions.
+            // unique ID: "batch-suggest-${resultIndex}-${suggestionIndex}"
+
+            const dialogContent = `
+				<div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar p-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <p class="text-xs text-gray-400">Review suggestions for ${allResults.length} categories:</p>
+                        <div class="flex gap-2">
+                             <button id="batch-suggest-select-all" class="text-xs text-indigo-400 hover:text-indigo-300">All</button>
+                             <button id="batch-suggest-select-none" class="text-xs text-indigo-400 hover:text-indigo-300">None</button>
+                        </div>
+                    </div>
+
+                    ${allResults.map((result, rIdx) => `
+                        <div class="bg-gray-800/50 rounded p-2 border border-gray-700/50">
+                            <h4 class="font-bold text-gray-300 text-sm mb-2 sticky top-0 bg-gray-800/90 py-1">${result.name}</h4>
+                            <div class="grid grid-cols-1 gap-1">
+                                ${result.suggestions.map((item, sIdx) => {
+                const name = (typeof item === 'object' && item.name) ? item.name : String(item);
+                return `
+                                    <label class="flex items-center gap-2 p-1 rounded hover:bg-indigo-900/30 cursor-pointer">
+                                        <input type="checkbox" 
+                                            class="batch-suggestion-checkbox w-3.5 h-3.5 text-indigo-500 bg-gray-800 border-gray-600 rounded" 
+                                            data-result-index="${rIdx}" 
+                                            data-suggestion-index="${sIdx}"
+                                            checked>
+                                        <span class="text-xs text-gray-400 select-none">${name.replace(/_/g, ' ')}</span>
+                                    </label>
+                                    `;
+            }).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+
+					<div class="flex justify-between items-center pt-2 border-t border-gray-700/50 mt-1">
+						<span class="text-xs text-gray-500">Total ${allResults.reduce((acc, r) => acc + r.suggestions.length, 0)} suggestions</span>
+					</div>
+				</div>
+			`;
+
+            UI.showNotification(dialogContent, true, () => {
+                // 3. Process Selection
+                const checkboxes = document.querySelectorAll('.batch-suggestion-checkbox:checked');
+                if (checkboxes.length === 0) {
+                    UI.showToast('No items selected', 'info');
+                    return;
+                }
+
+                State.saveStateToHistory();
+                let addedCount = 0;
+
+                checkboxes.forEach(cb => {
+                    const rIdx = parseInt(/** @type {HTMLElement} */(cb).dataset.resultIndex);
+                    const sIdx = parseInt(/** @type {HTMLElement} */(cb).dataset.suggestionIndex);
+
+                    const result = allResults[rIdx];
+                    const item = result.suggestions[sIdx];
+                    const parent = result.parent;
+
+                    const name = item.name || item;
+                    const key = String(name).trim().replace(/\s+/g, '_');
+
+                    if (!parent[key]) {
+                        if (type === 'list') {
+                            parent[key] = { instruction: item.instruction || '', wildcards: [] };
+                        } else {
+                            parent[key] = { instruction: item.instruction || '' };
+                        }
+                        addedCount++;
+                    }
+                });
+
+                UI.showToast(`Batch added ${addedCount} items across ${allResults.length} categories`, 'success');
+            });
+
+            // Bind helpers
+            setTimeout(() => {
+                document.getElementById('batch-suggest-select-all')?.addEventListener('click', () => {
+                    document.querySelectorAll('.batch-suggestion-checkbox').forEach(cb => /** @type {HTMLInputElement} */(cb).checked = true);
+                });
+                document.getElementById('batch-suggest-select-none')?.addEventListener('click', () => {
+                    document.querySelectorAll('.batch-suggestion-checkbox').forEach(cb => /** @type {HTMLInputElement} */(cb).checked = false);
+                });
+            }, 100);
+        });
+    }
 };
 
