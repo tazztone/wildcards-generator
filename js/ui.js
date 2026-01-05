@@ -1251,6 +1251,15 @@ export const UI = {
             inputElement = document.createElement('input');
             inputElement.type = 'text';
             inputElement.className = 'bg-gray-900 border border-gray-600 rounded-md p-2 text-sm w-full mt-4';
+
+            // UX: Allow Enter key to confirm
+            inputElement.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.elements.dialogConfirm.click();
+                }
+            });
+
             this.elements.dialogMessage.appendChild(inputElement);
             setTimeout(() => inputElement.focus(), 100);
         }

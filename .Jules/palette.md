@@ -12,3 +12,8 @@
 
 **Learning:** For rapid data entry (e.g., adding multiple items to a list), merely preventing the default 'Enter' behavior isn't enough. Reactive UI updates (like adding an item to the state) often trigger re-renders that destroy and recreate DOM elements, causing focus loss.
 **Action:** When implementing rapid entry, ensure that the UI update mechanism either (a) uses targeted updates that preserve the input element (as `updateCardContent` does here) or (b) explicitly re-focuses the input element after the update operation. In this case, `input.focus()` was added to `js/app.js` to ensure robustness even if timing is tight.
+
+## 2024-05-24 - Dialog Keyboard Support
+
+**Learning:** Modal dialogs with input fields interrupt flow if they require a mouse click to confirm. Users expect to type and hit Enter.
+**Action:** When dynamically creating input fields in dialogs/modals (like in `js/ui.js`), always attach a `keydown` listener to trigger the confirmation action on `Enter`.
