@@ -1357,8 +1357,10 @@ export const UI = {
         let inputElement = null;
 
         if (message.trim().startsWith('<')) {
+            this.elements.dialogMessage.classList.remove('whitespace-pre-wrap');
             this.elements.dialogMessage.innerHTML = message;
         } else {
+            this.elements.dialogMessage.classList.add('whitespace-pre-wrap');
             const p = document.createElement('p');
             p.textContent = message;
             this.elements.dialogMessage.appendChild(p);
