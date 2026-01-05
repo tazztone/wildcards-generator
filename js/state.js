@@ -378,6 +378,102 @@ const State = {
             return node.value;
         }
         return {};
+    },
+
+    /**
+     * Find duplicate wildcards across the entire dataset.
+     * @returns {{duplicates: Array, duplicateMap: Set}}
+     */
+    findDuplicates() {
+        const wildcardMap = new Map();
+
+        const scanData = (data, path) => {
+            Object.keys(data).filter(k => k !== 'instruction').forEach(key => {
+                const item = data[key];
+                const currentPath = path ? `${path}/${key}` : key;
+
+                if (item.wildcards && Array.isArray(item.wildcards)) {
+                    item.wildcards.forEach((wildcard, idx) => {
+                        const normalized = wildcard.toLowerCase().trim();
+                        if (!wildcardMap.has(normalized)) wildcardMap.set(normalized, []);
+                        wildcardMap.get(normalized).push({ path: currentPath, original: wildcard, index: idx });
+                    });
+                } else if (typeof item === 'object' && item !== null) {
+                    scanData(item, currentPath);
+                }
+            });
+        };
+
+        scanData(this.state.wildcards, '');
+
+        const duplicates = [];
+        const duplicateNormalized = new Set();
+
+        wildcardMap.forEach((locations, normalized) => {
+            if (locations.length > 1) {
+                duplicates.push({ normalized, locations, count: locations.length });
+                duplicateNormalized.add(normalized);
+            }
+        });
+
+        // Sort by count descending
+        duplicates.sort((a, b) => b.count - a.count);
+
+        return { duplicates, duplicateMap: duplicateNormalized };
+    },
+
+    /**
+     * Remove duplicates based on a strategy.
+     * @param {Array} duplicates - The duplicates array from findDuplicates
+     * @param {'shortest-path'|'longest-path'} strategy
+     */
+    cleanDuplicates(duplicates, strategy) {
+        if (!duplicates || duplicates.length === 0) return 0;
+
+        this.saveStateToHistory(); // Crucial: Undo point
+
+        let removedCount = 0;
+
+        // Process each duplicate group
+        duplicates.forEach(dupe => {
+            // Sort locations based on strategy to determine which one to KEEP
+            const sortedLocs = [...dupe.locations].sort((a, b) => {
+                const lenA = a.path.split('/').length;
+                const lenB = b.path.split('/').length;
+
+                if (strategy === 'shortest-path') {
+                    // We want shortest first (to keep)
+                    // If lengths equal, sort by path string to be deterministic
+                    if (lenA !== lenB) return lenA - lenB;
+                    return a.path.localeCompare(b.path);
+                } else {
+                    // longest-path: We want longest first (to keep)
+                    if (lenA !== lenB) return lenB - lenA;
+                    return a.path.localeCompare(b.path);
+                }
+            });
+
+            // Keep the first one, delete the rest
+            const toKeep = sortedLocs[0];
+            const toRemove = sortedLocs.slice(1);
+
+            toRemove.forEach(loc => {
+                const parent = this.getObjectByPath(loc.path);
+                if (parent && parent.wildcards) {
+                    // Find index again carefully as arrays mutate?
+                    // Actually, if we delete from array, indices shift.
+                    // Better approach: collect all updates then apply? 
+                    // Or since we have path + original name, we can find by name.
+                    const idx = parent.wildcards.findIndex(w => w.toLowerCase().trim() === dupe.normalized);
+                    if (idx !== -1) {
+                        parent.wildcards.splice(idx, 1);
+                        removedCount++;
+                    }
+                }
+            });
+        });
+
+        return removedCount;
     }
 };
 

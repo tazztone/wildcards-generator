@@ -1564,6 +1564,182 @@ export const UI = {
     },
 
     /**
+     * Show the duplicates management dialog
+     * @param {Array} duplicates - List of duplicate objects
+     */
+    showCheckDuplicatesDialog(duplicates) {
+        const totalOccurrences = duplicates.reduce((sum, d) => sum + d.count, 0);
+
+        // Build the main dialog content
+        const message = `
+<div class="text-left space-y-4">
+    <div class="flex items-center justify-between">
+        <h3 class="text-xl font-bold text-white">Duplicate Check</h3>
+        <span class="bg-red-900/50 text-red-200 text-xs px-2 py-1 rounded border border-red-800">${duplicates.length} conflicts / ${totalOccurrences} items</span>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <button id="dupe-highlight" class="flex flex-col items-start p-3 bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-800/50 rounded-lg transition-all group">
+            <span class="flex items-center gap-2 font-bold text-yellow-500 group-hover:text-yellow-400">
+                <span>🔆</span> Highlight All
+            </span>
+            <span class="text-xs text-gray-500 mt-1">Visually mark duplicates in red</span>
+        </button>
+        
+        <button id="dupe-filter" class="flex flex-col items-start p-3 bg-blue-900/20 hover:bg-blue-900/40 border border-blue-800/50 rounded-lg transition-all group">
+            <span class="flex items-center gap-2 font-bold text-blue-500 group-hover:text-blue-400">
+                <span>🔍</span> Filter View
+            </span>
+            <span class="text-xs text-gray-500 mt-1">Show only cards with duplicates</span>
+        </button>
+    </div>
+
+    <div class="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+        <h4 class="font-bold text-gray-300 text-sm mb-2">Clean Up Tools</h4>
+        <div class="grid grid-cols-1 gap-2">
+            <button id="dupe-clean-shortest" class="text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors flex justify-between items-center group">
+                <span>Keep <span class="text-green-400 font-semibold">Shortest Path</span> (Top-level)</span>
+                <span class="opacity-0 group-hover:opacity-100 text-xs text-gray-400">Rec.</span>
+            </button>
+            <button id="dupe-clean-longest" class="text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors">
+                <span>Keep <span class="text-purple-400 font-semibold">Longest Path</span> (Nested)</span>
+            </button>
+        </div>
+    </div>
+
+    <details class="bg-gray-900/50 rounded-lg border border-gray-800">
+        <summary class="p-2 cursor-pointer text-gray-400 hover:text-gray-300 text-sm font-medium select-none">
+            View Duplicate List
+        </summary>
+        <div class="p-2 pt-0 max-h-40 overflow-y-auto custom-scrollbar">
+            <ul class="space-y-1 text-sm">
+                ${duplicates.map(d => `
+                    <li class="flex justify-between items-start py-1 border-b border-gray-800 last:border-0">
+                        <span class="text-gray-300 font-mono text-xs bg-gray-800 px-1 rounded">"${d.normalized}"</span>
+                        <span class="text-gray-500 text-xs text-right whitespace-nowrap ml-2">${d.count} locs</span>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    </details>
+
+    <div class="flex justify-end pt-2 border-t border-gray-700">
+        <button id="dupe-clear" class="text-gray-400 hover:text-white text-sm underline px-2">Clear Highlights</button>
+    </div>
+</div>
+`;
+
+        this.showNotification(message, false, null, false);
+
+        // Bind actions
+        setTimeout(() => {
+            document.getElementById('dupe-highlight')?.addEventListener('click', () => {
+                this.highlightDuplicates(duplicates);
+                this.elements.dialog.close();
+            });
+            document.getElementById('dupe-filter')?.addEventListener('click', () => {
+                this.filterToDuplicates(duplicates);
+                this.elements.dialog.close();
+            });
+            document.getElementById('dupe-clear')?.addEventListener('click', () => {
+                this.clearDuplicateHighlights();
+                this.elements.dialog.close();
+            });
+
+            // Cleaning actions
+            document.getElementById('dupe-clean-shortest')?.addEventListener('click', () => {
+                this.handleCleanDuplicates(duplicates, 'shortest-path');
+            });
+            document.getElementById('dupe-clean-longest')?.addEventListener('click', () => {
+                this.handleCleanDuplicates(duplicates, 'longest-path');
+            });
+        }, 100);
+    },
+
+    handleCleanDuplicates(duplicates, strategy) {
+        const removed = State.cleanDuplicates(duplicates, strategy);
+        this.elements.dialog.close();
+
+        if (removed > 0) {
+            UI.showToast(`Cleaned up ${removed} duplicates.`, 'success');
+            // Refresh logic handled by State proxy -> handleStateUpdate -> renderAll (usually)
+            // But since cleanDuplicates might modify multiple nested arrays silently without triggering full replaces in a way UI expects for granular reflow, 
+            // or if we did granular, it might be complex. 
+            // cleanDuplicates in State triggers delete/splice on arrays. Proxy should catch 'set'/'deleteProperty'.
+            // However, array splice triggers multiple ops. 
+            // Let's force a reload or check if reactive updates covered it. State.proxy usually handles array mutations.
+        } else {
+            UI.showToast('No duplicates removed.', 'info');
+        }
+    },
+
+    highlightDuplicates(duplicates) {
+        if (!duplicates || duplicates.length === 0) return;
+
+        const duplicateMap = new Set(duplicates.map(d => d.normalized));
+        const chips = document.querySelectorAll('.chip');
+        let count = 0;
+
+        chips.forEach(chip => {
+            const nameEl = chip.querySelector('.editable-name');
+            if (nameEl) {
+                const text = nameEl.textContent?.toLowerCase().trim();
+                if (text && duplicateMap.has(text)) {
+                    chip.classList.add('chip-duplicate');
+                    count++;
+                }
+            }
+        });
+
+        UI.showToast(`Highlighted ${count} occurrences`, 'success');
+    },
+
+    filterToDuplicates(duplicates) {
+        if (!duplicates || duplicates.length === 0) return;
+
+        const paths = new Set();
+        duplicates.forEach(d => d.locations.forEach(loc => paths.add(loc.path)));
+
+        // Hide all cards first
+        document.querySelectorAll('.wildcard-card').forEach(card => {
+            const path = /** @type {HTMLElement} */ (card).dataset.path;
+            if (paths.has(path)) {
+                card.classList.remove('hidden');
+                card.classList.add('duplicate-focus');
+
+                // Expand parents
+                const parts = path.split('/');
+                let currentPath = '';
+                parts.forEach((part, i) => {
+                    currentPath += (i > 0 ? '/' : '') + part;
+                    const details = document.querySelector(`details[data-path="${currentPath}"]`);
+                    if (details) /** @type {HTMLDetailsElement} */ (details).open = true;
+                });
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        this.highlightDuplicates(duplicates);
+        UI.showToast(`Filtered to ${paths.size} lists with duplicates`, 'success');
+    },
+
+    clearDuplicateHighlights() {
+        document.querySelectorAll('.chip-duplicate').forEach(el => el.classList.remove('chip-duplicate'));
+        document.querySelectorAll('.duplicate-focus').forEach(el => el.classList.remove('duplicate-focus'));
+
+        // Restore visibility (simple reset search like behavior)
+        const searchInput = /** @type {HTMLInputElement} */ (document.getElementById('search-wildcards'));
+        if (searchInput && searchInput.value) {
+            this.handleSearch(searchInput.value);
+        } else {
+            document.querySelectorAll('.wildcard-card.hidden').forEach(el => el.classList.remove('hidden'));
+        }
+
+        UI.showToast('Cleared highlights', 'info');
+    },
+
+    /**
      * Toggle the overflow menu visibility
      * @param {boolean} show - true to show, false to hide
      */

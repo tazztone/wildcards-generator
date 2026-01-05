@@ -476,160 +476,17 @@ export const App = {
         }
     },
 
-    // Stored duplicates for filtering/highlighting
-    _lastDuplicates: null,
-    _duplicateMap: null,
+
 
     handleCheckDuplicates() {
-        const wildcardMap = new Map();
-        const scanData = (data, path) => {
-            Object.keys(data).filter(k => k !== 'instruction').forEach(key => {
-                const item = data[key];
-                const currentPath = path ? `${path}/${key}` : key;
-                if (item.wildcards && Array.isArray(item.wildcards)) {
-                    item.wildcards.forEach((wildcard, idx) => {
-                        const normalized = wildcard.toLowerCase().trim();
-                        if (!wildcardMap.has(normalized)) wildcardMap.set(normalized, []);
-                        wildcardMap.get(normalized).push({ path: currentPath, original: wildcard, index: idx });
-                    });
-                } else if (typeof item === 'object' && item !== null) {
-                    scanData(item, currentPath);
-                }
-            });
-        };
-        scanData(State.state.wildcards, '');
-
-        // Build duplicates list
-        const duplicates = [];
-        const duplicateNormalized = new Set();
-        wildcardMap.forEach((locations, normalized) => {
-            if (locations.length > 1) {
-                duplicates.push({ normalized, locations, count: locations.length });
-                duplicateNormalized.add(normalized);
-            }
-        });
-
-        this._lastDuplicates = duplicates;
-        this._duplicateMap = duplicateNormalized;
+        const { duplicates } = State.findDuplicates();
 
         if (duplicates.length === 0) {
             UI.showToast('No duplicates found!', 'success');
             return;
         }
 
-        // Show actionable dialog
-        const totalOccurrences = duplicates.reduce((sum, d) => sum + d.count, 0);
-        const message = `
-<div class="text-left space-y-2">
-    <p class="text-lg">Found <strong class="text-indigo-400">${duplicates.length}</strong> duplicate wildcards (${totalOccurrences} total occurrences)</p>
-    <div class="space-y-1">
-        <button id="dupe-highlight" class="w-full text-left px-2 py-1 bg-yellow-900/30 hover:bg-yellow-800/50 rounded-md transition-colors" title="Add visual highlights to all duplicate wildcards in the UI">
-            🔆 <strong>Highlight Duplicates</strong>
-            <span class="text-sm text-gray-400 block ml-6">Add visual indicators to duplicate wildcards</span>
-        </button>
-        <button id="dupe-filter" class="w-full text-left px-2 py-1 bg-blue-900/30 hover:bg-blue-800/50 rounded-md transition-colors" title="Filter view to show only cards containing duplicate wildcards">
-            🔍 <strong>Show Duplicates Only</strong>
-            <span class="text-sm text-gray-400 block ml-6">Filter to show only cards with duplicates</span>
-        </button>
-        <button id="dupe-clear" class="w-full text-left px-2 py-1 bg-gray-700/30 hover:bg-gray-600/50 rounded-md transition-colors" title="Remove all duplicate highlights and filters">
-            ✖️ <strong>Clear Highlights</strong>
-            <span class="text-sm text-gray-400 block ml-6">Remove all duplicate visual indicators</span>
-        </button>
-    </div>
-    <details class="mt-2">
-        <summary class="cursor-pointer text-indigo-400 hover:text-indigo-300">View duplicate list (${duplicates.length})</summary>
-        <ul class="mt-1 text-sm max-h-40 overflow-y-auto custom-scrollbar space-y-1">
-            ${duplicates.slice(0, 20).map(d => `<li class="text-gray-300">"${d.locations[0].original}" - ${d.count} occurrences</li>`).join('')}
-            ${duplicates.length > 20 ? `<li class="text-gray-500">...and ${duplicates.length - 20} more</li>` : ''}
-        </ul>
-    </details>
-</div>`;
-
-        UI.showNotification(message, false, null, false); // html auto-detected
-
-        // Bind action buttons after dialog renders
-        setTimeout(() => {
-            document.getElementById('dupe-highlight')?.addEventListener('click', () => {
-                this.highlightDuplicates();
-                UI.elements.notificationDialog?.close();
-            });
-            document.getElementById('dupe-filter')?.addEventListener('click', () => {
-                this.filterToDuplicates();
-                UI.elements.notificationDialog?.close();
-            });
-            document.getElementById('dupe-clear')?.addEventListener('click', () => {
-                this.clearDuplicateHighlights();
-                UI.elements.notificationDialog?.close();
-            });
-        }, 100);
-    },
-
-    highlightDuplicates() {
-        if (!this._duplicateMap || this._duplicateMap.size === 0) {
-            UI.showToast('No duplicates to highlight', 'info');
-            return;
-        }
-        document.querySelectorAll('.chip').forEach(chip => {
-            const text = chip.querySelector('span[contenteditable]')?.textContent?.toLowerCase().trim();
-            if (text && this._duplicateMap.has(text)) {
-                chip.classList.add('chip-duplicate');
-            }
-        });
-        UI.showToast(`Highlighted ${this._duplicateMap.size} duplicate wildcards`, 'success');
-    },
-
-    filterToDuplicates() {
-        if (!this._lastDuplicates || this._lastDuplicates.length === 0) {
-            UI.showToast('No duplicates to filter', 'info');
-            return;
-        }
-        // Get all paths containing duplicates
-        const pathsWithDupes = new Set();
-        this._lastDuplicates.forEach(d => {
-            d.locations.forEach(loc => pathsWithDupes.add(loc.path));
-        });
-
-        // Hide cards not in the set
-        document.querySelectorAll('.wildcard-card').forEach(card => {
-            const path = /** @type {HTMLElement} */ (card).dataset.path;
-            if (pathsWithDupes.has(path)) {
-                card.classList.remove('hidden');
-                card.classList.add('duplicate-focus');
-            } else {
-                card.classList.add('hidden');
-            }
-        });
-
-        // Expand categories containing duplicates
-        pathsWithDupes.forEach(path => {
-            const parts = path.split('/');
-            let currentPath = '';
-            parts.forEach((part, i) => {
-                currentPath += (i > 0 ? '/' : '') + part;
-                const el = /** @type {HTMLDetailsElement|null} */ (document.querySelector(`details[data-path="${currentPath}"]`));
-                if (el) el.open = true;
-            });
-        });
-
-        this.highlightDuplicates();
-        UI.showToast(`Showing ${pathsWithDupes.size} cards with duplicates`, 'success');
-    },
-
-    clearDuplicateHighlights() {
-        document.querySelectorAll('.chip-duplicate').forEach(el => el.classList.remove('chip-duplicate'));
-        document.querySelectorAll('.duplicate-focus').forEach(el => el.classList.remove('duplicate-focus'));
-        // Only remove hidden class from cards that were hidden by duplicate filter (marked with duplicate-focus)
-        // Don't remove hidden from search-filtered items
-        document.querySelectorAll('.wildcard-card.hidden').forEach(el => {
-            // If this was hidden by duplicate filter, it should have been in a duplicate path
-            // For now, just re-render to restore search state
-        });
-        UI.showToast('Duplicate highlights cleared', 'info');
-        // Re-run search to restore proper visibility
-        const searchInput = /** @type {HTMLInputElement|null} */ (document.getElementById('search-wildcards'));
-        if (searchInput && searchInput.value) {
-            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
+        UI.showCheckDuplicatesDialog(duplicates);
     },
 
     handleBatchAction(action) {

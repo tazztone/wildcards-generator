@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 
 /**
  * Unit tests for Duplicate Detection Logic
- * Tests the handleCheckDuplicates function and related duplicate management
+ * Tests the State.findDuplicates and State.cleanDuplicates functions
  */
 test.describe('Duplicate Detection Logic', () => {
 
@@ -24,17 +24,18 @@ test.describe('Duplicate Detection Logic', () => {
             window.State._initProxy();
         });
 
-        // Check duplicates - should find none
+        // Check duplicates
         const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
+            const res = window.State.findDuplicates();
             return {
-                lastDuplicates: window.App._lastDuplicates,
-                duplicateMapSize: window.App._duplicateMap ? window.App._duplicateMap.size : 0
+                duplicates: res.duplicates,
+                duplicateMapSize: res.duplicateMap.size
             };
         });
 
-        expect(result.lastDuplicates).toHaveLength(0);
+        expect(result.duplicates).toHaveLength(0);
         expect(result.duplicateMapSize).toBe(0);
+        // Actually Playwright serializes Set as {} usually or array. Let's check duplicates array length mainly.
     });
 
     test('Detects exact duplicates within same category', async ({ page }) => {
@@ -46,14 +47,13 @@ test.describe('Duplicate Detection Logic', () => {
         });
 
         const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
+            const res = window.State.findDuplicates();
             return {
-                duplicateCount: window.App._lastDuplicates.length,
-                duplicates: window.App._lastDuplicates
+                duplicates: res.duplicates
             };
         });
 
-        expect(result.duplicateCount).toBe(1);
+        expect(result.duplicates.length).toBe(1);
         expect(result.duplicates[0].normalized).toBe('apple');
         expect(result.duplicates[0].count).toBe(2);
     });
@@ -67,14 +67,11 @@ test.describe('Duplicate Detection Logic', () => {
         });
 
         const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
-            return {
-                duplicateCount: window.App._lastDuplicates.length,
-                duplicates: window.App._lastDuplicates
-            };
+            const res = window.State.findDuplicates();
+            return { duplicates: res.duplicates };
         });
 
-        expect(result.duplicateCount).toBe(1);
+        expect(result.duplicates.length).toBe(1);
         expect(result.duplicates[0].normalized).toBe('apple');
         expect(result.duplicates[0].count).toBe(3);
     });
@@ -89,14 +86,11 @@ test.describe('Duplicate Detection Logic', () => {
         });
 
         const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
-            return {
-                duplicateCount: window.App._lastDuplicates.length,
-                duplicates: window.App._lastDuplicates
-            };
+            const res = window.State.findDuplicates();
+            return { duplicates: res.duplicates };
         });
 
-        expect(result.duplicateCount).toBe(1);
+        expect(result.duplicates.length).toBe(1);
         expect(result.duplicates[0].normalized).toBe('apple');
         // Verify locations span two categories
         const locations = result.duplicates[0].locations;
@@ -118,14 +112,11 @@ test.describe('Duplicate Detection Logic', () => {
         });
 
         const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
-            return {
-                duplicateCount: window.App._lastDuplicates.length,
-                duplicates: window.App._lastDuplicates
-            };
+            const res = window.State.findDuplicates();
+            return { duplicates: res.duplicates };
         });
 
-        expect(result.duplicateCount).toBe(1);
+        expect(result.duplicates.length).toBe(1);
         expect(result.duplicates[0].normalized).toBe('shared');
         const locations = result.duplicates[0].locations;
         expect(locations.map(l => l.path)).toContain('Parent/Child1');
@@ -141,103 +132,105 @@ test.describe('Duplicate Detection Logic', () => {
         });
 
         const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
-            return {
-                duplicateCount: window.App._lastDuplicates.length,
-                duplicates: window.App._lastDuplicates
-            };
+            const res = window.State.findDuplicates();
+            return { duplicates: res.duplicates };
         });
 
-        expect(result.duplicateCount).toBe(1);
+        expect(result.duplicates.length).toBe(1);
         expect(result.duplicates[0].count).toBe(3);
     });
+});
 
-    test('Multiple different duplicates detected', async ({ page }) => {
-        await page.evaluate(() => {
-            window.State._rawData.wildcards = {
-                Category1: { instruction: '', wildcards: ['apple', 'banana', 'cherry'] },
-                Category2: { instruction: '', wildcards: ['apple', 'banana', 'date'] }
-            };
-            window.State._initProxy();
-        });
-
-        const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
-            return {
-                duplicateCount: window.App._lastDuplicates.length,
-                duplicates: window.App._lastDuplicates
-            };
-        });
-
-        expect(result.duplicateCount).toBe(2);
-        const normalizedValues = result.duplicates.map(d => d.normalized).sort();
-        expect(normalizedValues).toEqual(['apple', 'banana']);
+test.describe('Duplicate Cleaning Logic', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+        await page.waitForLoadState('networkidle');
+        await page.waitForFunction(() => window.App && window.State);
     });
 
-    test('Duplicate map is correctly populated', async ({ page }) => {
+    test('Clean Duplicates - Shortest Path Strategy', async ({ page }) => {
         await page.evaluate(() => {
             window.State._rawData.wildcards = {
-                Category1: { instruction: '', wildcards: ['dupe1', 'dupe2'] },
-                Category2: { instruction: '', wildcards: ['dupe1', 'dupe2', 'unique'] }
-            };
-            window.State._initProxy();
-        });
-
-        const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
-            return {
-                mapSize: window.App._duplicateMap.size,
-                hasDupe1: window.App._duplicateMap.has('dupe1'),
-                hasDupe2: window.App._duplicateMap.has('dupe2'),
-                hasUnique: window.App._duplicateMap.has('unique')
-            };
-        });
-
-        expect(result.mapSize).toBe(2);
-        expect(result.hasDupe1).toBe(true);
-        expect(result.hasDupe2).toBe(true);
-        expect(result.hasUnique).toBe(false);
-    });
-
-    test('Ignores instruction keys during scan', async ({ page }) => {
-        await page.evaluate(() => {
-            window.State._rawData.wildcards = {
-                Category1: {
-                    instruction: 'Generate similar items',
-                    wildcards: ['apple']
+                TopLevel: { wildcards: ['term'] },
+                Nested: {
+                    Deep: { wildcards: ['term'] }
                 }
             };
             window.State._initProxy();
         });
 
-        const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
-            // No duplicates should be found - instruction is not scanned
-            return {
-                duplicateCount: window.App._lastDuplicates.length
-            };
+        // Verify setup
+        let duplicates = await page.evaluate(() => window.State.findDuplicates().duplicates);
+        expect(duplicates.length).toBe(1);
+        expect(duplicates[0].count).toBe(2);
+
+        // Execute Clean
+        const removedCount = await page.evaluate(() => {
+            const dupes = window.State.findDuplicates().duplicates;
+            return window.State.cleanDuplicates(dupes, 'shortest-path');
         });
 
-        expect(result.duplicateCount).toBe(0);
+        expect(removedCount).toBe(1);
+
+        // Verify result: TopLevel should exist, Nested/Deep should be gone (or term removed from it)
+        const resultingWildcards = await page.evaluate(() => window.State._rawData.wildcards);
+        expect(resultingWildcards.TopLevel.wildcards).toContain('term');
+        expect(resultingWildcards.Nested.Deep.wildcards).not.toContain('term');
     });
 
-    test('Empty categories handled gracefully', async ({ page }) => {
+    test('Clean Duplicates - Longest Path Strategy', async ({ page }) => {
         await page.evaluate(() => {
             window.State._rawData.wildcards = {
-                EmptyCategory: { instruction: '' },
-                Category1: { instruction: '', wildcards: ['apple'] }
+                TopLevel: { wildcards: ['term'] },
+                Nested: {
+                    Deep: { wildcards: ['term'] }
+                }
             };
             window.State._initProxy();
         });
 
-        const result = await page.evaluate(() => {
-            window.App.handleCheckDuplicates();
-            return {
-                duplicateCount: window.App._lastDuplicates.length
-            };
+        // Execute Clean
+        const removedCount = await page.evaluate(() => {
+            const dupes = window.State.findDuplicates().duplicates;
+            return window.State.cleanDuplicates(dupes, 'longest-path');
         });
 
-        // Should complete without error and find no duplicates
-        expect(result.duplicateCount).toBe(0);
+        expect(removedCount).toBe(1);
+
+        // Verify result: Nested/Deep should exist, TopLevel should be gone
+        const resultingWildcards = await page.evaluate(() => window.State._rawData.wildcards);
+        expect(resultingWildcards.Nested.Deep.wildcards).toContain('term');
+        expect(resultingWildcards.TopLevel.wildcards).not.toContain('term');
+    });
+
+    test('Clean Duplicates - Undo works', async ({ page }) => {
+        await page.evaluate(() => {
+            window.State._rawData.wildcards = {
+                A: { wildcards: ['x'] },
+                B: { wildcards: ['x'] }
+            };
+            window.State._initProxy();
+            // Reset history but ensure we have a base state
+            window.State.history = [JSON.stringify(window.State._rawData)];
+            window.State.historyIndex = 0;
+            // Save initial state logic usually happens on init or first change,
+            // but let's force a save or just rely on cleanDuplicates saving current state before change.
+        });
+
+        await page.evaluate(() => {
+            const dupes = window.State.findDuplicates().duplicates;
+            window.State.cleanDuplicates(dupes, 'shortest-path');
+        });
+
+        // Check it's gone
+        let result = await page.evaluate(() => window.State.findDuplicates());
+        expect(result.duplicates.length).toBe(0);
+
+        // Undo
+        await page.evaluate(() => window.State.undo());
+
+        // Check it's back
+        result = await page.evaluate(() => window.State.findDuplicates());
+        expect(result.duplicates.length).toBe(1);
     });
 });

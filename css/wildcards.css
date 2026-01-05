@@ -506,6 +506,7 @@
         }
 
         /* Search highlighting */
+        /* Search highlighting */
         mark.search-highlight {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: #000;
@@ -516,6 +517,51 @@
 
         html.light mark.search-highlight {
             background: linear-gradient(135deg, #fcd34d, #fbbf24);
+        }
+
+        /* Duplicate Highlighting */
+        .chip-duplicate {
+            position: relative;
+            background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
+            /* Red-900/800 */
+            border: 1px solid #ef4444 !important;
+            /* Red-500 */
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+            animation: pulse-red 2s infinite;
+        }
+
+        .chip-duplicate .chip-text {
+            color: #fca5a5 !important;
+            /* Red-300 */
+            font-weight: 600;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        html.light .chip-duplicate {
+            background: linear-gradient(135deg, #fee2e2, #fecaca) !important;
+            border-color: #ef4444 !important;
+        }
+
+        html.light .chip-duplicate .chip-text {
+            color: #b91c1c !important;
+        }
+
+        .duplicate-focus {
+            /* Simulate ring-2 ring-red-500 ring-offset-2 */
+            box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px #ef4444;
         }
 
         /* API Settings Panel Transitions */
