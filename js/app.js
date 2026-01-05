@@ -2,6 +2,7 @@ import { State } from './state.js';
 import { UI } from './ui.js';
 import { Api } from './api.js';
 import { Config, saveApiKey, saveConfig } from './config.js';
+import { debounce } from './utils.js';
 import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
@@ -11,62 +12,76 @@ export const App = {
 
     async init() {
         UI.init();
-        await State.init();
+        await State.init(); // This will trigger 'state-reset' which calls UI.renderAll()
 
         this.bindEvents();
 
+        // Initial Theme
+        // Initial Theme
         const theme = localStorage.getItem('wildcards-theme') || 'dark';
         document.documentElement.className = theme;
         this.updateThemeIcon(theme);
 
+        // Auto-verify stored keys
         setTimeout(() => Settings.verifyStoredApiKeys(), 500);
     },
 
     bindEvents() {
+        // Event Delegation on Container for all dynamic interactions
         UI.elements.container.addEventListener('click', (e) => this.handleContainerClick(e));
         UI.elements.container.addEventListener('change', (e) => this.handleContainerChange(e));
         UI.elements.container.addEventListener('blur', (e) => this.handleContainerBlur(e), true);
         UI.elements.container.addEventListener('keydown', (e) => this.handleContainerKeydown(e));
 
+        // Double-click to edit names (category names, wildcard names, chip text)
         UI.elements.container.addEventListener('dblclick', (e) => {
             const editableEl = e.target.closest('.editable-name');
             if (editableEl && !editableEl.isContentEditable) {
-                e.stopPropagation();
+                e.stopPropagation(); // Prevent category toggle
                 this.enableEditing(editableEl);
             }
 
             const editableInput = e.target.closest('.editable-input');
             if (editableInput && editableInput.readOnly) {
-                e.preventDefault();
-                e.stopPropagation();
+                e.preventDefault(); // Create standard behavior
+                e.stopPropagation(); // Prevent category toggle
                 this.enableEditing(editableInput);
             }
         });
 
+        // Prevent category toggle when clicking buttons or during editing mode
+        // Also manually toggle when clicking readonly inputs (browsers block native toggle on <input>)
         UI.elements.container.addEventListener('click', (e) => {
             const summary = e.target.closest('summary');
             if (summary) {
+                // Check if clicking on a button (pin, delete) or edit icon
                 if (e.target.closest('.pin-btn') || e.target.closest('.delete-btn') || e.target.classList.contains('edit-icon')) {
-                    e.preventDefault();
+                    e.preventDefault(); // Prevent toggle
                     return;
                 }
+                // Check if any element in summary is in editing mode
                 const editableInEditMode = summary.querySelector('[contenteditable="true"]');
+                // Only check editable-input class (text inputs), not checkboxes
                 const inputInEditMode = summary.querySelector('.editable-input:not([readonly])');
                 if (editableInEditMode || inputInEditMode) {
-                    e.preventDefault();
+                    e.preventDefault(); // Prevent toggle while editing
                     return;
                 }
+                // If clicking on a readonly input, manually toggle the details
+                // (Browsers prevent native toggle on interactive elements inside summary)
                 const clickedInput = e.target.closest('.editable-input');
                 if (clickedInput && clickedInput.readOnly) {
                     const details = summary.closest('details');
                     if (details) {
                         details.open = !details.open;
                     }
+                    // Remove focus to avoid showing focus border on single click
                     clickedInput.blur();
                 }
             }
         });
 
+        // Click on pencil icon also enables editing
         UI.elements.container.addEventListener('click', (e) => {
             if (e.target.classList.contains('edit-icon')) {
                 const wrapper = e.target.closest('.editable-wrapper') || e.target.closest('.chip');
@@ -88,16 +103,19 @@ export const App = {
             }
         });
 
+        // Drag and Drop - delegated to DragDrop module
         DragDrop.bindEvents(UI.elements.container);
 
+        // Toolbar actions
         document.getElementById('theme-toggle')?.addEventListener('click', () => this.toggleTheme());
         document.getElementById('undo-btn')?.addEventListener('click', () => State.undo());
         document.getElementById('redo-btn')?.addEventListener('click', () => State.redo());
 
+        // Settings / API Keys
         document.getElementById('api-endpoint')?.addEventListener('change', (e) => {
             const provider = e.target.value;
             Config.API_ENDPOINT = provider;
-            saveConfig();
+            saveConfig(); // Persist choice
             UI.updateSettingsVisibility(provider);
         });
 
@@ -116,6 +134,7 @@ export const App = {
                 saveApiKey(provider, keyInput.value.trim(), persist);
             }
 
+            // OpenRouter Filter Checkboxes
             if (e.target.id === 'openrouter-free-only' || e.target.id === 'openrouter-json-only') {
                 UI.filterAndRenderModels('openrouter');
             }
@@ -136,6 +155,7 @@ export const App = {
                         btn.disabled = false;
                     });
             }
+            // Test Model Button
             if (e.target.matches('.test-model-btn') || e.target.closest('.test-model-btn')) {
                 const btn = e.target.closest('.test-model-btn') || e.target;
                 const provider = btn.dataset.provider;
@@ -163,22 +183,27 @@ export const App = {
                     const jsonEl = document.getElementById('api-test-json');
                     const responseEl = document.getElementById('api-test-response');
                     const iconEl = document.getElementById('api-test-status-icon');
-
+                    // New elements
                     const urlEl = document.getElementById('api-test-url');
                     const payloadEl = document.getElementById('api-test-payload');
                     const previewSection = document.getElementById('api-test-preview-section');
                     const previewEl = document.getElementById('api-test-preview');
                     const closeBtn = document.getElementById('api-test-close-btn');
 
+                    // Reset state
                     previewSection.classList.add('hidden');
                     previewEl.innerHTML = '';
 
+                    // Populate Common Data
                     timeEl.textContent = result.stats?.responseTime ? `${result.stats.responseTime} ms` : '-- ms';
 
+                    // Populate Request Info
                     if (result.stats?.request) {
                         urlEl.textContent = result.stats.request.url;
                         try {
+                            // Redact API Key in payload display for safety/screenshots
                             const safePayload = JSON.parse(JSON.stringify(result.stats.request.payload));
+                            // Also check headers if we displayed them
                             payloadEl.textContent = JSON.stringify(safePayload, null, 2);
                         } catch (e) {
                             payloadEl.textContent = String(result.stats.request.payload);
@@ -189,15 +214,18 @@ export const App = {
                     }
 
                     if (result.success) {
+                        // Update stats in settings panel
                         if (statsEl) {
                             statsEl.textContent = `Last test: ${result.stats.responseTime}ms${result.stats.supportsJson ? ' ✓ JSON' : ''}`;
                             statsEl.classList.remove('hidden');
                         }
 
+                        // JSON Status
                         jsonEl.textContent = `JSON: ${result.stats.supportsJson ? 'YES' : 'NO'}`;
                         jsonEl.className = `text-sm font-bold bg-gray-900/50 px-2 py-1 rounded border border-gray-700 ${result.stats.supportsJson ? 'text-green-400 border-green-900' : 'text-yellow-400 border-yellow-900'}`;
                         iconEl.textContent = '✅';
 
+                        // Formatted Preview
                         if (result.stats.parsedContent && Array.isArray(result.stats.parsedContent)) {
                             previewSection.classList.remove('hidden');
                             previewEl.innerHTML = result.stats.parsedContent.map(item =>
@@ -208,6 +236,7 @@ export const App = {
                             previewEl.innerHTML = `<span class="text-gray-400 text-xs italic">Result is an object, not an array. (Count: ${Object.keys(result.stats.parsedContent).length})</span>`;
                         }
 
+                        // Raw Response
                         responseEl.textContent = result.stats.rawResponse;
                         responseEl.className = "bg-gray-950 p-3 rounded border border-gray-800 text-xs font-mono overflow-auto max-h-[300px] text-green-300 custom-scrollbar whitespace-pre-wrap";
                     } else {
@@ -221,6 +250,7 @@ export const App = {
 
                     dialog.showModal();
 
+                    // Close handlers
                     const closeHandler = () => {
                         dialog.close();
                         closeBtn.removeEventListener('click', closeHandler);
@@ -238,7 +268,7 @@ export const App = {
                     btn.disabled = false;
                 });
             }
-
+            // Help Button
             if (e.target.matches('#help-btn')) {
                 UI.showNotification(`
 <div class="text-left space-y-4 max-w-lg">
@@ -281,9 +311,11 @@ export const App = {
 </div>
 `);
             }
+            // Check Duplicates
             if (e.target.matches('#check-duplicates')) {
                 this.handleCheckDuplicates();
             }
+            // Reset Options
             if (e.target.matches('#reset-localstorage')) {
                 UI.showNotification('Clear all saved data from localStorage?\nThis includes remembered API keys and settings.', true, () => {
                     const keys = Object.keys(localStorage).filter(k => k.startsWith('wildcards'));
@@ -307,11 +339,12 @@ export const App = {
             if (e.target.matches('#reload-default-data')) {
                 UI.showNotification('Reload default wildcard data?\nYour settings will be preserved.', true, async () => {
                     UI.toggleOverflowMenu(false);
-                    await State.resetState();
-                    UI.renderAll();
+                    await State.resetState(); // Uses the fixed fetch('data/initial-data.yaml') in State.js
+                    UI.renderAll(); // Force UI refresh to ensure new data is shown
                     UI.showToast('Default data reloaded', 'success');
                 });
             }
+            // Factory Reset
             if (e.target.matches('#factory-reset')) {
                 UI.showNotification('⚠️ Factory Reset? This will delete ALL wildcards and settings. Cannot be undone.', true, () => {
                     UI.toggleOverflowMenu(false);
@@ -320,9 +353,11 @@ export const App = {
                     window.location.reload();
                 });
             }
+            // Legacy reset button (if exists)
             if (e.target.matches('#reset-btn')) {
                 UI.showNotification('Are you sure you want to reset everything?', true, () => State.resetState());
             }
+            // Add Category Placeholder
             if (e.target.matches('#add-category-placeholder-btn')) {
                 UI.showNotification('Enter new top-level category name:', true, (name) => {
                     if (name && name.trim()) {
@@ -334,15 +369,19 @@ export const App = {
                     }
                 }, true);
             }
+            // Suggest Top-Level
             if (e.target.matches('#suggest-toplevel-btn')) {
                 this.suggestItems(null, 'folder');
             }
+            // Export YAML
             if (e.target.matches('#export-yaml')) {
                 ImportExport.handleExportYAML();
             }
+            // Export ZIP
             if (e.target.matches('#download-all-zip')) {
                 ImportExport.handleExportZIP();
             }
+            // Settings Management Handlers (Modal)
             if (e.target.matches('#export-settings-btn')) {
                 ImportExport.handleExportSettings();
             }
@@ -353,17 +392,22 @@ export const App = {
                 ImportExport.handleResetSettings();
             }
 
+            // Import YAML
             if (e.target.matches('#import-yaml')) {
                 ImportExport.handleImportYAML();
             }
 
+            // Batch Operations
             if (e.target.matches('#batch-expand')) this.handleBatchAction('expand');
             if (e.target.matches('#batch-collapse')) this.handleBatchAction('collapse');
             if (e.target.matches('#batch-delete')) this.handleBatchAction('delete');
         });
 
+        // Settings File Input Handler
         document.getElementById('settings-file-input')?.addEventListener('change', (e) => ImportExport.handleLoadSettings(e));
 
+        // Settings Management -> Reset Handlers
+        // Batch Select All
         document.getElementById('batch-select-all')?.addEventListener('change', (e) => {
             const checked = e.target.checked;
             document.querySelectorAll('.category-batch-checkbox').forEach(cb => cb.checked = checked);
@@ -375,6 +419,7 @@ export const App = {
             }
         });
 
+        // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
     },
 
@@ -387,6 +432,7 @@ export const App = {
             }
             return;
         }
+        // Arrow key navigation
         if (['ArrowUp', 'ArrowDown', 'Enter', 'Escape'].includes(e.key)) {
             const container = document.getElementById('wildcard-container');
             const categories = Array.from(container.querySelectorAll(':scope > details'));
@@ -411,6 +457,7 @@ export const App = {
         }
     },
 
+    // Stored duplicates for filtering/highlighting
     _lastDuplicates: null,
     _duplicateMap: null,
 
@@ -433,6 +480,7 @@ export const App = {
         };
         scanData(State.state.wildcards, '');
 
+        // Build duplicates list
         const duplicates = [];
         const duplicateNormalized = new Set();
         wildcardMap.forEach((locations, normalized) => {
@@ -450,6 +498,7 @@ export const App = {
             return;
         }
 
+        // Show actionable dialog
         const totalOccurrences = duplicates.reduce((sum, d) => sum + d.count, 0);
         const message = `
 <div class="text-left space-y-3">
@@ -477,8 +526,9 @@ export const App = {
     </details>
 </div>`;
 
-        UI.showNotification(message, false, null, false);
+        UI.showNotification(message, false, null, false); // html auto-detected
 
+        // Bind action buttons after dialog renders
         setTimeout(() => {
             document.getElementById('dupe-highlight')?.addEventListener('click', () => {
                 this.highlightDuplicates();
@@ -514,11 +564,13 @@ export const App = {
             UI.showToast('No duplicates to filter', 'info');
             return;
         }
+        // Get all paths containing duplicates
         const pathsWithDupes = new Set();
         this._lastDuplicates.forEach(d => {
             d.locations.forEach(loc => pathsWithDupes.add(loc.path));
         });
 
+        // Hide cards not in the set
         document.querySelectorAll('.wildcard-card').forEach(card => {
             const path = card.dataset.path;
             if (pathsWithDupes.has(path)) {
@@ -529,6 +581,7 @@ export const App = {
             }
         });
 
+        // Expand categories containing duplicates
         pathsWithDupes.forEach(path => {
             const parts = path.split('/');
             let currentPath = '';
@@ -546,9 +599,14 @@ export const App = {
     clearDuplicateHighlights() {
         document.querySelectorAll('.chip-duplicate').forEach(el => el.classList.remove('chip-duplicate'));
         document.querySelectorAll('.duplicate-focus').forEach(el => el.classList.remove('duplicate-focus'));
+        // Only remove hidden class from cards that were hidden by duplicate filter (marked with duplicate-focus)
+        // Don't remove hidden from search-filtered items
         document.querySelectorAll('.wildcard-card.hidden').forEach(el => {
+            // If this was hidden by duplicate filter, it should have been in a duplicate path
+            // For now, just re-render to restore search state
         });
         UI.showToast('Duplicate highlights cleared', 'info');
+        // Re-run search to restore proper visibility
         const searchInput = document.getElementById('search-wildcards');
         if (searchInput && searchInput.value) {
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -611,8 +669,10 @@ export const App = {
         if (!path) return;
 
         if (theme === 'light') {
+            // Sun Icon
             path.setAttribute('d', 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z');
         } else {
+            // Moon Icon
             path.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z');
         }
     },
@@ -622,6 +682,7 @@ export const App = {
         const pathElement = target.closest('[data-path]');
         const placeholderElement = target.closest('[data-parent-path]');
 
+        // Handle Placeholder Buttons
         if (placeholderElement) {
             const parentPath = placeholderElement.dataset.parentPath;
             if (target.matches('.add-wildcard-list-btn')) this.createItem(parentPath, 'list');
@@ -634,6 +695,7 @@ export const App = {
         if (!pathElement) return;
         const path = pathElement.dataset.path;
 
+        // Pin/Unpin
         if (target.closest('.pin-btn')) {
             e.preventDefault();
             const pinnedCategories = State.state.pinnedCategories || [];
@@ -645,35 +707,40 @@ export const App = {
                 pinnedCategories.splice(idx, 1);
                 UI.showToast(`Unpinned "${path.split('/').pop().replace(/_/g, ' ')}"`, 'success');
             }
-            State.state.pinnedCategories = [...pinnedCategories];
+            State.state.pinnedCategories = [...pinnedCategories]; // Trigger proxy update
             return;
         }
 
+        // Delete
         if (target.closest('.delete-btn')) {
             e.preventDefault();
             UI.showNotification(`Delete "${path.split('/').pop().replace(/_/g, ' ')}"?`, true, () => {
                 State.saveStateToHistory();
                 const parent = State.getParentObjectByPath(path);
                 const key = path.split('/').pop();
-                delete parent[key];
+                delete parent[key]; // Proxy trap will handle save/notify
             });
             return;
         }
 
+        // Add Wildcard
         if (target.closest('.add-wildcard-btn')) {
             const input = pathElement.querySelector('.add-wildcard-input');
             if (input && input.value.trim()) {
                 State.saveStateToHistory();
                 const obj = State.getObjectByPath(path);
-                obj.wildcards.push(input.value.trim());
+                obj.wildcards.push(input.value.trim()); // Proxy trap triggers
+                // Sort logic is now handled in the state proxy trap.
                 input.value = '';
             }
         }
 
+        // Generate More
         if (target.closest('.generate-btn')) {
             this.handleGenerate(path);
         }
 
+        // Copy all wildcards
         if (target.closest('.copy-btn')) {
             const btn = target.closest('.copy-btn');
             const obj = State.getObjectByPath(path);
@@ -713,6 +780,7 @@ export const App = {
             }
         }
 
+        // Card Batch Actions
         if (target.closest('.batch-delete-btn')) {
             const card = target.closest('.wildcard-card');
             if (!card) return;
@@ -722,6 +790,8 @@ export const App = {
                 return;
             }
 
+            // Delete selected items
+            // Must delete in descending order of index to preserve indices of earlier items during splice
             const indices = Array.from(checked)
                 .map(cb => parseInt(cb.closest('.chip').dataset.index))
                 .sort((a, b) => b - a);
@@ -732,6 +802,7 @@ export const App = {
                 indices.forEach(idx => {
                     obj.wildcards.splice(idx, 1);
                 });
+                // Proxy will trigger update
                 UI.showToast(`Deleted ${indices.length} items`, 'success');
             }
         }
@@ -741,8 +812,10 @@ export const App = {
             if (!card) return;
             const checkboxes = card.querySelectorAll('.batch-select');
             const btn = target.closest('.select-all-btn');
+            // If any is unchecked, select all. If all checked, deselect all.
             const allChecked = Array.from(checkboxes).every(cb => cb.checked);
             checkboxes.forEach(cb => cb.checked = !allChecked);
+            // Update button text
             btn.textContent = allChecked ? 'Select All' : 'Deselect All';
         }
     },
@@ -751,7 +824,7 @@ export const App = {
         if (e.target.matches('.custom-instructions-input')) {
             const path = e.target.closest('[data-path]').dataset.path;
             const obj = State.getObjectByPath(path);
-            obj.instruction = e.target.value;
+            obj.instruction = e.target.value; // Proxy triggers update
         }
     },
 
@@ -763,14 +836,17 @@ export const App = {
 
             const path = el.dataset.path;
 
+            // Check if it's a chip (wildcard item) or title
             if (e.target.closest('.chip')) {
                 const index = e.target.closest('.chip').dataset.index;
                 const obj = State.getObjectByPath(path);
                 if (obj.wildcards[index] !== val) {
                     State.saveStateToHistory();
-                    obj.wildcards[index] = val;
+                    obj.wildcards[index] = val; // Nested proxy update
+                    // Sort logic is now handled in the state proxy trap.
                 }
             } else if (e.target.classList.contains('category-name') || e.target.classList.contains('wildcard-name')) {
+                // Rename Key
                 const oldKey = path.split('/').pop();
                 const newKey = val.replace(/\s+/g, '_');
                 if (oldKey !== newKey && newKey) {
@@ -783,16 +859,23 @@ export const App = {
                     State.saveStateToHistory();
                     const content = parent[oldKey];
                     delete parent[oldKey];
-                    parent[newKey] = content;
+                    parent[newKey] = content; // Proxy handles it. 
+                    // IMPORTANT: The path of this element and all children is now invalid in DOM until re-render.
+                    // The Proxy set handler handles re-render of parent or specific add/remove. 
+                    // Since we did delete+set, we get two events.
+                    // 1. Delete: UI removes old element.
+                    // 2. Set: UI adds new element.
                 } else {
                     e.target.textContent = oldKey.replace(/_/g, ' ');
                 }
             }
 
+            // Disable contenteditable after blur (for double-click edit mode)
             if (e.target.classList.contains('editable-name')) {
                 e.target.removeAttribute('contenteditable');
             }
 
+            // Re-enable readonly for inputs
             if (e.target.classList.contains('editable-input')) {
                 e.target.readOnly = true;
             }
@@ -801,8 +884,9 @@ export const App = {
 
     handleContainerKeydown(e) {
         if (e.key === 'Enter') {
+            // Rapid Entry for Wildcard Items
             if (e.target.classList.contains('add-wildcard-input')) {
-                e.preventDefault();
+                e.preventDefault(); // Prevent blur
                 const input = e.target;
                 const val = input.value.trim();
                 const pathElement = input.closest('[data-path]');
@@ -813,20 +897,23 @@ export const App = {
                     if (obj && Array.isArray(obj.wildcards)) {
                         obj.wildcards.push(val);
                         input.value = '';
-                        input.focus();
+                        input.focus(); // Ensure focus remains
                     }
                 }
                 return;
             }
 
+            // If it's a contenteditable element, blur it to save
             if (e.target.isContentEditable) {
                 e.preventDefault();
                 e.target.blur();
             }
+            // For inputs, just blur
             if (e.target.tagName === 'INPUT' && !e.target.readOnly) {
                 e.target.blur();
             }
         }
+        // Escape key to cancel editing
         if (e.key === 'Escape') {
             if (e.target.isContentEditable) {
                 e.target.removeAttribute('contenteditable');
@@ -838,6 +925,7 @@ export const App = {
         }
     },
 
+    // Enable contenteditable on an element for editing
     enableEditing(el) {
         if (el.tagName === 'INPUT') {
             el.readOnly = false;
@@ -846,6 +934,7 @@ export const App = {
         } else {
             el.setAttribute('contenteditable', 'true');
             el.focus();
+            // Select all text for easy replacement
             const selection = window.getSelection();
             const range = document.createRange();
             range.selectNodeContents(el);
@@ -867,9 +956,13 @@ export const App = {
                 obj.instruction
             );
             if (newItems && newItems.length) {
+                // Show modal to confirm addition (Legacy behavior)
+                // For now, let's just add them to demonstrate architecture
                 State.saveStateToHistory();
+                // Ensure we only push strings
                 const safeItems = newItems.map(item => (typeof item === 'object' && item !== null) ? (item.wildcard || item.text || item.value || JSON.stringify(item)) : String(item));
                 obj.wildcards.push(...safeItems);
+                // Sort logic is now handled in the state proxy trap.
                 UI.showToast(`Generated ${newItems.length} items`, 'success');
             }
         } catch (e) {
@@ -893,12 +986,14 @@ export const App = {
     },
 
     async suggestItems(parentPath, type) {
+        // Get parent object and existing structure
         const parent = parentPath ? State.getObjectByPath(parentPath) : State.state.wildcards;
         if (!parent) {
             UI.showToast('Could not find parent category', 'error');
             return;
         }
 
+        // Get existing sibling names for context
         const existingStructure = Object.keys(parent).filter(k => k !== 'instruction' && k !== 'wildcards');
 
         UI.showToast('Generating suggestions...', 'info');
@@ -915,6 +1010,7 @@ export const App = {
                 return;
             }
 
+            // Build selection dialog HTML - compact styling (Densified)
             const dialogContent = `
 				<div class="space-y-2">
 					<div class="flex justify-between items-center mb-1">
@@ -942,7 +1038,9 @@ export const App = {
 				</div>
 			`;
 
+            // Show confirmation dialog
             UI.showNotification(dialogContent, true, () => {
+                // Get selected suggestions
                 const checkboxes = document.querySelectorAll('.suggestion-checkbox:checked');
                 const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
                 const selectedSuggestions = selectedIndices.map(i => suggestions[i]);
@@ -952,6 +1050,7 @@ export const App = {
                     return;
                 }
 
+                // Add selected items to state
                 State.saveStateToHistory();
                 selectedSuggestions.forEach(item => {
                     const name = item.name || item;
@@ -968,6 +1067,7 @@ export const App = {
                 UI.showToast(`Added ${selectedSuggestions.length} ${type === 'list' ? 'lists' : 'categories'}`, 'success');
             });
 
+            // Bind Select All/None helpers inside the dialog
             setTimeout(() => {
                 document.getElementById('suggest-select-all')?.addEventListener('click', () => {
                     document.querySelectorAll('.suggestion-checkbox').forEach(cb => cb.checked = true);
@@ -982,5 +1082,8 @@ export const App = {
             UI.showNotification(`Failed to get suggestions: ${e.message}`);
         }
     }
+    // Drag-and-drop functionality is now in js/modules/drag-drop.js
+    // Import/export functionality is now in js/modules/import-export.js
+    // Settings verification is now in js/modules/settings.js
 };
 
