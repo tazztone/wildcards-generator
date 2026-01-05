@@ -816,6 +816,9 @@ export const UI = {
         const normalizedQuery = query.toLowerCase().trim();
         let matchCount = 0;
 
+        // Clear previous highlights before scanning
+        this.clearSearchHighlights();
+
         console.error(`[Search Debug] Query: "${normalizedQuery}"`);
 
         const scan = (el) => {
@@ -830,7 +833,7 @@ export const UI = {
             // Check wildcards inside if it's a card
             let wildcardsMatch = false;
             if (el.classList.contains('wildcard-card')) {
-                const chips = el.querySelectorAll('.chip span[contenteditable]');
+                const chips = el.querySelectorAll('.chip .editable-name');
                 chips.forEach(chip => {
                     if (chip.textContent.toLowerCase().includes(normalizedQuery)) wildcardsMatch = true;
                 });
@@ -879,6 +882,11 @@ export const UI = {
         const topLevel = this.elements.container.querySelectorAll(':scope > .category-item');
         topLevel.forEach(el => scan(el));
 
+        // Apply highlights after filtering if there's a query
+        if (normalizedQuery) {
+            this.applySearchHighlights(normalizedQuery);
+        }
+
         // Enhancement #6: Empty Search State
         let emptyState = document.getElementById('search-empty-state');
         if (matchCount === 0 && normalizedQuery !== '') {
@@ -914,6 +922,83 @@ export const UI = {
         if (this.elements.searchResultsCount) {
             this.elements.searchResultsCount.textContent = normalizedQuery ? `${matchCount} matches` : '';
         }
+    },
+
+    /**
+     * Remove all search highlights from the UI
+     */
+    clearSearchHighlights() {
+        document.querySelectorAll('mark.search-highlight').forEach(mark => {
+            const parent = mark.parentNode;
+            if (parent) {
+                parent.replaceChild(document.createTextNode(mark.textContent || ''), mark);
+                parent.normalize(); // Merge adjacent text nodes
+            }
+        });
+    },
+
+    /**
+     * Apply search highlights to matching text in visible elements
+     * @param {string} query - The normalized search query
+     */
+    applySearchHighlights(query) {
+        if (!query) return;
+
+        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+
+        // Highlight in category names (only visible ones)
+        document.querySelectorAll('.category-item:not(.hidden) .category-name').forEach(el => {
+            this.highlightTextInElement(el, regex);
+        });
+
+        // Highlight in wildcard names (only visible ones)
+        document.querySelectorAll('.wildcard-card:not(.hidden) .wildcard-name').forEach(el => {
+            this.highlightTextInElement(el, regex);
+        });
+
+        // Highlight in wildcard chips (only visible ones)
+        document.querySelectorAll('.wildcard-card:not(.hidden) .chip .editable-name').forEach(el => {
+            this.highlightTextInElement(el, regex);
+        });
+    },
+
+    /**
+     * Wrap matching text in an element with a highlight mark
+     * @param {Element} el - The element to highlight text in
+     * @param {RegExp} regex - The regex to match
+     */
+    highlightTextInElement(el, regex) {
+        const text = el.textContent || '';
+        if (!regex.test(text)) return;
+
+        // Reset regex lastIndex for next use
+        regex.lastIndex = 0;
+
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        let match;
+
+        while ((match = regex.exec(text)) !== null) {
+            // Add text before match
+            if (match.index > lastIndex) {
+                fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+            }
+            // Add highlighted match
+            const mark = document.createElement('mark');
+            mark.className = 'search-highlight';
+            mark.textContent = match[0];
+            fragment.appendChild(mark);
+            lastIndex = regex.lastIndex;
+        }
+
+        // Add remaining text
+        if (lastIndex < text.length) {
+            fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+        }
+
+        // Replace element content
+        el.textContent = '';
+        el.appendChild(fragment);
     },
 
     findCardElement(path) {
