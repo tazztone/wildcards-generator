@@ -357,14 +357,36 @@ export const Api = {
     async testModel(provider, apiKey, modelName, uiCallback) {
         const startTime = performance.now();
 
-        // Realistic test prompt simulating actual usage
-        const testPrompt = `You are a wildcard generator for Stable Diffusion prompts.
-Generate exactly 5 unique wildcard items for the category "fantasy_creatures > mythical_beasts".
-Existing items: dragon, phoenix, unicorn, griffin.
-Custom instructions: "Focus on lesser-known mythological creatures."
+        // Load real data from initial-data.yaml to make the test realistic
+        let testCategoryPath = 'CREATURES_and_BEINGS/Mythical_Fantasy';
+        let testExistingItems = ['dragon', 'griffin', 'unicorn', 'fairy', 'goblin', 'troll'];
+        let testInstruction = 'Legendary and fantasy creatures';
 
-Respond with ONLY a valid JSON array of strings, no other text.
-Example: ["kirin", "thunderbird", "basilisk"]`;
+        try {
+            const yamlResponse = await fetch('data/initial-data.yaml');
+            if (yamlResponse.ok) {
+                const yamlText = await yamlResponse.text();
+                const YAML = await import('https://cdn.jsdelivr.net/npm/yaml@2.3.4/browser/index.js');
+                const data = YAML.parse(yamlText);
+
+                // Try to get real data from CREATURES_and_BEINGS > Mythical_Fantasy
+                if (data?.CREATURES_and_BEINGS?.Mythical_Fantasy) {
+                    testCategoryPath = 'CREATURES_and_BEINGS/Mythical_Fantasy';
+                    testExistingItems = data.CREATURES_and_BEINGS.Mythical_Fantasy || [];
+                    testInstruction = 'Legendary and fantasy creatures';
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to load initial-data.yaml for test, using fallback data', e);
+        }
+
+        // Use the actual system prompt from the app's config
+        const systemPrompt = Config.DEFAULT_SYSTEM_PROMPT ||
+            "You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings.";
+
+        // Format the test exactly like the app does for wildcard generation
+        const readablePath = testCategoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
+        const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${testExistingItems.slice(0, 20).join(', ')}\nCustom Instructions: "${testInstruction}"`;
 
         try {
             let url, headers, payload;
@@ -388,7 +410,11 @@ Example: ["kirin", "thunderbird", "basilisk"]`;
                 if (topK > 0) geminiGenConfig.topK = topK;
 
                 payload = {
-                    contents: [{ parts: [{ text: testPrompt }] }],
+                    contents: [
+                        { role: "user", parts: [{ text: systemPrompt }] },
+                        { role: "model", parts: [{ text: "Understood." }] },
+                        { role: "user", parts: [{ text: userPrompt }] }
+                    ],
                     generationConfig: geminiGenConfig
                 };
             } else if (provider === 'openrouter' || provider === 'custom') {
@@ -409,7 +435,9 @@ Example: ["kirin", "thunderbird", "basilisk"]`;
 
                 payload = {
                     model: modelName,
-                    messages: [{ role: 'user', content: testPrompt }],
+                    messages: [
+                        { role: 'user', content: `${systemPrompt}\n\n${userPrompt}` }
+                    ],
                     response_format: { type: 'json_object' },
                     temperature: temp,
                     max_tokens: maxTokens,

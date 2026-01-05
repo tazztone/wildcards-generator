@@ -31,7 +31,7 @@ This document details the features of the Wildcard Generator application.
   - **Modal Toasts**: Notifications now appear above dialogs for better visibility.
 - **Advanced API Tools**:
   - **Streaming Generation**: Watch the AI generate wildcards character-by-character with a live elapsed timer.
-  - **Test Model Dialog**: Detailed modal showing full JSON response, response time, and validation checks for the selected model.
+  - **Test Model Dialog**: Detailed modal showing full JSON response, response time, and validation checks. Tests use real data from `initial-data.yaml` and the actual system prompt for realistic evaluation.
 - **High-Performance Undo/Redo**:
   - **Diff-Based Updates**: Only changed UI elements are re-rendered, making undo/redo instantaneous even with thousands of wildcards.
   - **Granular Patches**: Uses a custom `deepDiff` algorithm to apply minimal DOM updates.
@@ -48,7 +48,7 @@ This document details the features of the Wildcard Generator application.
   - Filter view to show only duplicate-containing cards
   - Clear highlights action
 - **Improved Help Dialog**: Structured help with sections, keyboard shortcuts table, and tips.
-- **API Test Model Button**: Test your selected model with a quick JSON request to verify response times and compatibility.
+- **API Test Model Button**: Test your selected model with a realistic wildcard generation request using actual app data and prompts to verify response times and compatibility.
 
 ### v2.11 Features
 
