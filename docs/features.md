@@ -20,7 +20,17 @@ This document details the features of the Wildcard Generator application.
 
 ## Advanced Features
 
-### v2.13 Features (Latest)
+### v2.14 Features (Latest)
+
+- **Advanced Batch Operations**:
+  - **Batch Generate**: Recursively generate content for all wildcard lists within selected folders (and sub-folders).
+  - **Batch Suggest**: Generate suggestions for multiple categories seamlessly. Results are aggregated into a single review dialog.
+  - **Granular Selection**: Wildcard cards now have individual checkboxes, allowing for mixed selection of specific lists and entire folders.
+- **Improved UX**:
+  - **Floating Batch Bar**: The batch operations toolbar is now a floating overlay, preventing layout shifts when selecting items.
+  - **Unified Actions**: Delete and Generate actions work intelligently across mixed selections (files and folders).
+
+### v2.13 Features
 
 - **Enhanced Safety**:
   - **Double-Click Edit**: Category and wildcard names (and instructions) now require a double-click to edit.

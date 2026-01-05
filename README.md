@@ -14,7 +14,7 @@ A standalone Single Page Application (SPA) for managing and generating "wildcard
 
 ## Documentation
 
-- **[Features](docs/features.md)**: Detailed list of features, including recent updates (v2.9 - v2.11).
+- **[Features](docs/features.md)**: Detailed list of features, including recent updates (v2.9 - v2.14).
 - **[Architecture](docs/architecture.md)**: Technical overview of the code structure and design patterns.
 - **[Testing](tests/testing.md)**: How to run and write tests.
 - **[API Reference](docs/openrouter_API_docs.md)**: OpenRouter API documentation.

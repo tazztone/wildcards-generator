@@ -89,10 +89,13 @@ npx playwright test --debug
 - Select all/deselect all toggles
 
 ### 4. Batch Operations
-- Batch operations bar visible
-- Select all checkbox enables buttons
-- Batch expand works
-- Batch collapse works
+- Batch operations bar visible (floating overlay)
+- Select all checkbox toggles categories and cards
+- Batch expand works (folders only)
+- Batch collapse works (folders only)
+- Batch generate works (folders and cards)
+- Batch suggest works (folders only)
+- Individual card checkboxes selection works
 
 ### 5. Theme & Settings
 - Theme toggle visible
