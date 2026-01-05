@@ -28,7 +28,7 @@ test.describe('Bug Fix Tests', () => {
             await input.fill(testName);
 
             // Click confirm
-            await dialog.locator('#dialog-confirm').click();
+            await dialog.locator('#confirm-btn').click();
 
             // Verify toast shows success
             await expect(page.locator('.toast')).toContainText('Created', { timeout: 5000 });
@@ -55,7 +55,7 @@ test.describe('Bug Fix Tests', () => {
                 await input.fill(testName);
 
                 // Confirm
-                await dialog.locator('#dialog-confirm').click();
+                await dialog.locator('#confirm-btn').click();
 
                 // Verify toast
                 await expect(page.locator('.toast')).toContainText('Created');
@@ -85,7 +85,7 @@ test.describe('Bug Fix Tests', () => {
             await expect(dialog).toContainText('Reload default wildcard data');
 
             // Cancel to avoid reload
-            await dialog.locator('#dialog-cancel').click();
+            await dialog.locator('#cancel-btn').click();
         });
 
         test('factory reset shows confirmation dialog', async ({ page }) => {
@@ -109,7 +109,7 @@ test.describe('Bug Fix Tests', () => {
             await expect(dialog).toContainText('Factory Reset');
 
             // Cancel to avoid reset
-            await dialog.locator('#dialog-cancel').click();
+            await dialog.locator('#cancel-btn').click();
         });
     });
 
