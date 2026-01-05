@@ -123,7 +123,7 @@ export const ImportExport = {
         input.accept = '.yaml,.yml';
         input.title = 'Select a YAML file to import wildcards';
         input.onchange = async (e) => {
-            const file = e.target.files[0];
+            const file = /** @type {HTMLInputElement} */ (e.target).files[0];
             if (!file) return;
 
             try {
@@ -250,6 +250,9 @@ export const ImportExport = {
      * Loads settings from a JSON file.
      * @param {Event} e - File input change event
      */
+    /**
+     * @param {Event & { target: HTMLInputElement }} e
+     */
     async handleLoadSettings(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -277,7 +280,7 @@ export const ImportExport = {
             saveConfig();
 
             // Update UI
-            const endpointSelect = document.getElementById('api-endpoint');
+            const endpointSelect = /** @type {HTMLSelectElement | null} */ (document.getElementById('api-endpoint'));
             if (endpointSelect) endpointSelect.value = Config.API_ENDPOINT;
             UI.updateSettingsVisibility(Config.API_ENDPOINT);
             UI.renderApiSettings();
@@ -291,7 +294,7 @@ export const ImportExport = {
             UI.showToast(`Import failed: ${err.message}`, 'error');
         }
         // Clear input so same file can be selected again
-        e.target.value = '';
+        /** @type {HTMLInputElement} */ (e.target).value = '';
     },
 
     /**

@@ -894,9 +894,9 @@ export const UI = {
                 this.elements.container.appendChild(emptyState);
 
                 // Add click handler
-                const link = emptyState.querySelector('.clear-search-link');
+                const link = /** @type {HTMLElement | null} */ (emptyState.querySelector('.clear-search-link'));
                 if (link) link.onclick = () => {
-                    const searchInput = document.getElementById('search-wildcards');
+                    const searchInput = /** @type {HTMLInputElement | null} */ (document.getElementById('search-wildcards'));
                     if (searchInput) {
                         searchInput.value = '';
                         searchInput.dispatchEvent(new Event('input'));

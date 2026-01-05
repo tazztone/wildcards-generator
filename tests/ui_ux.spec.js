@@ -31,7 +31,7 @@ test.describe('UX Improvements', () => {
     await expect(category).toBeVisible();
 
     // Force open the category to ensure content is visible
-    await category.evaluate(el => el.open = true);
+    await category.evaluate(el => /** @type {HTMLDetailsElement} */(el).open = true);
 
     // Inside the category, click add wildcard list
     const addWildcardBtn = category.locator('.add-wildcard-list-btn');
