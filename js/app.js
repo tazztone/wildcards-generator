@@ -146,21 +146,28 @@ export const App = {
             if (target.matches('.test-conn-btn') || target.closest('.test-conn-btn')) {
                 const btn = /** @type {HTMLButtonElement} */ (target.closest('.test-conn-btn') || target);
                 const provider = btn.dataset.provider;
+                const loader = btn.querySelector('.loader');
+                const text = btn.querySelector('.btn-text');
+
                 btn.disabled = true;
-                btn.textContent = '⏳';
+                if (loader) loader.classList.remove('hidden');
+                // Keep text visible to avoid layout shift
+
                 Api.testConnection(provider, (msg, type) => UI.showToast(msg, type))
                     .then(models => {
                         UI.populateModelList(provider, models);
                     })
                     .finally(() => {
-                        btn.textContent = '🔌 Test';
                         btn.disabled = false;
+                        if (loader) loader.classList.add('hidden');
                     });
             }
             // Test Model Button
             if (target.matches('.test-model-btn') || target.closest('.test-model-btn')) {
                 const btn = /** @type {HTMLButtonElement} */ (target.closest('.test-model-btn') || target);
                 const provider = btn.dataset.provider;
+                const loader = btn.querySelector('.loader');
+                const text = btn.querySelector('.btn-text');
                 const panel = document.querySelector(`#settings-${provider}`);
                 const apiKey = /** @type {HTMLInputElement|null} */ (panel?.querySelector('.api-key-input'))?.value?.trim();
                 const modelName = /** @type {HTMLInputElement|null} */ (panel?.querySelector('.model-name-input'))?.value;
@@ -172,8 +179,9 @@ export const App = {
                 }
 
                 btn.disabled = true;
-                const origText = btn.textContent;
-                btn.textContent = '⏳ Testing...';
+                if (loader) loader.classList.remove('hidden');
+                // Keep text visible to avoid layout shift
+
                 if (statsEl) {
                     statsEl.classList.add('hidden');
                     statsEl.textContent = '';
@@ -266,8 +274,8 @@ export const App = {
                     dialog.addEventListener('click', backdropHandler);
 
                 }).finally(() => {
-                    btn.textContent = origText;
                     btn.disabled = false;
+                    if (loader) loader.classList.add('hidden');
                 });
             }
             // Help Button

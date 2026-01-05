@@ -226,9 +226,10 @@
                                         </button>
                                     </div>
                                     <button
-                                        class="test-conn-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap"
+                                        class="test-conn-btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap flex items-center gap-2 justify-center"
                                         title="Test API connection and fetch available models">
-                                        🔌 Test
+                                        <span class="btn-text">🔌 Test</span>
+                                        <div class="loader hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
                                     </button>
                                 </div>
                                 <label class="checkbox-label">
@@ -247,9 +248,10 @@
                                         <datalist class="model-list"></datalist>
                                     </div>
                                     <button
-                                        class="test-model-btn bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap"
+                                        class="test-model-btn bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap flex items-center gap-2 justify-center"
                                         title="Send a quick test request to verify the model responds correctly">
-                                        🧪 Test Model
+                                        <span class="btn-text">🧪 Test Model</span>
+                                        <div class="loader hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
                                     </button>
                                 </div>
                                 <div class="flex justify-between items-start mt-1">
