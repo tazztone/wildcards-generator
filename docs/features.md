@@ -20,7 +20,18 @@ This document details the features of the Wildcard Generator application.
 
 ## Advanced Features
 
-### v2.14 Features (Latest)
+### v2.15 Features (Latest)
+
+- **Mind Elixir Mindmap View**: Alternative interactive visualization of your wildcards hierarchy.
+  - **Three View Modes**: Switch between List (default), Mindmap (full-screen), or Dual Pane (synchronized side-by-side).
+  - **Collapse/Expand Toggle**: Hide wildcards to show only categories with wildcard counts for a compact overview.
+  - **AI Context Menu**: Right-click categories to access "Generate More" and "Suggest Children" actions directly in the mindmap.
+  - **Theme Sync**: Mindmap automatically adapts to app's dark/light theme.
+  - **View Persistence**: Your preferred view mode is saved across sessions.
+  - **Toolbar Tooltips**: All Mind Elixir toolbar icons have descriptive tooltips.
+  - **Smart Validation**: AI actions show helpful warnings when selected on root or wildcard nodes.
+
+### v2.14 Features
 
 - **Advanced Batch Operations**:
   - **Batch Generate**: Recursively generate content for all wildcard lists within selected folders (and sub-folders).

@@ -457,6 +457,9 @@ export const App = {
         document.getElementById('view-mindmap')?.addEventListener('click', () => Mindmap.setView('mindmap'));
         document.getElementById('view-dual')?.addEventListener('click', () => Mindmap.setView('dual'));
 
+        // Mindmap collapse/expand wildcards toggle
+        document.getElementById('mindmap-toggle-wildcards')?.addEventListener('click', () => Mindmap.toggleWildcards());
+
         // Theme change observer for Mind Elixir sync
         const themeObserver = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {

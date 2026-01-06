@@ -20,6 +20,7 @@ const Mindmap = {
     isInitialized: false,
     _syncLock: false, // Prevent infinite sync loops
     _MindElixir: null, // Cached MindElixir module reference
+    showWildcards: false, // Start collapsed for better overview
 
     /**
      * Load Mind Elixir library dynamically
@@ -50,6 +51,7 @@ const Mindmap = {
     transformToMindElixir(wildcards) {
         let nodeId = 0;
         const generateId = (prefix) => `${prefix}-${++nodeId}`;
+        const showWildcards = this.showWildcards;
 
         /**
          * Recursively build Mind Elixir node from wildcards data
@@ -60,13 +62,24 @@ const Mindmap = {
          */
         const buildNode = (name, data, parentPath = '') => {
             const path = parentPath ? `${parentPath}/${name}` : name;
+            const wildcardCount = data.wildcards?.length || 0;
+
+            // Build display name with count indicator when wildcards are hidden
+            const displayName = (!showWildcards && wildcardCount > 0)
+                ? `${name} (${wildcardCount})`
+                : name;
+
             const node = {
                 id: generateId(path),
-                topic: name,
+                topic: displayName,
                 tags: [],
                 children: [],
                 // Store original path for sync back
-                data: { path: path.split('/') }
+                data: {
+                    path: path.split('/'),
+                    originalName: name,
+                    wildcardCount: wildcardCount
+                }
             };
 
             // Add instruction as a tag if present
@@ -74,8 +87,8 @@ const Mindmap = {
                 node.tags.push(data.instruction.substring(0, 50) + (data.instruction.length > 50 ? '...' : ''));
             }
 
-            // Process wildcards array (leaf items)
-            if (data.wildcards && Array.isArray(data.wildcards)) {
+            // Process wildcards array (leaf items) - only if showWildcards is true
+            if (showWildcards && data.wildcards && Array.isArray(data.wildcards)) {
                 data.wildcards.forEach((wildcard, index) => {
                     const wildcardText = typeof wildcard === 'string' ? wildcard : wildcard.name || String(wildcard);
                     node.children.push({
@@ -202,6 +215,35 @@ const Mindmap = {
             this.instance = null;
         }
 
+        // Smart context menu configuration
+        const contextMenuExtend = [];
+
+        // Generate action - only for categories with wildcards (not root, not wildcards themselves)
+        contextMenuExtend.push({
+            name: '✨ Generate More',
+            onclick: (data) => {
+                // Validate: skip for root node or wildcard items
+                if (!data.data?.path || data.root || data.data?.isWildcard) {
+                    UI.showToast('Select a category to generate wildcards for', 'warning');
+                    return;
+                }
+                this.handleGenerateAction(data);
+            }
+        });
+
+        // Suggest action - only for categories (not root, not wildcards)
+        contextMenuExtend.push({
+            name: '💡 Suggest Children',
+            onclick: (data) => {
+                // Validate: skip for root node or wildcard items
+                if (!data.data?.path || data.root || data.data?.isWildcard) {
+                    UI.showToast('Select a category to get suggestions for', 'warning');
+                    return;
+                }
+                this.handleSuggestAction(data);
+            }
+        });
+
         const options = {
             el: container,
             direction: MindElixir.SIDE,
@@ -216,16 +258,7 @@ const Mindmap = {
             contextMenu: {
                 focus: true,
                 link: false,
-                extend: [
-                    {
-                        name: '✨ Generate More',
-                        onclick: (data) => this.handleGenerateAction(data)
-                    },
-                    {
-                        name: '💡 Suggest Children',
-                        onclick: (data) => this.handleSuggestAction(data)
-                    }
-                ]
+                extend: contextMenuExtend
             },
             before: {
                 removeNode: async (el, obj) => {
@@ -254,6 +287,12 @@ const Mindmap = {
 
         // Apply initial theme
         this.syncTheme(instance);
+
+        // Add tooltips to toolbar icons
+        this.addToolbarTooltips(container);
+
+        // Auto-center the view
+        setTimeout(() => instance.toCenter(), 200);
 
         this.isInitialized = true;
         console.log('Mind Elixir initialized:', containerSelector);
@@ -379,6 +418,10 @@ const Mindmap = {
         mindmapContainer?.classList.add('hidden');
         dualContainer?.classList.add('hidden');
 
+        // Update body class for CSS-based control visibility
+        document.body.classList.remove('view-list', 'view-mindmap', 'view-dual');
+        document.body.classList.add(`view-${mode}`);
+
         // Show appropriate container(s)
         switch (mode) {
             case VIEW_MODES.LIST:
@@ -390,7 +433,8 @@ const Mindmap = {
             case VIEW_MODES.MINDMAP:
                 mindmapContainer?.classList.remove('hidden');
                 searchSection?.classList.add('hidden');
-                statsBar?.classList.add('hidden');
+                // Keep stats bar visible in all modes
+                statsBar?.classList.remove('hidden');
 
                 // Initialize if not already done
                 if (!this.instance) {
@@ -411,10 +455,21 @@ const Mindmap = {
                 break;
         }
 
-        // Update button states
+        // Update view mode button states
         document.querySelectorAll('.view-mode-selector button').forEach(btn => {
-            btn.classList.toggle('active', btn.id === `view-${mode}`);
+            // Only toggle active for view buttons, not the toggle button
+            if (btn.id.startsWith('view-')) {
+                btn.classList.toggle('active', btn.id === `view-${mode}`);
+            }
         });
+
+        // Update collapse button state when switching views
+        const toggleBtn = document.getElementById('mindmap-toggle-wildcards');
+        if (toggleBtn) {
+            toggleBtn.classList.toggle('active', !this.showWildcards);
+            toggleBtn.textContent = this.showWildcards ? '📦 Collapse' : '📦 Expand';
+            toggleBtn.title = this.showWildcards ? 'Hide wildcards (show categories only)' : 'Show wildcards';
+        }
 
         UI.showToast(`Switched to ${mode} view`, 'success');
     },
@@ -559,6 +614,72 @@ const Mindmap = {
     },
 
     /**
+     * Toggle wildcard visibility in mindmap
+     * When hidden, categories show wildcard count instead
+     */
+    toggleWildcards() {
+        this.showWildcards = !this.showWildcards;
+        this.refresh();
+
+        // Auto-fit after toggling
+        if (this.instance) {
+            setTimeout(() => this.instance.toCenter(), 100);
+        }
+        if (this.dualInstance) {
+            setTimeout(() => this.dualInstance.toCenter(), 100);
+        }
+
+        // Update toggle button state
+        const toggleBtn = document.getElementById('mindmap-toggle-wildcards');
+        if (toggleBtn) {
+            toggleBtn.classList.toggle('active', !this.showWildcards);
+            toggleBtn.title = this.showWildcards ? 'Hide wildcards (show categories only)' : 'Show wildcards';
+            toggleBtn.textContent = this.showWildcards ? '📦 Collapse' : '📦 Expand';
+        }
+
+        UI.showToast(this.showWildcards ? 'Showing wildcards' : 'Wildcards hidden (categories only)', 'info');
+    },
+
+    /**
+     * Add tooltips to Mind Elixir toolbar icons
+     * @param {HTMLElement} container - The mindmap container element
+     */
+    addToolbarTooltips(container) {
+        if (!container) return;
+
+        // Wait for Mind Elixir to render toolbar
+        setTimeout(() => {
+            // Find the toolbar and sidebar within the container
+            const toolbar = container.querySelector('.mind-elixir-toolbar');
+            const sidebar = container.querySelector('.mind-elixir-sidebar');
+
+            // Toolbar spans (zoom controls, etc.)
+            if (toolbar) {
+                const spans = toolbar.querySelectorAll('span');
+                const tooltipLabels = ['Fullscreen', 'Center view', 'Zoom out', 'Zoom in'];
+                spans.forEach((span, i) => {
+                    if (tooltipLabels[i]) {
+                        /** @type {HTMLElement} */ (span).title = tooltipLabels[i];
+                        span.setAttribute('aria-label', tooltipLabels[i]);
+                    }
+                });
+            }
+
+            // Sidebar layout buttons
+            if (sidebar) {
+                const layoutBtns = sidebar.querySelectorAll('span');
+                const layoutLabels = ['Left layout', 'Right layout', 'Radial layout'];
+                layoutBtns.forEach((btn, i) => {
+                    if (layoutLabels[i]) {
+                        /** @type {HTMLElement} */ (btn).title = layoutLabels[i];
+                        btn.setAttribute('aria-label', layoutLabels[i]);
+                    }
+                });
+            }
+        }, 500);
+    },
+
+    /**
      * Cleanup on destroy
      */
     destroy() {
@@ -571,6 +692,7 @@ const Mindmap = {
             this.dualInstance = null;
         }
         this.isInitialized = false;
+        this.showWildcards = true; // Reset to default
     }
 };
 
