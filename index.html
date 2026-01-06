@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="css/wildcards.css">
+    <!-- Mind Elixir Mindmap CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-elixir/dist/style.css">
     <link rel="manifest" href="assets/manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <script>
@@ -619,6 +621,32 @@
             <span id="stat-pinned" class="text-yellow-400 font-bold ml-1">0</span>
         </div>
     </div>
+    <!-- View Mode Selector -->
+    <div class="mt-4 flex justify-center">
+        <div class="view-mode-selector">
+            <button id="view-list" class="active" title="List View">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+                List
+            </button>
+            <button id="view-mindmap" title="Mindmap View">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+                Mindmap
+            </button>
+            <button id="view-dual" title="Dual Pane View (synchronized)">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+                Dual
+            </button>
+        </div>
+    </div>
     <!-- Primary Toolbar -->
     <div class="mt-6 flex flex-wrap justify-center items-center gap-3">
         <!-- Primary Actions -->
@@ -712,6 +740,18 @@
     </div>
 
     <div id="breadcrumbs-container" class="hidden"></div>
+
+    <!-- Mindmap Container (hidden by default) -->
+    <div id="mindmap-container" class="hidden mindmap-view"></div>
+
+    <!-- Dual Pane Container (hidden by default) -->
+    <div id="dual-container" class="hidden dual-pane-container">
+        <div id="dual-list" class="dual-pane dual-list-pane"></div>
+        <div class="dual-divider" id="dual-divider"></div>
+        <div id="dual-mindmap" class="dual-pane dual-mindmap-pane"></div>
+    </div>
+
+    <!-- List View (default) -->
     <main id="wildcard-container" class="space-y-4" tabindex="-1"></main>
     </div>
 

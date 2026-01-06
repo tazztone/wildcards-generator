@@ -6,6 +6,7 @@ import { loadConfig, Config } from './config.js';
 import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
+import { Mindmap } from './modules/mindmap.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadConfig();
@@ -21,5 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.DragDrop = DragDrop;
         window.ImportExport = ImportExport;
         window.Settings = Settings;
+        window.Mindmap = Mindmap;
     }
 });

@@ -19,6 +19,8 @@ export async function loadConfig() {
             API_ENDPOINT: "openrouter",
             CUSTOM_SYSTEM_PROMPT: null,  // null = use default from config.json
             CUSTOM_SUGGEST_PROMPT: null,  // null = use default from config.json
+            // View Mode Preference
+            PREFERRED_VIEW: 'list',  // 'list', 'mindmap', or 'dual'
             // Advanced Model Defaults
             MODEL_TEMPERATURE: 0.7,
             MODEL_MAX_TOKENS: 1000,
@@ -76,6 +78,7 @@ export async function saveConfig() {
             API_ENDPOINT: "openrouter",
             CUSTOM_SYSTEM_PROMPT: null,
             CUSTOM_SUGGEST_PROMPT: null,
+            PREFERRED_VIEW: 'list',
             MODEL_TEMPERATURE: 0.7,
             MODEL_MAX_TOKENS: 1000,
             MODEL_TOP_P: 1.0,
@@ -105,7 +108,7 @@ export async function saveConfig() {
                     }
                 }
                 // If it's a user setting loaded from storage (not in static defaults but valid config)
-                else if (['API_URL_CUSTOM', 'MODEL_NAME_GEMINI', 'MODEL_NAME_OPENROUTER', 'MODEL_NAME_CUSTOM', 'API_ENDPOINT', 'CUSTOM_SYSTEM_PROMPT', 'CUSTOM_SUGGEST_PROMPT',
+                else if (['API_URL_CUSTOM', 'MODEL_NAME_GEMINI', 'MODEL_NAME_OPENROUTER', 'MODEL_NAME_CUSTOM', 'API_ENDPOINT', 'CUSTOM_SYSTEM_PROMPT', 'CUSTOM_SUGGEST_PROMPT', 'PREFERRED_VIEW',
                     'MODEL_TEMPERATURE', 'MODEL_MAX_TOKENS', 'MODEL_TOP_P', 'MODEL_TOP_K', 'MODEL_FREQUENCY_PENALTY', 'MODEL_PRESENCE_PENALTY', 'MODEL_REPETITION_PENALTY', 'MODEL_MIN_P', 'MODEL_TOP_A', 'MODEL_SEED',
                     'MODEL_REASONING_EFFORT', 'MODEL_REASONING_MAX_TOKENS'
                 ].includes(key)) {

@@ -6,6 +6,7 @@ import { debounce } from './utils.js';
 import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
+import { Mindmap } from './modules/mindmap.js';
 
 export const App = {
     draggedPath: null,
@@ -24,6 +25,13 @@ export const App = {
 
         // Auto-verify stored keys
         setTimeout(() => Settings.verifyStoredApiKeys(), 500);
+
+        // Restore view mode preference
+        const preferredView = Config.PREFERRED_VIEW || 'list';
+        if (preferredView !== 'list') {
+            // Defer to allow DOM to fully load
+            setTimeout(() => Mindmap.setView(preferredView), 100);
+        }
     },
 
     bindEvents() {
@@ -443,6 +451,40 @@ export const App = {
 
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
+
+        // View Mode Selector Buttons
+        document.getElementById('view-list')?.addEventListener('click', () => Mindmap.setView('list'));
+        document.getElementById('view-mindmap')?.addEventListener('click', () => Mindmap.setView('mindmap'));
+        document.getElementById('view-dual')?.addEventListener('click', () => Mindmap.setView('dual'));
+
+        // Theme change observer for Mind Elixir sync
+        const themeObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    // Sync Mind Elixir theme when app theme changes
+                    if (Mindmap.instance) Mindmap.syncTheme(Mindmap.instance);
+                    if (Mindmap.dualInstance) Mindmap.syncTheme(Mindmap.dualInstance);
+                }
+            });
+        });
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+        // Mindmap AI action handlers
+        document.addEventListener('mindmap-generate', (e) => {
+            const { path } = /** @type {CustomEvent} */ (e).detail;
+            if (path && path.length > 0) {
+                const pathStr = path.join('/');
+                this.handleGenerate(pathStr);
+            }
+        });
+
+        document.addEventListener('mindmap-suggest', (e) => {
+            const { path } = /** @type {CustomEvent} */ (e).detail;
+            if (path && path.length > 0) {
+                const pathStr = path.join('/');
+                this.suggestItems(pathStr, 'list');
+            }
+        });
     },
 
     handleKeyboardShortcuts(e) {
