@@ -82,7 +82,7 @@ export const App = {
         });
 
         // Click on pencil icon also enables editing
-        UI.elements.container.addEventListener('click', (e) => {
+        const handleEditTrigger = (e) => {
             if (e.target.classList.contains('edit-icon')) {
                 const wrapper = e.target.closest('.editable-wrapper') || e.target.closest('.chip');
                 if (!wrapper) return;
@@ -100,6 +100,14 @@ export const App = {
                     this.enableEditing(editableInput);
                     return;
                 }
+            }
+        };
+        UI.elements.container.addEventListener('click', handleEditTrigger);
+        // Accessibility: Allow Enter key on edit icon
+        UI.elements.container.addEventListener('keydown', (e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('edit-icon')) {
+                e.preventDefault();
+                handleEditTrigger(e);
             }
         });
 
@@ -824,6 +832,20 @@ export const App = {
                         obj.wildcards.push(val);
                         input.value = '';
                         input.focus(); // Ensure focus remains
+
+                        // UX Enhancement: Flash feedback
+                        // The proxy update is synchronous for data, but DOM update relies on signals/event loop
+                        // Wait a tick for UI to render
+                        setTimeout(() => {
+                            const chipContainer = pathElement.querySelector('.chip-container');
+                            if (chipContainer) {
+                                const lastChip = chipContainer.lastElementChild;
+                                if (lastChip) {
+                                    lastChip.classList.add('animate-pulse', 'bg-green-900', 'border-green-700');
+                                    setTimeout(() => lastChip.classList.remove('animate-pulse', 'bg-green-900', 'border-green-700'), 500);
+                                }
+                            }
+                        }, 50);
                     }
                 }
                 return;

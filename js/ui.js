@@ -894,6 +894,7 @@ export const UI = {
                 emptyState = document.createElement('div');
                 emptyState.id = 'search-empty-state';
                 emptyState.className = 'text-center p-8 text-gray-500 animate-fade-in';
+                emptyState.setAttribute('role', 'status'); // Accessibility
                 emptyState.innerHTML = `
                     <div class="text-4xl mb-2 opacity-50">🔍</div>
                     <p class="text-lg">No wildcards found for "<span class="font-bold text-gray-400 search-term"></span>"</p>
@@ -1229,10 +1230,10 @@ export const UI = {
             <summary class="flex justify-between items-center p-4 cursor-pointer gap-4 group">
                 <div class="flex items-center gap-3 flex-wrap flex-grow">
                     <input type="checkbox" aria-label="Select category ${sanitize(name.replace(/_/g, ' '))}" class="category-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" onclick="event.stopPropagation();">
-                    <h2 class="text-xl font-semibold text-accent select-none editable-wrapper"><span class="editable-name category-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit category name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span></h2>
+                    <h2 class="text-xl font-semibold text-accent select-none editable-wrapper"><span class="editable-name category-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit category name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" role="button" tabindex="0" aria-label="Edit category name" title="Double-click to edit">✏️</span></h2>
                     <div class="editable-wrapper flex-grow items-center">
                     <input type="text" readonly aria-label="Folder instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 w-full transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}">
-                    <span class="edit-icon" title="Double-click to edit">✏️</span>
+                    <span class="edit-icon" role="button" tabindex="0" aria-label="Edit instructions" title="Double-click to edit">✏️</span>
                 </div>
                 </div>
                 <div class="flex items-center gap-2 ml-auto flex-shrink-0">
@@ -1260,11 +1261,11 @@ export const UI = {
             <div class="text-xs text-gray-400 mb-1 uppercase tracking-wider">${sanitize(parentPath)}</div>
             <div class="flex justify-between items-center mb-2 gap-3">
                 <input type="checkbox" aria-label="Select list ${sanitize(name.replace(/_/g, ' '))}" class="card-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500 flex-shrink-0" onclick="event.stopPropagation();">
-                <h3 class="font-bold text-lg text-gray-100 flex-grow editable-wrapper"><span class="editable-name wildcard-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit list name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span> <span class="wildcard-count text-gray-400 text-sm ml-2" title="${(data.wildcards || []).length} items in this list">(${(data.wildcards || []).length})</span></h3>
+                <h3 class="font-bold text-lg text-gray-100 flex-grow editable-wrapper"><span class="editable-name wildcard-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit list name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" role="button" tabindex="0" aria-label="Edit list name" title="Double-click to edit">✏️</span> <span class="wildcard-count text-gray-400 text-sm ml-2" title="${(data.wildcards || []).length} items in this list">(${(data.wildcards || []).length})</span></h3>
             </div>
             <div class="editable-wrapper w-full items-center my-2">
             <input type="text" readonly aria-label="Custom instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 w-full focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200" placeholder="Custom generation instructions..." value="${sanitize(data.instruction || '')}" title="Length: ${(data.instruction || '').length} chars">
-            <span class="edit-icon" title="Double-click to edit">✏️</span>
+            <span class="edit-icon" role="button" tabindex="0" aria-label="Edit instructions" title="Double-click to edit">✏️</span>
         </div>
             <div class="chip-container custom-scrollbar flex flex-wrap gap-2 card-folder rounded-md p-2 w-full border border-gray-600 overflow-y-auto" style="max-height: 150px; min-height: 2.5rem;">
                 ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
@@ -1354,6 +1355,9 @@ export const UI = {
     },
 
     showNotification(message, isConfirmation = false, onConfirm = null, withInput = false, customButtons = null) {
+        // Store active element to restore focus later
+        this._lastFocusedElement = document.activeElement;
+
         this.elements.dialogMessage.innerHTML = '';
         let inputElement = null;
 
@@ -1405,12 +1409,27 @@ export const UI = {
 
         this.elements.dialogClose.onclick = () => this.elements.dialog.close('close');
 
+        // Restore focus on close
+        const restoreFocus = () => {
+            if (this._lastFocusedElement && document.body.contains(this._lastFocusedElement)) {
+                this._lastFocusedElement.focus();
+            }
+            this._lastFocusedElement = null;
+        };
+        this.elements.dialog.addEventListener('close', restoreFocus, { once: true });
+
         this.elements.dialog.showModal();
 
-        // Enhancement #9: Auto-focus first input
+        // Enhancement #9: Auto-focus first input OR Cancel button (Safety)
         const firstInput = this.elements.dialog.querySelector('input:not([type="hidden"]), textarea, select');
         if (firstInput) {
             setTimeout(() => firstInput.focus(), 50);
+        } else if (isConfirmation) {
+            // Focus Cancel button for safety so Enter doesn't accidentally confirm destructive actions
+            setTimeout(() => this.elements.dialogCancel.focus(), 50);
+        } else if (!customButtons) {
+            // Focus Close button for standard notifications
+            setTimeout(() => this.elements.dialogClose.focus(), 50);
         }
     },
 
