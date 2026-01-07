@@ -887,12 +887,16 @@ export const UI = {
             this.applySearchHighlights(normalizedQuery);
 
             // Also highlight in Mindmap view if available
+            // @ts-ignore
             if (window.Mindmap?.highlightSearch) {
+                // @ts-ignore
                 window.Mindmap.highlightSearch(normalizedQuery);
             }
         } else {
             // Clear mindmap highlights when search is cleared
+            // @ts-ignore
             if (window.Mindmap?.highlightSearch) {
+                // @ts-ignore
                 window.Mindmap.highlightSearch('');
             }
         }
