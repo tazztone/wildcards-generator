@@ -7,7 +7,7 @@ const path = require('path');
     const page = await browser.newPage();
 
     // Navigate to local server
-    await page.goto('http://localhost:8080');
+    await page.goto('http://localhost:3000');
 
     // Reset state
     await page.evaluate(() => {

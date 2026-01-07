@@ -917,6 +917,25 @@ export const App = {
     async handleGenerate(path) {
         const obj = State.getObjectByPath(path);
 
+        // Template generation flow - detect if inside 0_TEMPLATES
+        if (State.isTemplateCategory(path)) {
+            const wildcardPaths = State.getAllWildcardPaths();
+            if (wildcardPaths.length < 2) {
+                UI.showToast('Need at least 2 wildcard lists to generate templates', 'warning');
+                return;
+            }
+
+            UI.showTemplateSourcesDialog(wildcardPaths, async (selectedPaths) => {
+                if (selectedPaths.length < 2) {
+                    UI.showToast('Select at least 2 categories', 'warning');
+                    return;
+                }
+                UI.elements.dialog.close();
+                await this.executeTemplateGeneration(path, obj, selectedPaths);
+            });
+            return;
+        }
+
         UI.toggleLoader(path, true);
 
         // Enhancement #3: Update button text during loading
@@ -948,6 +967,42 @@ export const App = {
             UI.toggleLoader(path, false);
             // Restore original button text
             if (generateBtn) generateBtn.textContent = originalText;
+        }
+    },
+
+    /**
+     * Execute template generation with selected category paths.
+     * @param {string} path - The template wildcard list path
+     * @param {object} obj - The wildcard list object
+     * @param {string[]} selectedPaths - Selected category paths for template generation
+     */
+    async executeTemplateGeneration(path, obj, selectedPaths) {
+        UI.toggleLoader(path, true);
+
+        const pathElement = document.querySelector(`[data-path="${path}"]`);
+        const generateBtn = pathElement?.querySelector('.generate-btn .btn-text');
+        if (generateBtn) generateBtn.textContent = 'Generating...';
+
+        try {
+            const pathMap = State.buildPathMap(selectedPaths);
+            const templatePrompt = State.state.templatePrompt || Config.DEFAULT_TEMPLATE_PROMPT;
+            const instructions = obj.instruction || 'Generate creative scene templates combining the selected categories';
+
+            const templates = await Api.generateTemplates(pathMap, instructions, templatePrompt);
+
+            if (templates && templates.length > 0) {
+                State.saveStateToHistory();
+                obj.wildcards.push(...templates);
+                UI.showToast(`Generated ${templates.length} templates`, 'success');
+            } else {
+                UI.showToast('No valid templates generated', 'info');
+            }
+        } catch (e) {
+            console.error('Template generation error:', e);
+            UI.showNotification(`Template generation failed: ${e.message}`);
+        } finally {
+            UI.toggleLoader(path, false);
+            if (generateBtn) generateBtn.textContent = 'Generate Templates';
         }
     },
 

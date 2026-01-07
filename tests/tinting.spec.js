@@ -30,28 +30,28 @@ test.describe('Category Tinting', () => {
     });
 
     test('should apply different tints based on index', async ({ page }) => {
-         await page.goto('http://localhost:8080');
-         await page.waitForSelector('.category-item');
+        await page.goto('http://localhost:3000');
+        await page.waitForSelector('.category-item');
 
-         const categories = page.locator('.level-0.category-item');
-         const count = await categories.count();
+        const categories = page.locator('.level-0.category-item');
+        const count = await categories.count();
 
-         if (count < 2) {
-             console.log('Not enough categories to test tint variation');
-             return;
-         }
+        if (count < 2) {
+            console.log('Not enough categories to test tint variation');
+            return;
+        }
 
-         // Get classes of first two categories
-         const class1 = await categories.nth(0).getAttribute('class');
-         const class2 = await categories.nth(1).getAttribute('class');
+        // Get classes of first two categories
+        const class1 = await categories.nth(0).getAttribute('class');
+        const class2 = await categories.nth(1).getAttribute('class');
 
-         const tint1 = class1.match(/category-tint-(\d+)/);
-         const tint2 = class2.match(/category-tint-(\d+)/);
+        const tint1 = class1.match(/category-tint-(\d+)/);
+        const tint2 = class2.match(/category-tint-(\d+)/);
 
-         expect(tint1).not.toBeNull();
-         expect(tint2).not.toBeNull();
+        expect(tint1).not.toBeNull();
+        expect(tint2).not.toBeNull();
 
-         // If indices are 0 and 1, tints should be 1 and 2.
-         expect(tint1[1]).not.toBe(tint2[1]);
+        // If indices are 0 and 1, tints should be 1 and 2.
+        expect(tint1[1]).not.toBe(tint2[1]);
     });
 });

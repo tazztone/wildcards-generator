@@ -7,20 +7,31 @@ const path = require('path');
     const context = await browser.newContext();
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     const page = await context.newPage();
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
 
-    // Start server (assuming http-server is running on 8080 or I can file://)
+    // Set viewport to a typical desktop size
+    await page.setViewportSize({ width: 1280, height: 800 });
+
+    // Start server (assuming serve is running on 3000 or I can file://)
+    /*
+    const server = spawn('npx', ['serve', '-l', '3000']);
+    console.log('Server started');
+    // Give it time to start
+    await new Promise(r => setTimeout(r, 2000));
+    */
     // Since I don't have a server running in background easily via this script without blocking,
     // I'll rely on the existing setup or use file:// if possible, but the app uses modules so file:// might block CORS.
     // The previous tests ran on localhost, so I assume there is a way.
     // Actually, I can just use the same base URL as the tests if I knew it.
-    // But better: I'll use http-server in this script or assume one is running.
+    // But better: I'll use serve in this script or assume one is running.
     // Wait, I can use the existing `tests/ui_ux.spec.js` logic but adapted for screenshot.
 
     // Let's try to start a server briefly or just use the playwright webServer config if I can invoke it? No.
     // I'll try to spawn a server process in background in bash before running this.
 
     try {
-        await page.goto('http://localhost:8080'); // Assuming standard http-server port
+        await page.goto('http://localhost:3000'); // Assuming standard serve port
 
         // Reset
         await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });

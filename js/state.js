@@ -490,7 +490,75 @@ const State = {
         }
 
         return removedCount;
+    },
+
+    /**
+     * Check if a path is within the 0_TEMPLATES category
+     * @param {string} path
+     * @returns {boolean}
+     */
+    isTemplateCategory(path) {
+        return path?.startsWith('0_TEMPLATES');
+    },
+
+    /**
+     * Get all wildcard list paths (excluding 0_TEMPLATES itself)
+     * @returns {Array<{path: string, name: string, topLevel: string}>}
+     */
+    getAllWildcardPaths() {
+        const paths = [];
+        const traverse = (obj, currentPath) => {
+            for (const [key, value] of Object.entries(obj)) {
+                if (key === 'instruction') continue;
+                const path = currentPath ? `${currentPath}/${key}` : key;
+                // Skip 0_TEMPLATES category itself
+                if (path.startsWith('0_TEMPLATES')) continue;
+                // Strict check: must have wildcards as array
+                if (value && typeof value === 'object' && Array.isArray(value.wildcards)) {
+                    paths.push({
+                        path,
+                        name: key.replace(/_/g, ' '),
+                        topLevel: path.split('/')[0]
+                    });
+                } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                    traverse(value, path);
+                }
+            }
+        };
+        traverse(this.state.wildcards, '');
+        return paths;
+    },
+
+    /**
+     * Build a path map from selected paths for template generation.
+     * Uses A-Z (26), then AA-ZZ (676) = 702 max paths.
+     * Paths are sorted for deterministic code assignment.
+     * @param {string[]} selectedPaths
+     * @returns {Object<string, string>} Map of codes to paths
+     */
+    buildPathMap(selectedPaths) {
+        const MAX = 702;
+        let paths = [...selectedPaths].sort();
+        if (paths.length > MAX) {
+            console.warn(`Template path map capped at ${MAX} paths (had ${paths.length})`);
+            paths = paths.slice(0, MAX);
+        }
+
+        const L = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const encode = (n) => {
+            if (n < 26) return L[n];
+            const first = Math.floor((n - 26) / 26);
+            const second = (n - 26) % 26;
+            return L[first] + L[second];
+        };
+
+        const map = {};
+        paths.forEach((path, i) => {
+            map[encode(i)] = path;
+        });
+        return map;
     }
 };
 
 export { State };
+

@@ -26,7 +26,7 @@ We use Playwright for End-to-End (E2E) testing.
 
 1.  **Install Dependencies**:
     ```bash
-    npm install -D @playwright/test http-server
+    npm install -D @playwright/test serve
     npx playwright install chromium
     ```
 

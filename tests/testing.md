@@ -17,26 +17,11 @@ This document describes the testing strategy and framework for the Wildcard Gene
 
 ```bash
 # Install dependencies
-npm install -D @playwright/test http-server
+npm install -D @playwright/test serve
 npx playwright install chromium
 
 # Run all tests
 npx playwright test
-
-# Run with visible browser
-npx playwright test --headed
-
-# Run specific test
-npx playwright test -g "page loads"
-
-# View HTML report
-npx playwright test --show-report
-
-# Re-run only failing tests (saves time!)
-npx playwright test --last-failed
-
-# Debug Mode (opens inspector)
-npx playwright test --debug
 ```
 
 ## Test Files
@@ -65,6 +50,7 @@ npx playwright test --debug
 - `tests/test_model.spec.js`: **NEW** - Test connection button and model list functionality.
 - `tests/suggest_dialog.spec.js`: **NEW** - Suggest popup structure and button placement.
 - `tests/mindmap_e2e.spec.js`: **NEW** - Comprehensive E2E tests for Mindmap module (View modes, Search, Context Menu).
+- `tests/templates.spec.js`: **NEW** - Template Architect feature (0_TEMPLATES context, category selection dialog).
 
 ## Test Categories
 
@@ -178,6 +164,12 @@ npx playwright test --debug
 - Verifies deep proxy traps for nested updates.
 - Verifies YAML processing robustness (handling null scalars).
 
+### 18. Template Generation (New)
+- Button label changes to "Generate Templates" inside 0_TEMPLATES.
+- Category selection dialog appears with grouped categories.
+- All/None selection toggles work correctly.
+- Generate only proceeds with 2+ categories selected.
+
 ## Configuration
 
 Test config in `playwright.config.js`:
@@ -191,7 +183,7 @@ module.exports = defineConfig({
     workers: process.env.CI ? 1 : undefined,
     reporter: 'html',
     use: {
-        baseURL: 'http://localhost:8080',
+        baseURL: 'http://localhost:3000',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
     },
@@ -202,8 +194,8 @@ module.exports = defineConfig({
         },
     ],
     webServer: {
-        command: 'npx http-server . -p 8080 -c-1',
-        url: 'http://localhost:8080',
+        command: 'npx serve -l 3000',
+        url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
     },
 });
@@ -229,7 +221,7 @@ jobs:
 
 | Tests timeout | Increase timeout, check network |
 | Elements not found | Add explicit waits, check selectors |
-| Server not starting | Verify port 8080 is available |
+| Server not starting | Verify port 3000 is available |
 | Execution context destroyed | Avoid page navigation during `page.evaluate`, use `_rawData` manipulation instead of `resetState` if it triggers reloads/async chaos. |
 
 ## Known Limitations & Challenges

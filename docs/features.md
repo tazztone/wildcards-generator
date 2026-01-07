@@ -20,7 +20,16 @@ This document details the features of the Wildcard Generator application.
 
 ## Advanced Features
 
-### v2.17 Features (Latest)
+### v2.18 Features (Latest)
+
+- **Template Architect (0_TEMPLATES)**:
+  - **Context-Aware Generation**: Wildcard lists inside `0_TEMPLATES` use a special template generation mode.
+  - **Category Selection Dialog**: Before generation, choose which wildcard categories to include as template sources.
+  - **Path Mapping**: Optimized token usage by mapping full paths to short codes (A, B, AA, etc.).
+  - **Template Syntax**: Generated templates use `__category/path__` syntax for wildcard references.
+  - **Customizable Button**: Button shows "Generate Templates" instead of "Generate More" in template context.
+
+### v2.17 Features
 
 - **Duplicate Finder Mode**:
   - **Unified "Dupe Finder" Button**: A single toolbar button activates the mode.

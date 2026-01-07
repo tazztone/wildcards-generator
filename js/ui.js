@@ -1289,7 +1289,7 @@ export const UI = {
                 </button>
             </div>
             <div class="flex justify-between items-center mt-3 flex-wrap gap-2">
-                <button class="generate-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-3 rounded-md flex items-center gap-2 shadow-sm hover:shadow-md transition-all"><span class="btn-text">Generate More</span><div class="loader hidden"></div></button>
+                <button class="generate-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-3 rounded-md flex items-center gap-2 shadow-sm hover:shadow-md transition-all"><span class="btn-text">${path.startsWith('0_TEMPLATES') ? 'Generate Templates' : 'Generate More'}</span><div class="loader hidden"></div></button>
                 <div class="flex gap-1 ml-auto">
                     <button class="copy-btn btn-secondary text-gray-400 hover:text-white p-2 rounded-md transition-colors" title="Copy all wildcards" aria-label="Copy all wildcards" data-original-title="Copy all wildcards"><span class="btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></button>
                     <button class="select-all-btn btn-secondary text-xs py-1.5 px-2 rounded-md" title="Select All">Select All</button>
@@ -1428,6 +1428,114 @@ export const UI = {
         }
     },
 
+    /**
+     * Show dialog for selecting wildcard categories as template sources.
+     * @param {Array<{path: string, name: string, topLevel: string}>} wildcardPaths
+     * @param {function(string[]): void} onConfirm - Callback with selected paths
+     */
+    showTemplateSourcesDialog(wildcardPaths, onConfirm) {
+        // Group by top-level category
+        const grouped = {};
+        wildcardPaths.forEach(item => {
+            if (!grouped[item.topLevel]) grouped[item.topLevel] = [];
+            grouped[item.topLevel].push(item);
+        });
+
+        const html = `
+            <div class="space-y-3 max-w-lg">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🏗️</span>
+                    <h3 class="text-xl font-bold text-white">Select Template Sources</h3>
+                </div>
+                <p class="text-xs text-gray-400">Choose wildcard categories to combine into templates:</p>
+                
+                <div class="flex gap-2 text-xs mb-2">
+                    <button id="tpl-select-all" class="text-indigo-400 hover:text-indigo-300 hover:underline">Select All</button>
+                    <span class="text-gray-600">|</span>
+                    <button id="tpl-select-none" class="text-indigo-400 hover:text-indigo-300 hover:underline">Select None</button>
+                </div>
+                
+                <div class="max-h-[50vh] overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                    ${Object.entries(grouped).map(([topLevel, items]) => `
+                        <details class="bg-gray-800/50 rounded border border-gray-700" open>
+                            <summary class="p-2 cursor-pointer text-sm font-medium flex items-center gap-2 hover:bg-gray-700/50">
+                                <input type="checkbox" class="tpl-group-toggle w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded" data-group="${sanitize(topLevel)}" checked>
+                                <span>${sanitize(topLevel.replace(/_/g, ' '))}</span>
+                                <span class="text-xs text-gray-500 ml-auto">(${items.length})</span>
+                            </summary>
+                            <div class="p-2 pt-0 space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
+                                ${items.map(item => `
+                                    <label class="flex items-center gap-2 text-xs p-1 rounded hover:bg-gray-700/30 cursor-pointer">
+                                        <input type="checkbox" class="tpl-path-cb w-3 h-3 text-indigo-600 bg-gray-700 border-gray-600 rounded" data-path="${sanitize(item.path)}" checked>
+                                        <span class="truncate text-gray-300" title="${sanitize(item.path)}">${sanitize(item.name)}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </details>
+                    `).join('')}
+                </div>
+                
+                <div class="text-xs text-gray-500 pt-2 border-t border-gray-700 flex justify-between">
+                    <span><span id="tpl-count">${wildcardPaths.length}</span> categories selected</span>
+                    <span class="text-indigo-400">Min: 2 required</span>
+                </div>
+            </div>
+        `;
+
+        this.showNotification(html, false, null, false, [
+            {
+                text: 'Generate Templates',
+                class: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded',
+                onClick: () => {
+                    const selected = Array.from(document.querySelectorAll('.tpl-path-cb:checked'))
+                        .map(cb => /** @type {HTMLInputElement} */(cb).dataset.path);
+                    onConfirm(selected);
+                }
+            },
+            {
+                text: 'Cancel',
+                class: 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded',
+                onClick: () => this.elements.dialog.close()
+            }
+        ]);
+
+        // Bind helper listeners after dialog is shown
+        setTimeout(() => {
+            const updateCount = () => {
+                const count = document.querySelectorAll('.tpl-path-cb:checked').length;
+                const countEl = document.getElementById('tpl-count');
+                if (countEl) countEl.textContent = String(count);
+            };
+
+            document.getElementById('tpl-select-all')?.addEventListener('click', () => {
+                document.querySelectorAll('.tpl-path-cb, .tpl-group-toggle').forEach(cb =>
+                    /** @type {HTMLInputElement} */(cb).checked = true);
+                updateCount();
+            });
+
+            document.getElementById('tpl-select-none')?.addEventListener('click', () => {
+                document.querySelectorAll('.tpl-path-cb, .tpl-group-toggle').forEach(cb =>
+                    /** @type {HTMLInputElement} */(cb).checked = false);
+                updateCount();
+            });
+
+            // Group toggle affects all children
+            document.querySelectorAll('.tpl-group-toggle').forEach(toggle => {
+                toggle.addEventListener('change', (e) => {
+                    const checked = /** @type {HTMLInputElement} */(e.target).checked;
+                    const group = /** @type {HTMLInputElement} */(e.target).dataset.group;
+                    const details = /** @type {HTMLElement} */(e.target).closest('details');
+                    details?.querySelectorAll('.tpl-path-cb').forEach(cb =>
+                        /** @type {HTMLInputElement} */(cb).checked = checked);
+                    updateCount();
+                });
+            });
+
+            document.querySelectorAll('.tpl-path-cb').forEach(cb =>
+                cb.addEventListener('change', updateCount));
+        }, 50);
+    },
+
     saveAllSettings() {
         if (!this.elements.settingsDialog) return;
         const inputs = this.elements.settingsDialog.querySelectorAll('input, select, textarea');
@@ -1469,11 +1577,11 @@ export const UI = {
 
     filterAndRenderModels(provider) {
         const models = State.state.availableModels || [];
-        const datalist = document.getElementById(`${provider}-model-list`);
+        const datalist = document.getElementById(`${provider} - model - list`);
         if (!datalist) return;
 
-        const freeOnly = /** @type {HTMLInputElement|null} */ (document.getElementById(`${provider}-free-only`))?.checked;
-        const jsonOnly = /** @type {HTMLInputElement|null} */ (document.getElementById(`${provider}-json-only`))?.checked;
+        const freeOnly = /** @type {HTMLInputElement|null} */ (document.getElementById(`${provider} - free - only`))?.checked;
+        const jsonOnly = /** @type {HTMLInputElement|null} */ (document.getElementById(`${provider} - json - only`))?.checked;
 
         datalist.innerHTML = '';
 
@@ -1517,7 +1625,7 @@ export const UI = {
         });
 
         // Update count helper?
-        const loadingInd = document.getElementById(`${provider}-model-loading-indicator`);
+        const loadingInd = document.getElementById(`${provider} - model - loading - indicator`);
         if (loadingInd) {
             loadingInd.textContent = `${filtered.length} models available`;
             loadingInd.classList.remove('hidden', 'animate-pulse');
@@ -1587,7 +1695,7 @@ export const UI = {
 
         // Build the main dialog content - simplified for cleanup only
         const message = `
-<div class="text-left space-y-4">
+                    < div class= "text-left space-y-4" >
 <div class="flex items-center justify-between">
     <h3 class="text-xl font-bold text-white">🧹 Clean Up Duplicates</h3>
     <span class="bg-red-900/50 text-red-200 text-xs px-2 py-1 rounded border border-red-800">${duplicates.length} conflicts / ${totalOccurrences} items</span>
@@ -1622,8 +1730,8 @@ export const UI = {
         </ul>
     </div>
 </details>
-</div>
-`;
+</div >
+    `;
 
         this.showNotification(message, false, null, false);
 
@@ -1733,7 +1841,7 @@ export const UI = {
                 let currentPath = '';
                 parts.forEach((part, i) => {
                     currentPath += (i > 0 ? '/' : '') + part;
-                    const details = document.querySelector(`details[data-path="${currentPath}"]`);
+                    const details = document.querySelector(`details[data - path= "${currentPath}"]`);
                     if (details) /** @type {HTMLDetailsElement} */ (details).open = true;
                 });
             } else {
@@ -1786,19 +1894,19 @@ export const UI = {
         bar.id = 'dupe-finder-bar';
         bar.className = 'dupe-finder-bar';
         bar.innerHTML = `
-            <button id="clean-duplicates-btn" class="btn-clean">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
+    < button id = "clean-duplicates-btn" class="btn-clean" >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
                 🧹 Clean Duplicates
-            </button>
-            <button id="exit-dupe-finder-btn" class="btn-exit">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Exit Dupe Finder
-            </button>
-        `;
+            </button >
+    <button id="exit-dupe-finder-btn" class="btn-exit">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Exit Dupe Finder
+    </button>
+`;
 
         // Wire up buttons
         bar.querySelector('#clean-duplicates-btn')?.addEventListener('click', () => {

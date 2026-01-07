@@ -6,7 +6,7 @@ const fs = require('fs');
 (async () => {
     // Ensure directory exists
     const dir = '/home/jules/verification';
-    if (!fs.existsSync(dir)){
+    if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
 
@@ -14,7 +14,7 @@ const fs = require('fs');
     const page = await browser.newPage();
 
     try {
-        await page.goto('http://localhost:8080');
+        await page.goto('http://localhost:3000');
 
         // Reset state
         await page.evaluate(() => {
