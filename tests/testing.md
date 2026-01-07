@@ -10,7 +10,7 @@ This document describes the testing strategy and framework for the Wildcard Gene
 | Test Type | End-to-End (E2E) & Unit/Integration Logic |
 | Browsers | Chromium |
 | Test Location | `tests/` |
-| **Total Tests** | **150** |
+| **Total Tests** | **186** |
 | **Status** | **Passed** ✅ |
 
 ## Quick Start
@@ -63,7 +63,9 @@ npx playwright test --debug
 - `tests/double_click_edit.spec.js`: **NEW** - Double-click editing for category names and instructions.
 - `tests/import_export_flows.spec.js`: **NEW** - Import/export workflows for YAML and settings files.
 - `tests/test_model.spec.js`: **NEW** - Test connection button and model list functionality.
+- `tests/test_model.spec.js`: **NEW** - Test connection button and model list functionality.
 - `tests/suggest_dialog.spec.js`: **NEW** - Suggest popup structure and button placement.
+- `tests/mindmap_e2e.spec.js`: **NEW** - Comprehensive E2E tests for Mindmap module (View modes, Search, Context Menu).
 
 ## Test Categories
 
@@ -98,6 +100,17 @@ npx playwright test --debug
 - Individual card checkboxes selection works
 
 ### 5. Theme & Settings
+- Theme toggle persists
+- Settings dialog opens
+- API settings input fields work
+
+### 6. Mindmap Module
+- View switching (List/Mindmap/Dual)
+- Mindmap initialization and rendering
+- Search integration (Highlighting & Hidden Match Hints)
+- Smart Context Menu actions (Generate/Suggest)
+- Toggle Wildcards visibility with zoom preservation
+- Data synchronization with State
 - Theme toggle visible
 - Theme toggle switches modes
 - Global settings panel toggles
