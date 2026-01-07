@@ -49,7 +49,7 @@ const Mindmap = {
             // @ts-ignore - Dynamic import from CDN
             const module = await import('https://cdn.jsdelivr.net/npm/mind-elixir/dist/MindElixir.js');
             this._MindElixir = module.default || module;
-            console.log('Mind Elixir loaded successfully');
+
             return this._MindElixir;
         } catch (error) {
             console.error('Failed to load Mind Elixir:', error);
@@ -331,7 +331,7 @@ const Mindmap = {
         this.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
 
         this.isInitialized = true;
-        console.log('Mind Elixir initialized:', containerSelector);
+
     },
 
     /**
@@ -346,10 +346,10 @@ const Mindmap = {
 
             // Detect focus mode operations
             if (operation.name === 'focusNode' || operation.name === 'focus') {
-                console.log('[Mindmap] Focus mode activated');
+
                 this.showFocusModeExitButton(instance);
             } else if (operation.name === 'cancelFocus' || operation.name === 'unfocus') {
-                console.log('[Mindmap] Focus mode cancelled');
+
                 this.hideFocusModeExitButton();
             }
 
@@ -420,7 +420,7 @@ const Mindmap = {
      * @param {MindElixirInstance} instance - The Mind Elixir instance
      */
     handleMindmapOperation(operation, instance) {
-        console.log('Mindmap operation:', operation.name, operation.obj);
+
 
         this._syncLock = true;
 
@@ -876,7 +876,7 @@ const Mindmap = {
         // Capture the current node immediately when menu opens
         this.lastContextNode = this.instance?.currentNode;
 
-        console.log('[SmartMenu] Optimization triggered. Current Node:', this.lastContextNode);
+
 
         if (!this.instance || !this.instance.currentNode) {
             console.warn('[SmartMenu] Node undefined, aborting.');
@@ -896,7 +896,7 @@ const Mindmap = {
         // A category that can have subcategories suggested (not a wildcard list)
         const canSuggestSubcategories = isCategory && !isWildcardList;
 
-        console.log('[SmartMenu] Type:', { isWildcard, isRoot, isCategory, isWildcardList, wildcardCount });
+
 
         const items = menuEl.querySelectorAll('li');
         items.forEach(item => {
@@ -908,7 +908,7 @@ const Mindmap = {
             if (isWildcard) {
                 // Hide actions irrelevant for wildcard items (leaf nodes)
                 if (text.includes('child') || text.includes('summary')) {
-                    console.log('[SmartMenu] Hiding for wildcard:', text);
+
                     item.style.display = 'none';
                 }
             }
@@ -916,14 +916,14 @@ const Mindmap = {
                 // Wildcard list categories shouldn't add children via Mind Elixir
                 // (children are wildcards managed differently)
                 if (text.includes('add child')) {
-                    console.log('[SmartMenu] Hiding "Add child" for wildcard list');
+
                     item.style.display = 'none';
                 }
             }
             if (isRoot) {
                 // Hide actions irrelevant for root
                 if (text.includes('parent') || text.includes('sibling') || text.includes('remove') || text.includes('up') || text.includes('down') || text.includes('cut') || text.includes('copy')) {
-                    console.log('[SmartMenu] Hiding for root:', text);
+
                     item.style.display = 'none';
                 }
             }
@@ -932,7 +932,7 @@ const Mindmap = {
             // "Generate Wildcards" - only for wildcard lists (categories that have wildcards)
             if (text.includes('generate wildcards')) {
                 if (!isWildcardList) {
-                    console.log('[SmartMenu] Hiding "Generate Wildcards" (not a wildcard list)');
+
                     item.style.display = 'none';
                 }
             }
@@ -940,7 +940,7 @@ const Mindmap = {
             // (categories with wildcards are leaf-level, can't have subcategories)
             if (text.includes('suggest subcategories')) {
                 if (!canSuggestSubcategories) {
-                    console.log('[SmartMenu] Hiding "Suggest Subcategories" (is root, wildcard, or wildcard list)');
+
                     item.style.display = 'none';
                 }
             }
@@ -949,19 +949,19 @@ const Mindmap = {
             // "Focus Mode" - only for categories (not wildcards), and add click handler
             if (text.includes('focus mode') && !text.includes('cancel')) {
                 if (isWildcard) {
-                    console.log('[SmartMenu] Hiding "Focus Mode" (is a wildcard)');
+
                     item.style.display = 'none';
                 } else {
                     // Add click handler to show exit button when Focus Mode is activated
                     item.addEventListener('click', () => {
-                        console.log('[Mindmap] Focus Mode clicked - showing exit button');
+
                         setTimeout(() => this.showFocusModeExitButton(this.instance), 100);
                     }, { once: true });
                 }
             }
             // "Cancel Focus Mode" - always hide (replaced with floating button)
             if (text.includes('cancel focus mode')) {
-                console.log('[SmartMenu] Hiding "Cancel Focus Mode" (using floating button instead)');
+
                 item.style.display = 'none';
             }
         });

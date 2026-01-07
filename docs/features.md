@@ -6,7 +6,7 @@ This document details the features of the Wildcard Generator application.
 
 ### Hierarchical Organization
 - **Nested Categories**: Create unlimited levels of folders and subfolders to organize your wildcards.
-- **Drag & Drop**: Reorder items or move them between categories using drag and drop (WIP).
+- **Drag & Drop**: Reorder items or move them between categories using drag and drop.
 
 ### AI Generation
 - **LLM Integration**: Connect to powerful AI models via OpenRouter, Google Gemini, or any OpenAI-compatible API.
