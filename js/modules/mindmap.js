@@ -749,7 +749,9 @@ const Mindmap = {
                 // Continue - list toggle still succeeded
             }
 
-            // NOTE: No auto-center to preserve user's zoom/position
+            // Re-center after refresh (Mind Elixir's refresh moves the view origin)
+            if (this.instance) setTimeout(() => this.instance.toCenter(), 100);
+            if (this.dualInstance) setTimeout(() => this.dualInstance.toCenter(), 100);
 
             // Always update button state
             this.updateToggleButtonState();
