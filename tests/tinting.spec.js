@@ -5,7 +5,7 @@ test.describe('Category Tinting', () => {
 
     test('should apply tint classes to top-level categories', async ({ page }) => {
         // Go to app
-        await page.goto('http://localhost:8080');
+        await page.goto('http://localhost:3000');
 
         // Wait for wildcards to load
         await page.waitForSelector('.category-item');

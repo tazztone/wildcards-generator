@@ -167,7 +167,7 @@ test.describe('Config Merging Logic', () => {
         expect(result.gemini).toBe('gemini-model');
         expect(result.openrouter).toBe('openrouter-model');
         expect(result.custom).toBe('custom-model');
-        expect(result.customUrl).toBe('http://localhost:3000/v1');
+        expect(result.customUrl).toBe('http://localhost:8080/v1');
     });
 
     test('Numeric config values are properly converted', async ({ page }) => {

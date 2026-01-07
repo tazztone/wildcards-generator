@@ -28,6 +28,11 @@ test.describe('Template Architect', () => {
         // Wait for UI to update
         await page.waitForTimeout(500);
 
+        // Open the 0_TEMPLATES category
+        const templatesCategory = page.locator('details[data-path="0_TEMPLATES"]');
+        await templatesCategory.click();
+        await page.waitForTimeout(300);
+
         // Find the card inside 0_TEMPLATES
         const templateCard = page.locator('[data-path="0_TEMPLATES/Test_List"]');
         await expect(templateCard).toBeVisible();

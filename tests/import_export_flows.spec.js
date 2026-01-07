@@ -112,7 +112,62 @@ test.describe('Import/Export Flows', () => {
 
             expect(content).toContain('InstructionExportTest');
         });
+
+        test('exported YAML uses comment-based instructions, not property-based', async ({ page }) => {
+            // Export the default data which has instructions
+            const downloadPromise = page.waitForEvent('download');
+            await page.locator('#export-yaml').click();
+            const download = await downloadPromise;
+
+            const stream = await download.createReadStream();
+            const buffers = [];
+            for await (const chunk of stream) buffers.push(chunk);
+            const content = Buffer.concat(buffers).toString('utf-8');
+
+            // Should contain comment-style instructions (# instruction:)
+            expect(content).toMatch(/# instruction:/);
+
+            // Should NOT have instruction as a property key (indented instruction:)
+            // The regex looks for lines like "  instruction: value" (property format)
+            const hasPropertyInstruction = /^\s+instruction:\s+\S/m.test(content);
+            expect(hasPropertyInstruction).toBe(false);
+        });
+
+        test('exported YAML has flat structure without wildcards wrapper', async ({ page }) => {
+            const downloadPromise = page.waitForEvent('download');
+            await page.locator('#export-yaml').click();
+            const download = await downloadPromise;
+
+            const stream = await download.createReadStream();
+            const buffers = [];
+            for await (const chunk of stream) buffers.push(chunk);
+            const content = Buffer.concat(buffers).toString('utf-8');
+
+            // Should NOT start with "wildcards:" wrapper at root level
+            expect(content.startsWith('wildcards:')).toBe(false);
+
+            // Should contain top-level categories directly (like 1_SUBJECT_and_CONTENT)
+            expect(content).toMatch(/^\d+_[A-Z]/m);
+        });
+
+        test('exported YAML wildcards are direct array items, not nested under wildcards key', async ({ page }) => {
+            const downloadPromise = page.waitForEvent('download');
+            await page.locator('#export-yaml').click();
+            const download = await downloadPromise;
+
+            const stream = await download.createReadStream();
+            const buffers = [];
+            for await (const chunk of stream) buffers.push(chunk);
+            const content = Buffer.concat(buffers).toString('utf-8');
+
+            // Should have direct array items (- item) under categories
+            expect(content).toMatch(/^\s+- \w+/m);
+
+            // Should contain known wildcards from initial data
+            expect(content).toContain('- infant');
+        });
     });
+
 
     test.describe('ZIP Export', () => {
         test('ZIP export includes nested categories', async ({ page }) => {

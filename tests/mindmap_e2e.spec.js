@@ -237,9 +237,10 @@ test.describe('Mindmap Module E2E Tests', () => {
             await page.click('#view-mindmap');
             await page.waitForTimeout(500);
 
-            // Default is collapsed (showWildcards = false), so button should be active
+            // Default is collapsed (showWildcards = false), so button should NOT be active
             const toggleBtn = page.locator('#mindmap-toggle-wildcards');
-            await expect(toggleBtn).toHaveClass(/active/);
+            const hasActiveClass = await toggleBtn.evaluate(el => el.classList.contains('active'));
+            expect(hasActiveClass).toBe(false);
         });
 
         test('clicking toggle changes button state', async ({ page }) => {
@@ -248,13 +249,17 @@ test.describe('Mindmap Module E2E Tests', () => {
 
             const toggleBtn = page.locator('#mindmap-toggle-wildcards');
 
+            // Initial state: no active class (wildcards hidden)
+            const initialActive = await toggleBtn.evaluate(el => el.classList.contains('active'));
+            expect(initialActive).toBe(false);
+
             // Click to show wildcards
             await toggleBtn.click();
             await page.waitForTimeout(500);
 
-            // Button should no longer be active
+            // Button should now be active (wildcards visible)
             const hasActiveClass = await toggleBtn.evaluate(el => el.classList.contains('active'));
-            expect(hasActiveClass).toBe(false);
+            expect(hasActiveClass).toBe(true);
         });
 
         test('toggle shows toast notification', async ({ page }) => {

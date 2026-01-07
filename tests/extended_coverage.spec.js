@@ -35,7 +35,7 @@ test.describe('Extended Coverage Tests', () => {
         });
 
         test('handles Network Error gracefully', async ({ page }) => {
-             // Mock Network Error
+            // Mock Network Error
             await page.route('**/models*', route => route.abort('failed'));
 
             await page.locator('button[title="Global Settings"]').click();
@@ -103,9 +103,9 @@ test.describe('Extended Coverage Tests', () => {
 
             const movedChild = page.locator('details[data-path="DestFolder/MovingChild"]');
             await expect(movedChild).toBeVisible().catch(async () => {
-                 // Debug: Take screenshot if fail
-                 await page.screenshot({ path: 'drag-fail.png' });
-                 throw new Error("Moved child not found in destination");
+                // Debug: Take screenshot if fail
+                await page.screenshot({ path: 'drag-fail.png' });
+                throw new Error("Moved child not found in destination");
             });
         });
     });
@@ -130,7 +130,8 @@ test.describe('Extended Coverage Tests', () => {
             const content = Buffer.concat(buffers).toString('utf-8');
 
             expect(content).toContain('ExportTestCat');
-            expect(content).toContain('wildcards:');
+            // New format uses direct array items under categories (no 'wildcards:' wrapper)
+            expect(content).toMatch(/^\s+- /m); // Has array items
         });
     });
 });

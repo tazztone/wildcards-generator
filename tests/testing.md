@@ -10,7 +10,7 @@ This document describes the testing strategy and framework for the Wildcard Gene
 | Test Type | End-to-End (E2E) & Unit/Integration Logic |
 | Browsers | Chromium |
 | Test Location | `tests/` |
-| **Total Tests** | **186** |
+| **Total Tests** | **194** |
 | **Status** | **Passed** ✅ |
 
 ## Quick Start
@@ -115,6 +115,11 @@ npx playwright test
 - Import YAML button functional
 - Import config button functional
 - **Export Content Verification**: Checks if exported YAML actually contains data.
+- **Export Format Validation** (New):
+  - Comment-based instructions (`# instruction:`) instead of property-based
+  - Flat structure without `wildcards:` wrapper
+  - Direct array items under categories
+
 
 ### 8. Keyboard Shortcuts
 - Ctrl+S shows auto-save message

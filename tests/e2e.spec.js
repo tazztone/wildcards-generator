@@ -398,7 +398,7 @@ test.describe('Wildcard Generator E2E Tests', () => {
         });
 
         test('check duplicates button works', async ({ page }) => {
-            const checkDupes = page.locator('#check-duplicates');
+            const checkDupes = page.locator('#dupe-finder-btn');
             await expect(checkDupes).toBeVisible();
             await checkDupes.click();
 

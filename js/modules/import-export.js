@@ -25,16 +25,63 @@ export const ImportExport = {
     },
 
     /**
-     * Exports all wildcards to a YAML file.
+     * Recursively builds YAML nodes with instruction comments from internal data format.
+     * @param {object} data - Internal data object with instruction/wildcards properties
+     * @param {object} doc - YAML Document for creating nodes
+     * @returns {object} YAML node (YAMLMap or YAMLSeq)
+     */
+    _buildExportNode(data, doc) {
+        const map = doc.createNode({});
+
+        for (const [key, value] of Object.entries(data)) {
+            if (key === 'instruction') continue; // Skip instruction property, handled as comment
+
+            if (value && typeof value === 'object' && !Array.isArray(value)) {
+                // Check if this is a leaf node (has wildcards array)
+                if (Array.isArray(value.wildcards)) {
+                    // Create sequence node for wildcards
+                    const seq = doc.createNode(value.wildcards);
+                    // Add instruction as inline comment on the key
+                    if (value.instruction) {
+                        seq.commentBefore = ` instruction: ${value.instruction}`;
+                    }
+                    map.set(key, seq);
+                } else {
+                    // Nested category - recurse
+                    const nestedMap = this._buildExportNode(value, doc);
+                    // Add instruction as inline comment
+                    if (value.instruction) {
+                        nestedMap.commentBefore = ` instruction: ${value.instruction}`;
+                    }
+                    map.set(key, nestedMap);
+                }
+            }
+        }
+
+        return map;
+    },
+
+    /**
+     * Exports all wildcards to a YAML file in the original comment-based format.
      */
     async handleExportYAML() {
         try {
             const YAML = (await import('https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js')).default;
-            const yamlContent = YAML.stringify({
-                wildcards: State.state.wildcards,
-                systemPrompt: State.state.systemPrompt,
-                suggestItemPrompt: State.state.suggestItemPrompt
-            });
+            const doc = new YAML.Document();
+
+            // Build the wildcards structure with comments
+            const wildcardsNode = this._buildExportNode(State.state.wildcards, doc);
+            doc.contents = wildcardsNode;
+
+            // Add prompts at the end as regular properties
+            if (State.state.systemPrompt) {
+                wildcardsNode.set('systemPrompt', State.state.systemPrompt);
+            }
+            if (State.state.suggestItemPrompt) {
+                wildcardsNode.set('suggestItemPrompt', State.state.suggestItemPrompt);
+            }
+
+            const yamlContent = doc.toString();
             this._downloadFile(yamlContent, 'wildcards.yaml', 'application/x-yaml');
             UI.showToast('YAML exported successfully', 'success');
         } catch (e) {
@@ -42,6 +89,7 @@ export const ImportExport = {
             UI.showToast('Export failed', 'error');
         }
     },
+
 
     /**
      * Exports all wildcards as a ZIP archive with individual text files.
