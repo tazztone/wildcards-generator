@@ -544,6 +544,66 @@
             box-shadow: 0 0 0 2px rgba(252, 211, 77, 0.5);
         }
 
+        /* Hidden Wildcard Matches Hint */
+        .hidden-matches-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent-primary);
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: slide-up 0.3s ease-out;
+        }
+
+        .hidden-matches-hint .hint-icon {
+            font-size: 1.25rem;
+        }
+
+        .hidden-matches-hint .hint-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .hidden-matches-hint .hint-text strong {
+            color: var(--text-primary);
+        }
+
+        .show-wildcards-hint-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .show-wildcards-hint-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        @keyframes slide-up {
+            from {
+                transform: translateX(-50%) translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
         /* Duplicate Highlighting */
         .chip-duplicate {
             position: relative;

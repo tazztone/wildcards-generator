@@ -724,36 +724,58 @@ const Mindmap = {
      * Toggle wildcard visibility in both list and mindmap views
      */
     toggleWildcards() {
-        this.showWildcards = !this.showWildcards;
+        const previousState = this.showWildcards;
 
-        // Toggle in List View
-        const details = document.querySelectorAll('#wildcard-container details');
-        details.forEach(detail => {
-            /** @type {HTMLDetailsElement} */ (detail).open = this.showWildcards;
-        });
+        try {
+            this.showWildcards = !this.showWildcards;
 
-        // Toggle in Mindmap View(s)
-        this.refresh();
-        if (this.dualInstance) {
-            const data = this.transformToMindElixir(State._rawData.wildcards || {});
-            this.dualInstance.refresh(data);
+            // Toggle in List View (safe operation)
+            const details = document.querySelectorAll('#wildcard-container details');
+            details.forEach(detail => {
+                /** @type {HTMLDetailsElement} */ (detail).open = this.showWildcards;
+            });
+
+            // Toggle in Mindmap View(s) - wrap in separate try block
+            try {
+                if (this.instance) {
+                    this.refresh();
+                }
+                if (this.dualInstance) {
+                    const data = this.transformToMindElixir(State._rawData.wildcards || {});
+                    this.dualInstance.refresh(data);
+                }
+            } catch (mindmapError) {
+                console.warn('Mindmap refresh failed during toggle:', mindmapError);
+                // Continue - list toggle still succeeded
+            }
+
+            // NOTE: No auto-center to preserve user's zoom/position
+
+            // Always update button state
+            this.updateToggleButtonState();
+
+            UI.showToast(this.showWildcards ? 'Showing wildcards' : 'Hiding wildcards', 'info');
+        } catch (error) {
+            console.error('Toggle wildcards error:', error);
+            // Revert state on critical error
+            this.showWildcards = previousState;
+            this.updateToggleButtonState();
+            UI.showToast('Failed to toggle wildcards', 'error');
         }
+    },
 
-        // Auto-fit mindmaps after toggling
-        if (this.instance) setTimeout(() => this.instance.toCenter(), 100);
-        if (this.dualInstance) setTimeout(() => this.dualInstance.toCenter(), 100);
-
-        // Update toggle button state
+    /**
+     * Update the toggle button visual state to match internal state
+     */
+    updateToggleButtonState() {
         const toggleBtn = document.getElementById('mindmap-toggle-wildcards');
-        if (toggleBtn) {
-            toggleBtn.classList.toggle('active', !this.showWildcards);
-            toggleBtn.innerHTML = this.showWildcards ?
-                '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg> Hide Wildcards' :
-                '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S3.732 13.057 2.458 9c1.274-4.057 5.065-7 9.542-7z" /></svg> Show Wildcards';
-            toggleBtn.title = this.showWildcards ? 'Hide wildcards (show categories only)' : 'Show wildcards';
-        }
+        if (!toggleBtn) return;
 
-        UI.showToast(this.showWildcards ? 'Wildcards expanded' : 'Wildcards collapsed', 'info');
+        toggleBtn.classList.toggle('active', !this.showWildcards);
+        toggleBtn.innerHTML = this.showWildcards ?
+            '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg> Hide Wildcards' :
+            '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg> Show Wildcards';
+        toggleBtn.title = this.showWildcards ? 'Hide wildcards (show categories only)' : 'Show wildcards';
     },
 
     /**
@@ -888,7 +910,6 @@ const Mindmap = {
         // Auto-scroll/center to first match if in mindmap view
         if (matchedNodes.length > 0 && this.instance && this.currentView !== 'list') {
             const firstMatch = matchedNodes[0];
-            // Optionally scroll the first match into view
             try {
                 firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
             } catch (e) {
@@ -897,7 +918,98 @@ const Mindmap = {
             }
         }
 
+        // Check for hidden wildcard matches when wildcards are collapsed
+        if (!this.showWildcards && normalizedQuery) {
+            const hiddenMatches = this.findHiddenWildcardMatches(normalizedQuery);
+            if (hiddenMatches > 0) {
+                this.showHiddenMatchesHint(hiddenMatches, query);
+            } else {
+                this.clearHiddenMatchesHint();
+            }
+        } else {
+            this.clearHiddenMatchesHint();
+        }
+
         return matchedNodes;
+    },
+
+    /**
+     * Search State data for wildcards that match query (when wildcards are hidden)
+     * @param {string} query - Normalized search query
+     * @returns {number} Count of matching hidden wildcards
+     */
+    findHiddenWildcardMatches(query) {
+        let count = 0;
+        const normalizedQuery = query.toLowerCase();
+
+        /**
+         * Recursively search through wildcard data
+         * @param {Object} obj - Object to search
+         */
+        const searchWildcards = (obj) => {
+            if (!obj || typeof obj !== 'object') return;
+
+            // Check wildcards array
+            if (obj.wildcards && Array.isArray(obj.wildcards)) {
+                obj.wildcards.forEach(w => {
+                    if (String(w).toLowerCase().includes(normalizedQuery)) {
+                        count++;
+                    }
+                });
+            }
+
+            // Recurse into subcategories
+            Object.entries(obj).forEach(([key, value]) => {
+                if (typeof value === 'object' && value !== null && key !== 'wildcards' && key !== 'instruction') {
+                    searchWildcards(value);
+                }
+            });
+        };
+
+        searchWildcards(State._rawData.wildcards);
+        return count;
+    },
+
+    /**
+     * Show a hint that hidden wildcards match the search
+     * @param {number} count - Number of matching wildcards
+     * @param {string} query - Original search query
+     */
+    showHiddenMatchesHint(count, query) {
+        // Remove existing hint
+        this.clearHiddenMatchesHint();
+
+        const hint = document.createElement('div');
+        hint.className = 'hidden-matches-hint';
+        hint.innerHTML = `
+            <span class="hint-icon">🔍</span>
+            <span class="hint-text">
+                Found <strong>${count}</strong> matching wildcard${count > 1 ? 's' : ''} (currently hidden)
+            </span>
+            <button class="show-wildcards-hint-btn" type="button">Show Wildcards</button>
+        `;
+
+        const btn = hint.querySelector('button');
+        if (btn) {
+            btn.onclick = () => {
+                this.toggleWildcards(); // Show wildcards
+                // Re-trigger search to apply highlights
+                setTimeout(() => this.highlightSearch(query), 200);
+            };
+        }
+
+        // Add to the appropriate container
+        const container = document.getElementById('mindmap-container');
+        if (container) {
+            container.appendChild(hint);
+        }
+    },
+
+    /**
+     * Remove the hidden matches hint
+     */
+    clearHiddenMatchesHint() {
+        document.querySelectorAll('.hidden-matches-hint').forEach(el => el.remove());
     },
 
     /**
