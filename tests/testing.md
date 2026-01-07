@@ -63,7 +63,6 @@ npx playwright test --debug
 - `tests/double_click_edit.spec.js`: **NEW** - Double-click editing for category names and instructions.
 - `tests/import_export_flows.spec.js`: **NEW** - Import/export workflows for YAML and settings files.
 - `tests/test_model.spec.js`: **NEW** - Test connection button and model list functionality.
-
 - `tests/suggest_dialog.spec.js`: **NEW** - Suggest popup structure and button placement.
 - `tests/mindmap_e2e.spec.js`: **NEW** - Comprehensive E2E tests for Mindmap module (View modes, Search, Context Menu).
 
