@@ -1815,7 +1815,7 @@ export const UI = {
     showCleanDuplicatesDialog(duplicates) {
         const totalOccurrences = duplicates.reduce((sum, d) => sum + d.count, 0);
 
-        // Build the main dialog content - simplified for cleanup only
+        // Build the main dialog content with all cleanup strategies
         const message = `
             <div class="text-left space-y-4">
 <div class="flex items-center justify-between">
@@ -1825,21 +1825,95 @@ export const UI = {
 
 <p class="text-gray-400 text-sm">Choose which duplicate to keep when conflicts occur:</p>
 
-<div class="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
-    <div class="grid grid-cols-1 gap-2">
-        <button id="dupe-clean-shortest" class="text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors flex justify-between items-center group">
-            <span>Keep <span class="text-green-400 font-semibold">Shortest Path</span> (Top-level)</span>
-            <span class="opacity-0 group-hover:opacity-100 text-xs text-gray-400">Recommended</span>
+<div class="p-3 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+    <!-- Path-based strategies -->
+    <div class="space-y-2">
+        <span class="text-xs text-gray-500 uppercase tracking-wider">By Category Depth</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button id="dupe-clean-shortest" class="text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors flex justify-between items-center group" title="Keep duplicates in top-level categories (shorter path = less nested)">
+                <span>Keep <span class="text-green-400 font-semibold">Shortest Path</span></span>
+                <span class="opacity-0 group-hover:opacity-100 text-xs text-gray-400">Top-level</span>
+            </button>
+            <button id="dupe-clean-longest" class="text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors flex justify-between items-center group" title="Keep duplicates in deeply nested categories (longer path = more specific)">
+                <span>Keep <span class="text-purple-400 font-semibold">Longest Path</span></span>
+                <span class="opacity-0 group-hover:opacity-100 text-xs text-gray-400">Most nested</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Traversal-based strategies -->
+    <div class="space-y-2 border-t border-gray-700 pt-3">
+        <span class="text-xs text-gray-500 uppercase tracking-wider">By Traversal Order</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button id="dupe-clean-first" class="text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors flex justify-between items-center group" title="Keep the first occurrence found when scanning the tree top-to-bottom">
+                <span>Keep <span class="text-blue-400 font-semibold">First Occurrence</span></span>
+                <span class="opacity-0 group-hover:opacity-100 text-xs text-gray-400">1st found</span>
+            </button>
+            <button id="dupe-clean-last" class="text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors flex justify-between items-center group" title="Keep the last occurrence found when scanning the tree top-to-bottom">
+                <span>Keep <span class="text-cyan-400 font-semibold">Last Occurrence</span></span>
+                <span class="opacity-0 group-hover:opacity-100 text-xs text-gray-400">Last found</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- AI-powered strategy -->
+    <div class="space-y-2 border-t border-gray-700 pt-3">
+        <span class="text-xs text-gray-500 uppercase tracking-wider">AI-Powered</span>
+        <button id="dupe-clean-ai" class="w-full text-left px-3 py-2 bg-gradient-to-r from-yellow-600/20 to-orange-600/20 hover:from-yellow-600/30 hover:to-orange-600/30 border border-yellow-700/50 rounded text-sm text-gray-200 transition-colors flex justify-between items-center group" title="Let AI analyze category names and decide which one best represents each wildcard">
+            <span class="flex items-center gap-2">
+                <span>🤖</span>
+                <span>AI <span class="text-yellow-400 font-semibold">Smart Pick</span></span>
+            </span>
+            <span class="flex items-center gap-2">
+                <span class="opacity-0 group-hover:opacity-100 text-xs text-gray-400">Semantic match</span>
+            </span>
         </button>
-        <button id="dupe-clean-longest" class="text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors">
-            <span>Keep <span class="text-purple-400 font-semibold">Longest Path</span> (Most Nested)</span>
-        </button>
+        
+        <!-- AI Progress Display -->
+        <div id="ai-progress-container" class="hidden bg-gray-900/50 rounded p-3 border border-gray-700 space-y-2">
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-300 flex items-center gap-2">
+                    <div class="loader-small"></div>
+                    <span>Analyzing duplicates...</span>
+                </span>
+                <span id="ai-progress-eta" class="text-yellow-400 font-mono text-xs">ETA: --</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+                <div id="ai-progress-bar" class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400">
+                <span id="ai-progress-count">0 / ${duplicates.length} wildcards</span>
+                <span id="ai-progress-rate">-- wildcards/sec</span>
+            </div>
+        </div>
+        
+        <!-- AI Settings Dropdown -->
+        <details class="bg-gray-900/50 rounded border border-gray-700">
+            <summary class="p-2 cursor-pointer text-xs text-gray-400 hover:text-gray-300 select-none flex justify-between items-center">
+                <span>⚙️ AI Settings</span>
+                <span class="text-gray-600">▼</span>
+            </summary>
+            <div class="p-3 pt-1 grid grid-cols-3 gap-3 border-t border-gray-700">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1" title="Duplicates per API call">Batch</label>
+                    <input type="number" id="ai-batch-size" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs text-white" min="1" max="50" value="10">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1" title="Concurrent API calls">Parallel</label>
+                    <input type="number" id="ai-parallel" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs text-white" min="1" max="10" value="1">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1" title="Delay between batches (ms)">Cooldown</label>
+                    <input type="number" id="ai-cooldown" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs text-white" min="0" max="10000" step="100" value="0">
+                </div>
+            </div>
+        </details>
     </div>
 </div>
 
 <details class="bg-gray-900/50 rounded-lg border border-gray-800">
     <summary class="p-2 cursor-pointer text-gray-400 hover:text-gray-300 text-sm font-medium select-none">
-        View Duplicate List
+        View Duplicate List (${duplicates.length})
     </summary>
     <div class="p-2 pt-0 max-h-40 overflow-y-auto custom-scrollbar">
         <ul class="space-y-1 text-sm">
@@ -1859,12 +1933,23 @@ export const UI = {
 
         // Bind actions
         setTimeout(() => {
-            // Cleaning actions
+            // Path-based
             document.getElementById('dupe-clean-shortest')?.addEventListener('click', () => {
                 this.handleCleanDuplicates(duplicates, 'shortest-path');
             });
             document.getElementById('dupe-clean-longest')?.addEventListener('click', () => {
                 this.handleCleanDuplicates(duplicates, 'longest-path');
+            });
+            // Traversal-based
+            document.getElementById('dupe-clean-first')?.addEventListener('click', () => {
+                this.handleCleanDuplicates(duplicates, 'keep-first');
+            });
+            document.getElementById('dupe-clean-last')?.addEventListener('click', () => {
+                this.handleCleanDuplicates(duplicates, 'keep-last');
+            });
+            // AI-powered
+            document.getElementById('dupe-clean-ai')?.addEventListener('click', () => {
+                this.handleCleanDuplicates(duplicates, 'ai-smart');
             });
         }, 100);
     },
@@ -1874,20 +1959,81 @@ export const UI = {
         this.showCleanDuplicatesDialog(duplicates);
     },
 
-    handleCleanDuplicates(duplicates, strategy) {
-        const removed = State.cleanDuplicates(duplicates, strategy);
-        this.elements.dialog.close();
+    async handleCleanDuplicates(duplicates, strategy) {
+        if (strategy === 'ai-smart') {
+            // Show progress UI
+            const progressContainer = document.getElementById('ai-progress-container');
+            const progressBar = document.getElementById('ai-progress-bar');
+            const progressCount = document.getElementById('ai-progress-count');
+            const progressEta = document.getElementById('ai-progress-eta');
+            const progressRate = document.getElementById('ai-progress-rate');
+            const aiBtn = document.getElementById('dupe-clean-ai');
 
-        if (removed > 0) {
-            UI.showToast(`Cleaned up ${removed} duplicates.`, 'success');
-            // Refresh logic handled by State proxy -> handleStateUpdate -> renderAll (usually)
-            // But since cleanDuplicates might modify multiple nested arrays silently without triggering full replaces in a way UI expects for granular reflow, 
-            // or if we did granular, it might be complex. 
-            // cleanDuplicates in State triggers delete/splice on arrays. Proxy should catch 'set'/'deleteProperty'.
-            // However, array splice triggers multiple ops. 
-            // Let's force a reload or check if reactive updates covered it. State.proxy usually handles array mutations.
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            if (aiBtn) aiBtn.disabled = true;
+
+            let startTime = Date.now();
+
+            try {
+                // Get settings from inline inputs (fallback to old config ids)
+                const batchSize = parseInt(document.getElementById('ai-batch-size')?.value) ||
+                    parseInt(document.getElementById('config-ai-batch-size')?.value) || 10;
+                const parallelRequests = parseInt(document.getElementById('ai-parallel')?.value) ||
+                    parseInt(document.getElementById('config-ai-parallel')?.value) || 1;
+                const cooldownMs = parseInt(document.getElementById('ai-cooldown')?.value) ||
+                    parseInt(document.getElementById('config-ai-cooldown')?.value) || 0;
+
+                // Import API and call AI
+                const { Api } = await import('./api.js');
+                const aiDecisions = await Api.pickBestCategoryForDuplicates(
+                    duplicates,
+                    { batchSize, parallelRequests, cooldownMs },
+                    (progress) => {
+                        const { processed, total } = progress;
+                        const elapsed = (Date.now() - startTime) / 1000;
+                        const rate = processed / elapsed;
+                        const remaining = total - processed;
+                        const etaSeconds = rate > 0 ? Math.ceil(remaining / rate) : 0;
+                        const pct = Math.round((processed / total) * 100);
+
+                        // Update progress UI
+                        if (progressBar) progressBar.style.width = `${pct}%`;
+                        if (progressCount) progressCount.textContent = `${processed} / ${total} wildcards`;
+                        if (progressRate) progressRate.textContent = `${rate.toFixed(1)} wildcards/sec`;
+                        if (progressEta) {
+                            if (etaSeconds > 60) {
+                                progressEta.textContent = `ETA: ${Math.ceil(etaSeconds / 60)}m ${etaSeconds % 60}s`;
+                            } else {
+                                progressEta.textContent = `ETA: ${etaSeconds}s`;
+                            }
+                        }
+                    }
+                );
+
+                const removed = State.cleanDuplicates(duplicates, 'ai-smart', aiDecisions);
+                this.elements.dialog.close();
+
+                if (removed > 0) {
+                    UI.showToast(`AI cleaned up ${removed} duplicates.`, 'success');
+                } else {
+                    UI.showToast('No duplicates removed (AI may have had issues).', 'info');
+                }
+            } catch (error) {
+                console.error('AI cleanup failed:', error);
+                UI.showToast(`AI cleanup failed: ${error.message}`, 'error');
+                if (progressContainer) progressContainer.classList.add('hidden');
+                if (aiBtn) aiBtn.disabled = false;
+            }
         } else {
-            UI.showToast('No duplicates removed.', 'info');
+            // Synchronous strategies
+            const removed = State.cleanDuplicates(duplicates, strategy);
+            this.elements.dialog.close();
+
+            if (removed > 0) {
+                UI.showToast(`Cleaned up ${removed} duplicates.`, 'success');
+            } else {
+                UI.showToast('No duplicates removed.', 'info');
+            }
         }
     },
 

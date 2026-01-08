@@ -425,9 +425,11 @@ const State = {
     /**
      * Remove duplicates based on a strategy.
      * @param {Array} duplicates - The duplicates array from findDuplicates
-     * @param {'shortest-path'|'longest-path'} strategy
+     * @param {'shortest-path'|'longest-path'|'keep-first'|'keep-last'|'ai-smart'} strategy
+     * @param {Map<string, string>} [aiDecisions] - For 'ai-smart' strategy: Map of normalized wildcard → path to keep
+     * @returns {number} Number of removed duplicates
      */
-    cleanDuplicates(duplicates, strategy) {
+    cleanDuplicates(duplicates, strategy, aiDecisions = null) {
         if (!duplicates || duplicates.length === 0) return 0;
 
         this.saveStateToHistory(); // Crucial: Undo point
@@ -437,26 +439,49 @@ const State = {
 
         // Process each duplicate group
         duplicates.forEach(dupe => {
-            // Sort locations based on strategy to determine which one to KEEP
-            const sortedLocs = [...dupe.locations].sort((a, b) => {
-                const lenA = a.path.split('/').length;
-                const lenB = b.path.split('/').length;
+            let toKeep;
+            let toRemove;
 
-                if (strategy === 'shortest-path') {
-                    // We want shortest first (to keep)
-                    // If lengths equal, sort by path string to be deterministic
-                    if (lenA !== lenB) return lenA - lenB;
-                    return a.path.localeCompare(b.path);
+            if (strategy === 'ai-smart' && aiDecisions) {
+                // AI has decided which path to keep
+                const keepPath = aiDecisions.get(dupe.normalized);
+                if (keepPath) {
+                    toKeep = dupe.locations.find(loc => loc.path === keepPath);
+                    toRemove = dupe.locations.filter(loc => loc.path !== keepPath);
                 } else {
-                    // longest-path: We want longest first (to keep)
-                    if (lenA !== lenB) return lenB - lenA;
-                    return a.path.localeCompare(b.path);
+                    // Fallback to first if AI didn't decide
+                    toKeep = dupe.locations[0];
+                    toRemove = dupe.locations.slice(1);
                 }
-            });
+            } else if (strategy === 'keep-first') {
+                // Keep the first occurrence in traversal order (lowest index overall)
+                // Locations are already in traversal order from findDuplicates
+                toKeep = dupe.locations[0];
+                toRemove = dupe.locations.slice(1);
+            } else if (strategy === 'keep-last') {
+                // Keep the last occurrence in traversal order
+                toKeep = dupe.locations[dupe.locations.length - 1];
+                toRemove = dupe.locations.slice(0, -1);
+            } else {
+                // Sort locations based on path depth strategy
+                const sortedLocs = [...dupe.locations].sort((a, b) => {
+                    const lenA = a.path.split('/').length;
+                    const lenB = b.path.split('/').length;
 
-            // Keep the first one, delete the rest
-            const toKeep = sortedLocs[0];
-            const toRemove = sortedLocs.slice(1);
+                    if (strategy === 'shortest-path') {
+                        // We want shortest first (to keep)
+                        if (lenA !== lenB) return lenA - lenB;
+                        return a.path.localeCompare(b.path);
+                    } else {
+                        // longest-path: We want longest first (to keep)
+                        if (lenA !== lenB) return lenB - lenA;
+                        return a.path.localeCompare(b.path);
+                    }
+                });
+
+                toKeep = sortedLocs[0];
+                toRemove = sortedLocs.slice(1);
+            }
 
             toRemove.forEach(loc => {
                 // Operate on _rawData directly to avoid Proxy traps and side effects during bulk delete

@@ -253,6 +253,102 @@ export const Api = {
         });
     },
 
+    /**
+     * Use AI to pick the best category for each duplicate wildcard.
+     * Processes duplicates in configurable batches with optional parallelism and cooldown.
+     * @param {Array} duplicates - Array of {normalized, locations, count} from findDuplicates
+     * @param {{batchSize?: number, parallelRequests?: number, cooldownMs?: number}} options
+     * @param {function({processed: number, total: number}): void} [onProgress] - Progress callback
+     * @returns {Promise<Map<string, string>>} Map of normalized wildcard → path to keep
+     */
+    async pickBestCategoryForDuplicates(duplicates, options = {}, onProgress = null) {
+        const { batchSize = 10, parallelRequests = 1, cooldownMs = 0 } = options;
+        const decisions = new Map();
+
+        if (!duplicates || duplicates.length === 0) return decisions;
+
+        // Split into batches
+        const batches = [];
+        for (let i = 0; i < duplicates.length; i += batchSize) {
+            batches.push(duplicates.slice(i, i + batchSize));
+        }
+
+        const systemPrompt = `You are an expert at organizing data. For each duplicate wildcard, determine which category path is the BEST semantic fit based on the category names. Choose the category that most naturally represents the wildcard's meaning.
+
+Return a JSON array with your decisions. For each item, include:
+- "wildcard": the normalized wildcard text
+- "keep_path": the full path to the category that should keep this wildcard`;
+
+        const generationConfig = {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        wildcard: { type: "STRING", description: "The normalized duplicate wildcard" },
+                        keep_path: { type: "STRING", description: "Full path to the category that should keep this wildcard" }
+                    },
+                    required: ["wildcard", "keep_path"]
+                }
+            }
+        };
+
+        let processed = 0;
+
+        // Process batches with parallelism
+        for (let i = 0; i < batches.length; i += parallelRequests) {
+            const parallelBatches = batches.slice(i, i + parallelRequests);
+
+            const batchPromises = parallelBatches.map(async (batch) => {
+                // Build user prompt for this batch
+                const batchPrompt = batch.map(d => {
+                    const pathOptions = d.locations.map(l =>
+                        `  - ${l.path.replace(/\//g, ' > ').replace(/_/g, ' ')}`
+                    ).join('\n');
+                    return `Wildcard: "${d.normalized}"\nFound in:\n${pathOptions}`;
+                }).join('\n\n');
+
+                const userPrompt = `Please analyze these ${batch.length} duplicate wildcards and pick the best category for each:\n\n${batchPrompt}`;
+
+                try {
+                    const { result } = await this._makeRequest(systemPrompt, userPrompt, generationConfig);
+                    const parsed = this._parseResponse(result);
+
+                    // Store decisions
+                    if (Array.isArray(parsed)) {
+                        parsed.forEach(item => {
+                            if (item.wildcard && item.keep_path) {
+                                decisions.set(item.wildcard.toLowerCase().trim(), item.keep_path);
+                            }
+                        });
+                    }
+
+                    processed += batch.length;
+                    if (onProgress) {
+                        onProgress({ processed, total: duplicates.length });
+                    }
+                } catch (error) {
+                    console.error('AI batch processing failed:', error);
+                    // On error, don't add decisions for this batch (will fallback in cleanDuplicates)
+                    processed += batch.length;
+                    if (onProgress) {
+                        onProgress({ processed, total: duplicates.length });
+                    }
+                }
+            });
+
+            await Promise.all(batchPromises);
+
+            // Apply cooldown between batch groups (not after last)
+            if (cooldownMs > 0 && i + parallelRequests < batches.length) {
+                await new Promise(resolve => setTimeout(resolve, cooldownMs));
+            }
+        }
+
+        return decisions;
+    },
+
     async testConnection(provider, uiCallback, explicitKey = null) {
         if (uiCallback) uiCallback(`Testing connection to ${provider}...`, 'info');
 

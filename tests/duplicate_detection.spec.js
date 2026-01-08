@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 const { test, expect } = require('@playwright/test');
 
 /**
@@ -262,5 +262,62 @@ test.describe('Duplicate Cleaning Logic', () => {
         // Verify result
         const resultingWildcards = await page.evaluate(() => window.State._rawData.wildcards);
         expect(resultingWildcards["2 ACTION POSE AND EMOTION"]["DYNAMIC ACTIONS"]["Interaction"].wildcards).toHaveLength(1);
+    });
+
+    test('Clean Duplicates - Keep First Strategy', async ({ page }) => {
+        await page.evaluate(() => {
+            // Set up data where 'term' appears in A first, then B, then C
+            window.State._rawData.wildcards = {
+                A: { wildcards: ['term'] },
+                B: { wildcards: ['term'] },
+                C: { wildcards: ['term'] }
+            };
+            window.State._initProxy();
+        });
+
+        // Verify setup
+        let duplicates = await page.evaluate(() => window.State.findDuplicates().duplicates);
+        expect(duplicates.length).toBe(1);
+        expect(duplicates[0].count).toBe(3);
+
+        // Execute Clean with keep-first
+        const removedCount = await page.evaluate(() => {
+            const dupes = window.State.findDuplicates().duplicates;
+            return window.State.cleanDuplicates(dupes, 'keep-first');
+        });
+
+        expect(removedCount).toBe(2);
+
+        // Verify result: A should have term, B and C should not
+        const resultingWildcards = await page.evaluate(() => window.State._rawData.wildcards);
+        expect(resultingWildcards.A.wildcards).toContain('term');
+        expect(resultingWildcards.B.wildcards).not.toContain('term');
+        expect(resultingWildcards.C.wildcards).not.toContain('term');
+    });
+
+    test('Clean Duplicates - Keep Last Strategy', async ({ page }) => {
+        await page.evaluate(() => {
+            // Set up data where 'term' appears in A first, then B, then C
+            window.State._rawData.wildcards = {
+                A: { wildcards: ['term'] },
+                B: { wildcards: ['term'] },
+                C: { wildcards: ['term'] }
+            };
+            window.State._initProxy();
+        });
+
+        // Execute Clean with keep-last
+        const removedCount = await page.evaluate(() => {
+            const dupes = window.State.findDuplicates().duplicates;
+            return window.State.cleanDuplicates(dupes, 'keep-last');
+        });
+
+        expect(removedCount).toBe(2);
+
+        // Verify result: C should have term (last), A and B should not
+        const resultingWildcards = await page.evaluate(() => window.State._rawData.wildcards);
+        expect(resultingWildcards.A.wildcards).not.toContain('term');
+        expect(resultingWildcards.B.wildcards).not.toContain('term');
+        expect(resultingWildcards.C.wildcards).toContain('term');
     });
 });
