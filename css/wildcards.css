@@ -1462,6 +1462,15 @@
         .card-wildcard {
             background-color: var(--bg-tertiary);
             position: relative;
+            min-width: 320px;
+            /* Ensure enough width for title + instructions */
+        }
+
+        /* Allow smaller width on mobile */
+        @media (max-width: 640px) {
+            .card-wildcard {
+                min-width: 100%;
+            }
         }
 
         .text-accent {

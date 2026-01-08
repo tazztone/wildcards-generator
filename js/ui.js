@@ -1217,7 +1217,8 @@ export const UI = {
         contentWrapper.appendChild(separator);
 
         const gridWrapper = document.createElement('div');
-        gridWrapper.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full';
+        gridWrapper.className = 'grid gap-4 w-full';
+        gridWrapper.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
         leafNodes.forEach(node => gridWrapper.appendChild(node));
 
         // Placeholders
@@ -1269,7 +1270,7 @@ export const UI = {
                     <input type="checkbox" aria-label="Select category" class="category-batch-checkbox w-3.5 h-3.5 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500 flex-shrink-0" onclick="event.stopPropagation();">
                     <h2 class="text-lg font-semibold text-accent select-none editable-wrapper flex-shrink-0"><span class="editable-name category-name outline-none rounded px-0.5" tabindex="0">${name.replace(/_/g, ' ')}</span><span class="edit-icon">✏️</span></h2>
                     <input type="text" 
-                        class="custom-instructions-input editable-input text-sm text-gray-500 bg-transparent border-0 outline-none ml-2 w-full min-w-[100px] focus:text-gray-300 focus:bg-gray-800/50 rounded px-1 transition-colors truncate hidden sm:block cursor-pointer read-only:cursor-pointer" 
+                        class="custom-instructions-input editable-input text-sm text-gray-500 bg-transparent border-0 outline-none ml-2 flex-grow min-w-[100px] focus:text-gray-300 focus:bg-gray-800/50 rounded px-1 transition-colors truncate hidden sm:block cursor-pointer read-only:cursor-pointer" 
                         value="${sanitize(instruction)}" 
                         placeholder="Add description..."
                         readonly>
@@ -1297,7 +1298,7 @@ export const UI = {
                 <input type="checkbox" aria-label="Select list" class="card-batch-checkbox w-3.5 h-3.5 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500 flex-shrink-0" onclick="event.stopPropagation();">
                 <h3 class="font-bold text-sm text-gray-100 editable-wrapper flex-shrink-0"><span class="editable-name wildcard-name outline-none rounded px-0.5" tabindex="0">${name.replace(/_/g, ' ')}</span><span class="edit-icon">✏️</span></h3>
                 <input type="text" 
-                    class="custom-instructions-input editable-input text-xs text-gray-500 bg-transparent border-0 outline-none w-full min-w-[50px] focus:text-gray-300 focus:bg-gray-800/50 rounded px-1 transition-colors truncate hidden sm:block cursor-pointer read-only:cursor-pointer" 
+                    class="custom-instructions-input editable-input text-xs text-gray-500 bg-transparent border-0 outline-none flex-grow min-w-[50px] focus:text-gray-300 focus:bg-gray-800/50 rounded px-1 transition-colors truncate hidden sm:block cursor-pointer read-only:cursor-pointer" 
                     value="${sanitize(instruction)}" 
                     placeholder="Add desc..." 
                     readonly>
