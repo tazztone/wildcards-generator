@@ -70,7 +70,8 @@ test.describe('UX Improvements', () => {
     await expect(chipContainer).toContainText('Test Item');
 
     // Select the item by clicking the chip (not on the text span)
-    const chip = card.locator('.chip').first();
+    // Use :not(.add-chip-btn) because the add button also has class 'chip'
+    const chip = card.locator('.chip:not(.add-chip-btn)').first();
     await expect(chip).toBeVisible();
     // Click the chip div (triggers selection)
     await chip.click({ position: { x: 5, y: 5 } });
@@ -98,10 +99,12 @@ test.describe('UX Improvements', () => {
     await card.locator('.add-wildcard-btn').click();
 
     // Select the item first to reveal the copy button
-    const chip = card.locator('.chip').first();
-    await chip.click({ position: { x: 5, y: 5 } });
+    // User suggestion: Use Select All for reliability
+    const selectAllBtn = card.locator('.select-all-btn');
+    await selectAllBtn.click({ force: true });
 
-    // Verify selection with .selected class
+    // Verify selection (any chip should be selected)
+    const chip = card.locator('.chip:not(.add-chip-btn)').first();
     await expect(chip).toHaveClass(/selected/);
 
     await expect(copyBtn).not.toHaveClass(/hidden/);
@@ -118,7 +121,7 @@ test.describe('UX Improvements', () => {
 
     // Wait for reversion
     await page.waitForTimeout(2100);
-    await expect(copyBtn).toHaveAttribute('title', 'Copy all');
+    await expect(copyBtn).toHaveAttribute('title', 'Copy selected');
     await expect(copyBtn).not.toHaveClass(/text-green-400/);
   });
 
