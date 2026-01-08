@@ -673,6 +673,7 @@ export const App = {
             const chip = target.closest('.chip');
             chip.classList.toggle('selected');
             chip.setAttribute('aria-checked', chip.classList.contains('selected') ? 'true' : 'false');
+            this.updateSelectionButtonsState(target.closest('.wildcard-card'));
             return;
         }
 
@@ -760,9 +761,19 @@ export const App = {
         // Copy all wildcards
         if (target.closest('.copy-btn')) {
             const btn = target.closest('.copy-btn');
+            const card = target.closest('.wildcard-card');
+            const selectedChips = card.querySelectorAll('.chip.selected');
             const obj = State.getObjectByPath(path);
+
             if (obj && obj.wildcards && obj.wildcards.length > 0) {
-                const text = obj.wildcards.join(', ');
+                // If selection exists, copy selected only. Ensure we map indices correctly.
+                let text;
+                if (selectedChips.length > 0) {
+                    text = Array.from(selectedChips).map(chip => chip.textContent.trim()).join(', ');
+                } else {
+                    // Fallback/Safety
+                    text = obj.wildcards.join(', ');
+                }
                 navigator.clipboard.writeText(text).then(() => {
                     UI.showToast(`Copied ${obj.wildcards.length} wildcards`, 'success');
 
@@ -843,6 +854,32 @@ export const App = {
             // Update button icon and title
             btn.textContent = allSelected ? '☑' : '☐';
             btn.title = allSelected ? 'Select All' : 'Deselect All';
+            this.updateSelectionButtonsState(card);
+        }
+    },
+
+    updateSelectionButtonsState(card) {
+        if (!card) return;
+        const selectedCount = card.querySelectorAll('.chip.selected').length;
+        const copyBtn = card.querySelector('.copy-btn');
+        const deleteBtn = card.querySelector('.batch-delete-btn');
+
+        if (copyBtn) {
+            if (selectedCount > 0) {
+                copyBtn.classList.remove('hidden');
+                copyBtn.title = `Copy ${selectedCount} selected`;
+            } else {
+                copyBtn.classList.add('hidden');
+            }
+        }
+
+        if (deleteBtn) {
+            if (selectedCount > 0) {
+                deleteBtn.classList.remove('hidden');
+                deleteBtn.title = `Delete ${selectedCount} selected`;
+            } else {
+                deleteBtn.classList.add('hidden');
+            }
         }
     },
 

@@ -1293,9 +1293,9 @@ export const UI = {
                 <!-- Header Action Icons -->
                 <div class="flex items-center gap-0.5 ml-auto header-actions">
                     <button class="generate-btn header-icon-btn" title="${isTemplateCard ? 'Generate Templates' : 'Generate More'}">🎲<div class="loader hidden"></div></button>
-                    <button class="copy-btn header-icon-btn" title="Copy all" data-original-title="Copy all">📋</button>
+                    <button class="copy-btn header-icon-btn hidden" title="Copy selected" data-original-title="Copy selected">📋</button>
+                    <button class="batch-delete-btn header-icon-btn text-red-400 hidden" title="Delete Selected">🗑</button>
                     <button class="select-all-btn header-icon-btn" title="Select All">☑</button>
-                    <button class="batch-delete-btn header-icon-btn text-red-400" title="Delete Selected">🗑</button>
                     <button class="delete-btn header-icon-btn text-red-400" title="Delete Card">✕</button>
                 </div>
             </div>
