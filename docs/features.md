@@ -20,7 +20,17 @@ This document details the features of the Wildcard Generator application.
 
 ## Advanced Features
 
-### v2.18 Features (Latest)
+### v2.19 Features (Latest)
+
+- **Aggressive UI Compaction**:
+  - **Compact Header**: Dual-row layout optimizes screen real estate with a dedicated row for Search/Stats and another for Controls.
+  - **Streamlined Cards**: Removed footer row; actions (Generate, Copy, Delete) are now efficient header icons.
+  - **Input Collapse**: "Add Wildcard" input is hidden by default, revealed via a compact `[+]` button.
+  - **Tooltip-Driven Detail**: Breadcrumbs and category descriptions moved to tooltips to reduce visual clutter.
+  - **Select All Toggle**: New ☑/☐ toggle icon replacing text button.
+- **Enhanced Overflow Menu**: Repositioned next to Help button for better accessibility.
+
+### v2.18 Features
 
 - **Template Architect (0_TEMPLATES)**:
   - **Context-Aware Generation**: Wildcard lists inside `0_TEMPLATES` use a special template generation mode.

@@ -1,6 +1,6 @@
 # AI-Powered Wildcard Generator (Web Version)
 
-A standalone Single Page Application (SPA) for managing and generating "wildcards" (dynamic lists of terms) for AI image generation prompts. Runs directly in your browser.
+A standalone Single Page Application (SPA) for managing and generating "wildcards" (dynamic lists of terms) for AI image generation prompts. Runs directly in your browser with a **Compact, High-Density UI**.
 
 ## Quick Start
 
