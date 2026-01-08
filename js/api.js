@@ -10,19 +10,42 @@ export const Api = {
 
         try {
             const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
-            const response = await fetch(url, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(payload),
-                signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)])
-            });
+            const makeRequest = async (currentPayload) => {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(currentPayload),
+                    signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)])
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    return { ok: false, status: res.status, text };
+                }
+                return { ok: true, json: await res.json() };
+            };
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API request failed: ${response.status} - ${errorText}`);
+            let reqResult = await makeRequest(payload);
+
+            // Retry for LMStudio/OpenAI strictness
+            if (!reqResult.ok && reqResult.status === 400 && payload.response_format) {
+                const errText = reqResult.text;
+                if (errText.includes("must be 'json_schema' or 'text'")) {
+                    console.warn("LMStudio strict JSON mode detected, retrying with json_schema...");
+                    const schema = this._constructJsonSchema(generationConfig);
+                    payload.response_format = { type: "json_schema", json_schema: schema };
+                    reqResult = await makeRequest(payload);
+                } else if (errText.includes('JSON mode') || errText.includes('not supported') || errText.includes('INVALID_ARGUMENT')) {
+                    console.warn("JSON mode failed, retrying without response_format...");
+                    delete payload.response_format;
+                    reqResult = await makeRequest(payload);
+                }
             }
 
-            const result = await response.json();
+            if (!reqResult.ok) {
+                throw new Error(`API request failed: ${reqResult.status} - ${reqResult.text}`);
+            }
+
+            const result = reqResult.json;
             return { result, request: { url, headers, payload } };
         } catch (error) {
             if (error.name === 'AbortError') throw new Error("Request timed out or was aborted.");
@@ -46,20 +69,43 @@ export const Api = {
             const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
             payload.stream = true; // Enable streaming
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(payload),
-                signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(60000)])
-            });
+            const makeStreamingRequest = async (currentPayload) => {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(currentPayload),
+                    signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(60000)])
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    return { ok: false, status: res.status, text };
+                }
+                return { ok: true, body: res.body };
+            };
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API request failed: ${response.status} - ${errorText}`);
+            let reqResult = await makeStreamingRequest(payload);
+
+            // Retry for LMStudio/OpenAI strictness (Streaming)
+            if (!reqResult.ok && reqResult.status === 400 && payload.response_format) {
+                const errText = reqResult.text;
+                if (errText.includes("must be 'json_schema' or 'text'")) {
+                    console.warn("LMStudio strict JSON mode detected (streaming), retrying with json_schema...");
+                    const schema = this._constructJsonSchema(generationConfig);
+                    payload.response_format = { type: "json_schema", json_schema: schema };
+                    reqResult = await makeStreamingRequest(payload);
+                } else if (errText.includes('JSON mode') || errText.includes('not supported') || errText.includes('INVALID_ARGUMENT')) {
+                    console.warn("JSON mode failed, retrying without response_format...");
+                    delete payload.response_format;
+                    reqResult = await makeStreamingRequest(payload);
+                }
+            }
+
+            if (!reqResult.ok) {
+                throw new Error(`API request failed: ${reqResult.status} - ${reqResult.text}`);
             }
 
             // Parse SSE stream
-            const reader = response.body.getReader();
+            const reader = reqResult.body.getReader();
             const decoder = new TextDecoder();
             let accumulatedText = '';
             let buffer = '';
@@ -543,14 +589,33 @@ export const Api = {
             let reqResult = await makeRequest(payload);
             const duration = Math.round(performance.now() - startTime);
 
-            // Retry if 400 error regarding JSON mode
+            // Retry if 400 error regarding JSON mode (OpenAI generic) or LMStudio specific strictness
             if (!reqResult.ok && reqResult.status === 400 &&
-                (reqResult.text.includes('JSON mode') || reqResult.text.includes('not supported') || reqResult.text.includes('INVALID_ARGUMENT')) &&
                 payload.response_format) {
 
-                console.warn("JSON mode failed, retrying without response_format...");
-                delete payload.response_format;
-                reqResult = await makeRequest(payload);
+                const errText = reqResult.text;
+                // LMStudio specific error: "must be 'json_schema' or 'text'"
+                if (errText.includes("must be 'json_schema' or 'text'")) {
+                    console.warn("LMStudio strict JSON mode detected, retrying with json_schema...");
+
+                    // Convert standard config to JSON Schema
+                    // For testModel, we fundamentally want an array of strings
+                    const schema = this._constructJsonSchema({
+                        responseSchema: { type: "ARRAY", items: { type: "STRING" } }
+                    });
+
+                    payload.response_format = {
+                        type: "json_schema",
+                        json_schema: schema
+                    };
+                    reqResult = await makeRequest(payload);
+
+                } else if (errText.includes('JSON mode') || errText.includes('not supported') || errText.includes('INVALID_ARGUMENT')) {
+                    // Fallback for others: just remove response_format
+                    console.warn("JSON mode failed, retrying without response_format...");
+                    delete payload.response_format;
+                    reqResult = await makeRequest(payload);
+                }
             }
 
             if (!reqResult.ok) {
@@ -609,20 +674,18 @@ export const Api = {
                     supportsJson = parsedContent.length > 0;
                 } else if (typeof parsedContent === 'object' && parsedContent !== null) {
                     // Check for common wrapper keys or if it's just a valid object (which implies JSON support)
-                    // If the user requested an array but got an object, strictly speaking that's a "No" for "Returns Array", 
-                    // but "JSON Support" usually means "Can output valid JSON".
-                    // The prompt asked for "ONLY a valid JSON array".
-                    // However, 'json_object' mode often forces an object wrapper. 
-                    // Let's accept Object as "Supports JSON" but maybe note the count is 0 if not array.
-                    supportsJson = true;
-
-                    // Try to find array for count
-                    const values = Object.values(parsedContent);
-                    const foundArray = values.find(v => Array.isArray(v));
-                    if (foundArray) {
-                        parsedContent = foundArray; // Use this for count
+                    // If we used json_schema with a wrapper key (like "items"), we need to extract it
+                    if (parsedContent.items && Array.isArray(parsedContent.items)) {
+                        parsedContent = parsedContent.items; // Unwrap for count/display
+                        supportsJson = true;
                     } else {
-                        parsedContent = []; // Valid JSON but not containing our items
+                        supportsJson = true;
+                        // Try to find array for count
+                        const values = Object.values(parsedContent);
+                        const foundArray = values.find(v => Array.isArray(v));
+                        if (foundArray) {
+                            parsedContent = foundArray; // Use this for count
+                        }
                     }
                 }
             } catch (e) {
@@ -654,5 +717,85 @@ export const Api = {
             }
             throw error;
         }
+    },
+
+    /**
+     * Helper to construct a JSON schema object compatible with OpenAI/LMStudio
+     * from our internal generationConfig format.
+     */
+    _constructJsonSchema(generationConfig) {
+        // Default schema if none provided: wrapper object with 'items' array of strings
+        const defaultSchema = {
+            type: "object",
+            properties: {
+                items: {
+                    type: "array",
+                    items: { type: "string" }
+                }
+            },
+            required: ["items"]
+        };
+
+        if (!generationConfig || !generationConfig.responseSchema) {
+            return {
+                name: "wildcard_response",
+                strict: true,
+                schema: defaultSchema
+            };
+        }
+
+        const internalSchema = generationConfig.responseSchema;
+        let finalSchema = {};
+
+        // Convert Google-style schema to OpenAI JSON Schema
+        // Case 1: Array of Strings (most common for us)
+        if (internalSchema.type === 'ARRAY' && internalSchema.items && internalSchema.items.type === 'STRING') {
+            finalSchema = defaultSchema;
+        }
+        // Case 2: Array of Objects (used for suggestions)
+        else if (internalSchema.type === 'ARRAY' && internalSchema.items && internalSchema.items.type === 'OBJECT') {
+            // Need to wrap array in an object for JSON Schema root
+            const itemProps = {};
+            const requiredProps = [];
+
+            if (internalSchema.items.properties) {
+                for (const [key, prop] of Object.entries(internalSchema.items.properties)) {
+                    itemProps[key] = {
+                        type: prop.type.toLowerCase(),
+                        description: prop.description
+                    };
+                }
+            }
+            if (internalSchema.items.required) {
+                requiredProps.push(...internalSchema.items.required);
+            }
+
+            finalSchema = {
+                type: "object",
+                properties: {
+                    items: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: itemProps,
+                            required: requiredProps,
+                            additionalProperties: false
+                        }
+                    }
+                },
+                required: ["items"],
+                additionalProperties: false
+            };
+        }
+        else {
+            // Fallback to default
+            finalSchema = defaultSchema;
+        }
+
+        return {
+            name: "wildcard_response",
+            strict: true, // LMStudio requires strict: true (as string "true" or boolean? Docs say "true", OpenAI says boolean true. Let's try boolean.)
+            schema: finalSchema
+        };
     }
 };

@@ -550,6 +550,11 @@ export const UI = {
                 if (Config[p.apiUrlId] || Config.API_URL_CUSTOM) {
                     urlSection.querySelector('input').value = Config[p.apiUrlId] || Config.API_URL_CUSTOM;
                 }
+                // Bind Save Logic
+                urlSection.querySelector('input').addEventListener('change', (e) => {
+                    Config.API_URL_CUSTOM = /** @type {HTMLInputElement} */ (e.target).value;
+                    saveConfig();
+                });
             }
 
             // API Key
