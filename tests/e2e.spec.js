@@ -238,23 +238,23 @@ test.describe('Wildcard Generator E2E Tests', () => {
         });
 
         test('select all categories checkbox works', async ({ page }) => {
-            // First select one category to make the bar visible
-            await page.locator('.category-batch-checkbox').first().check();
+            // Enter batch mode first (checkboxes are hidden by default)
+            await page.locator('#batch-mode-btn').click();
             await expect(page.locator('#batch-ops-bar')).toBeVisible();
+
+            // Now select a category
+            await page.locator('.category-batch-checkbox').first().check();
 
             const selectAllCheckbox = page.locator('#batch-select-all');
 
             // Initially buttons should be enabled because we have 1 selected
             await expect(page.locator('#batch-expand')).toBeEnabled();
 
-            // Uncheck the single one to verify empty state behavior (bar should hide)
+            // Uncheck the single one - bar should STILL be visible (we're in batch mode)
             await page.locator('.category-batch-checkbox').first().uncheck();
-            await expect(page.locator('#batch-ops-bar')).toBeHidden();
-
-            // Now check select all (we need to trigger it, but wait, if hidden we can't click it!)
-            // Re-select one to show bar
-            await page.locator('.category-batch-checkbox').first().check();
-            await expect(selectAllCheckbox).toBeVisible();
+            await expect(page.locator('#batch-ops-bar')).toBeVisible();
+            // But buttons should now be disabled
+            await expect(page.locator('#batch-expand')).toBeDisabled();
 
             // Check select all
             await selectAllCheckbox.check();
@@ -267,7 +267,8 @@ test.describe('Wildcard Generator E2E Tests', () => {
         });
 
         test('batch expand expands selected categories', async ({ page }) => {
-            // Select a category to show bar
+            // Enter batch mode first (checkboxes are hidden by default)
+            await page.locator('#batch-mode-btn').click();
             await page.locator('.category-batch-checkbox').first().check();
 
             // Select all categories
@@ -278,12 +279,13 @@ test.describe('Wildcard Generator E2E Tests', () => {
             await page.locator('#batch-expand').click();
             await page.waitForTimeout(300);
 
-            // Toast should appear
-            await expect(page.locator('.toast')).toBeVisible();
+            // Toast should appear with expand message
+            await expect(page.locator('.toast').filter({ hasText: 'Expanded' })).toBeVisible();
         });
 
         test('batch collapse collapses selected categories', async ({ page }) => {
-            // Select a category to show bar and expand
+            // Enter batch mode first (checkboxes are hidden by default)
+            await page.locator('#batch-mode-btn').click();
             await page.locator('.category-batch-checkbox').first().check();
             await page.locator('#batch-select-all').check();
             await page.locator('#batch-expand').click();
@@ -514,8 +516,10 @@ test.describe('Wildcard Generator E2E Tests', () => {
         });
 
         test('Escape key collapses all categories', async ({ page }) => {
+            // Enter batch mode first (checkboxes are hidden by default)
+            await page.locator('#batch-mode-btn').click();
+
             // Expand some categories first via batch operation
-            // Trigger batch bar
             await page.locator('.category-batch-checkbox').first().check();
             await page.locator('#batch-select-all').check();
             await page.waitForTimeout(200);

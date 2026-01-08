@@ -329,6 +329,14 @@ export const App = {
             if (target.matches('#dupe-finder-btn')) {
                 UI.enterDupeFinderMode();
             }
+            // Batch Select Mode Toggle
+            if (target.matches('#batch-mode-btn')) {
+                this.toggleBatchSelectMode(true);
+            }
+            // Exit Batch Select Mode
+            if (target.matches('#exit-batch-mode-btn')) {
+                this.toggleBatchSelectMode(false);
+            }
             // Reset Options
             if (target.matches('#reset-localstorage')) {
                 UI.showNotification('Clear all saved data from localStorage?\nThis includes remembered API keys and settings.', true, () => {
@@ -628,7 +636,58 @@ export const App = {
             if (suggestListsBtn) suggestListsBtn.title = 'Select categories to suggest lists';
         }
 
-        document.getElementById('batch-ops-bar').classList.toggle('hidden', !hasSelection);
+        document.getElementById('batch-ops-bar').classList.toggle('hidden', !hasSelection && !document.body.classList.contains('batch-select-mode'));
+
+        // Show batch prompt only when in explicit batch mode with no selection yet
+        const batchPrompt = document.querySelector('.batch-prompt');
+        if (batchPrompt) {
+            const inBatchMode = document.body.classList.contains('batch-select-mode');
+            batchPrompt.classList.toggle('hidden', hasSelection || !inBatchMode);
+        }
+    },
+
+    /**
+     * Toggle batch select mode on/off
+     * @param {boolean} enable - true to enter batch mode, false to exit
+     */
+    toggleBatchSelectMode(enable) {
+        const body = document.body;
+        const batchModeBtn = document.getElementById('batch-mode-btn');
+        const batchOpsBar = document.getElementById('batch-ops-bar');
+
+        if (enable) {
+            // Enter batch select mode
+            body.classList.add('batch-select-mode');
+            batchModeBtn?.classList.add('active');
+
+            // Show the bar immediately with instructions
+            batchOpsBar?.classList.remove('hidden');
+
+            // Clear any previous selection
+            document.querySelectorAll('.category-batch-checkbox, .card-batch-checkbox').forEach(cb => {
+                /** @type {HTMLInputElement} */(cb).checked = false;
+            });
+            /** @type {HTMLInputElement|null} */(document.getElementById('batch-select-all')).checked = false;
+
+            UI.showToast('Batch Mode: Select categories for AI operations', 'info');
+        } else {
+            // Exit batch select mode
+            body.classList.remove('batch-select-mode');
+            batchModeBtn?.classList.remove('active');
+
+            // Clear all selections
+            document.querySelectorAll('.category-batch-checkbox, .card-batch-checkbox').forEach(cb => {
+                /** @type {HTMLInputElement} */(cb).checked = false;
+            });
+            /** @type {HTMLInputElement|null} */(document.getElementById('batch-select-all')).checked = false;
+
+            // Hide the bar
+            batchOpsBar?.classList.add('hidden');
+
+            UI.showToast('Exited Batch Mode', 'info');
+        }
+
+        this.updateBatchUI();
     },
 
     toggleTheme() {

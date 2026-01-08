@@ -692,6 +692,10 @@
             <button id="dupe-finder-btn" class="btn-toolbar btn-warning" title="Enter Duplicate Finder Mode">
                 🔍
             </button>
+            <button id="batch-mode-btn" class="btn-toolbar btn-secondary"
+                title="Enter Batch Select Mode - Select multiple categories for batch AI operations">
+                ☑️
+            </button>
             <button id="help-btn" class="btn-toolbar btn-accent" title="View keyboard shortcuts">
                 ❓
             </button>
@@ -743,6 +747,7 @@
     <!-- Batch Operations Bar -->
     <div id="batch-ops-bar"
         class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex flex-wrap items-center gap-4 bg-gray-900/95 backdrop-blur border border-gray-700 p-3 rounded-xl shadow-2xl hidden transition-all duration-300">
+        <span class="batch-prompt hidden"><strong>Batch Mode:</strong> Select categories for AI operations</span>
         <label class="flex items-center gap-2 cursor-pointer text-sm">
             <input type="checkbox" id="batch-select-all"
                 class="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500">
@@ -770,6 +775,15 @@
             <button id="batch-delete"
                 class="bg-red-600 hover:bg-red-700 text-white text-sm py-1 px-3 rounded disabled:opacity-50"
                 title="Delete all selected categories" disabled>Delete</button>
+            <div class="w-px h-6 bg-gray-600 mx-1"></div>
+            <button id="exit-batch-mode-btn"
+                class="bg-gray-700 hover:bg-gray-600 text-white text-sm py-1 px-3 rounded flex items-center gap-1"
+                title="Exit Batch Select Mode">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Exit
+            </button>
         </div>
     </div>
 
