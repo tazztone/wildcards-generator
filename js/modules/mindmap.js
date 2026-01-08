@@ -785,10 +785,22 @@ const Mindmap = {
         try {
             this.showWildcards = !this.showWildcards;
 
-            // Toggle in List View (safe operation)
-            const details = document.querySelectorAll('#wildcard-container details');
-            details.forEach(detail => {
-                /** @type {HTMLDetailsElement} */ (detail).open = this.showWildcards;
+            // Toggle in List View - hide/show chip containers (the actual wildcard content)
+            // This keeps the category structure visible while hiding just the wildcard chips
+            const listContainer = document.getElementById('wildcard-container');
+            const dualListContainer = document.getElementById('dual-list');
+
+            [listContainer, dualListContainer].filter(Boolean).forEach(container => {
+                // Toggle visibility of chip containers only (the actual wildcard chips)
+                // Keep the card header (title, description, count) visible
+                container.querySelectorAll('.chip-container').forEach(chipContainer => {
+                    chipContainer.classList.toggle('hidden', !this.showWildcards);
+                });
+
+                // Also toggle the add input row (hidden by default anyway, but ensure it stays hidden)
+                container.querySelectorAll('.add-input-row').forEach(row => {
+                    if (!this.showWildcards) row.classList.add('hidden');
+                });
             });
 
             // Toggle in Mindmap View(s) - wrap in separate try block
