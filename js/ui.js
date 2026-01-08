@@ -1217,7 +1217,7 @@ export const UI = {
         contentWrapper.appendChild(separator);
 
         const gridWrapper = document.createElement('div');
-        gridWrapper.className = 'grid gap-4 w-full';
+        gridWrapper.className = 'grid gap-2 w-full';
         gridWrapper.style.gridTemplateColumns = 'repeat(auto-fill, minmax(350px, 1fr))';
         leafNodes.forEach(node => gridWrapper.appendChild(node));
 
@@ -1283,7 +1283,7 @@ export const UI = {
                     <span class="arrow-down transition-transform duration-300 text-accent text-sm">▼</span>
                 </div>
             </summary>
-            <div class="content-wrapper p-2 border-t border-gray-700/50 flex flex-col gap-2"></div>
+            <div class="content-wrapper p-2 border-t border-gray-700/50 flex flex-col gap-1"></div>
         `;
     },
 
@@ -1313,7 +1313,7 @@ export const UI = {
                 </div>
             </div>
             <!-- Chips Container -->
-            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto" style="max-height: 80px; min-height: 1.5rem;">
+            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto" style="max-height: 54px; min-height: 1.5rem;">
                 <button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 bg-green-600/50 hover:bg-green-600 cursor-pointer" title="Add new item">+</button>
                 ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
             </div>
