@@ -665,7 +665,8 @@ export const App = {
 
         // Chip click for selection toggle (anywhere on chip, including text)
         // Double-click-to-edit is handled by a separate dblclick handler
-        if (target.closest('.chip') && target.closest('.chip-container')) {
+        // Exclude add-chip-btn which has its own handler
+        if (target.closest('.chip') && target.closest('.chip-container') && !target.closest('.add-chip-btn')) {
             const chip = target.closest('.chip');
             chip.classList.toggle('selected');
             chip.setAttribute('aria-checked', chip.classList.contains('selected') ? 'true' : 'false');
@@ -703,15 +704,48 @@ export const App = {
             return;
         }
 
+        // Add Chip Button - reveals the input row
+        if (target.closest('.add-chip-btn')) {
+            const card = target.closest('.wildcard-card');
+            const inputRow = card?.querySelector('.add-input-row');
+            const addBtn = target.closest('.add-chip-btn');
+            if (inputRow) {
+                inputRow.classList.remove('hidden');
+                addBtn?.classList.add('hidden');
+                const input = inputRow.querySelector('.add-wildcard-input');
+                input?.focus();
+            }
+            return;
+        }
+
+        // Cancel Add Button - hides the input row
+        if (target.closest('.cancel-add-btn')) {
+            const card = target.closest('.wildcard-card');
+            const inputRow = card?.querySelector('.add-input-row');
+            const addChipBtn = card?.querySelector('.add-chip-btn');
+            if (inputRow) {
+                inputRow.classList.add('hidden');
+                const input = inputRow.querySelector('.add-wildcard-input');
+                if (input) input.value = '';
+            }
+            addChipBtn?.classList.remove('hidden');
+            return;
+        }
+
         // Add Wildcard
         if (target.closest('.add-wildcard-btn')) {
             const input = pathElement.querySelector('.add-wildcard-input');
             if (input && input.value.trim()) {
                 State.saveStateToHistory();
                 const obj = State.getObjectByPath(path);
-                obj.wildcards.push(input.value.trim()); // Proxy trap triggers
-                // Sort logic is now handled in the state proxy trap.
+                obj.wildcards.push(input.value.trim());
                 input.value = '';
+                // Hide input row after adding
+                const card = target.closest('.wildcard-card');
+                const inputRow = card?.querySelector('.add-input-row');
+                const addChipBtn = card?.querySelector('.add-chip-btn');
+                inputRow?.classList.add('hidden');
+                addChipBtn?.classList.remove('hidden');
             }
         }
 
@@ -803,8 +837,9 @@ export const App = {
                     chip.setAttribute('aria-checked', 'true');
                 }
             });
-            // Update button text
-            btn.textContent = allSelected ? 'Select All' : 'Deselect All';
+            // Update button icon and title
+            btn.textContent = allSelected ? '☑' : '☐';
+            btn.title = allSelected ? 'Select All' : 'Deselect All';
         }
     },
 

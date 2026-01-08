@@ -59,7 +59,8 @@ test.describe('UX Improvements', () => {
     // Initially empty
     await expect(chipContainer).toContainText('No items yet');
 
-    // Add an item
+    // Add an item - click + button to reveal input first
+    await card.locator('.add-chip-btn').click();
     const input = card.locator('.add-wildcard-input');
     await input.fill('Test Item');
     await card.locator('.add-wildcard-btn').click();
@@ -84,7 +85,11 @@ test.describe('UX Improvements', () => {
     const copyBtn = card.locator('.copy-btn');
 
     // Add an item so there's something to copy
-    await card.locator('.add-wildcard-input').fill('Item 1');
+    // First click the + button to reveal input
+    await card.locator('.add-chip-btn').click();
+    const input = card.locator('.add-wildcard-input');
+    await expect(input).toBeVisible();
+    await input.fill('Item 1');
     await card.locator('.add-wildcard-btn').click();
 
     // Click copy
@@ -98,7 +103,7 @@ test.describe('UX Improvements', () => {
 
     // Wait for reversion
     await page.waitForTimeout(2100);
-    await expect(copyBtn).toHaveAttribute('title', 'Copy all wildcards');
+    await expect(copyBtn).toHaveAttribute('title', 'Copy all');
     await expect(copyBtn).not.toHaveClass(/text-green-400/);
   });
 

@@ -1498,6 +1498,32 @@
             background-color: rgba(34, 197, 94, 0.8) !important;
         }
 
+        /* Header Action Icons (compact cards) */
+        .header-icon-btn {
+            font-size: 0.875rem;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            opacity: 0.5;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            transition: opacity 0.15s, background-color 0.15s;
+        }
+
+        .header-icon-btn:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .header-actions {
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+
+        .wildcard-card:hover .header-actions {
+            opacity: 1;
+        }
+
         .input-ghost {
             background-color: var(--bg-tertiary);
             border-color: var(--border-primary);

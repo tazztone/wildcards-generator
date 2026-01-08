@@ -1229,7 +1229,7 @@ export const UI = {
 
     createWildcardCardElement(name, data, level, path) {
         const element = document.createElement('div');
-        element.className = `card-wildcard p-4 rounded-lg flex flex-col level-${level} wildcard-card`; // added wildcard-card
+        element.className = `card-wildcard p-2 rounded-lg flex flex-col level-${level} wildcard-card`;
         element.dataset.path = path;
         element.draggable = true;
         element.innerHTML = this.getWildcardCardHtml(name, data, path);
@@ -1243,81 +1243,72 @@ export const UI = {
 
         const chipContainer = element.querySelector('.chip-container');
         if (chipContainer) {
-            // Re-render chips. Diffing individual chips is Overkill for V1, but better than full page re-render.
+            // Re-render chips + add-chip-btn. Diffing individual chips is Overkill for V1, but better than full page re-render.
             const wildcards = data.wildcards || [];
-            chipContainer.innerHTML = wildcards.length > 0
+            const chipsHtml = wildcards.length > 0
                 ? wildcards.map((wc, i) => this.createChip(wc, i)).join('')
                 : this.getEmptyListHtml();
+            const addBtnHtml = `<button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 bg-green-600/50 hover:bg-green-600 cursor-pointer" title="Add new item">+</button>`;
+            chipContainer.innerHTML = chipsHtml + addBtnHtml;
         }
     },
 
     getEmptyListHtml() {
         return `
-            <div class="empty-state w-full flex flex-col items-center justify-center text-gray-500 italic py-2 select-none">
-                <span class="text-lg opacity-50" aria-hidden="true">📝</span>
-                <span class="text-xs mt-1">No items yet. Add one or Generate.</span>
-            </div>
+            <span class="empty-state text-gray-500 italic text-xs select-none">No items yet</span>
         `;
     },
 
     getCategoryFolderHtml(name, data, path) {
-        const isPinned = State.state.pinnedCategories && State.state.pinnedCategories.includes(path); // Use State.state
+        const isPinned = State.state.pinnedCategories && State.state.pinnedCategories.includes(path);
+        const instruction = data.instruction || '';
+        const tooltipText = instruction ? `${name.replace(/_/g, ' ')}: ${instruction}` : name.replace(/_/g, ' ');
         return `
-            <summary class="flex justify-between items-center p-3 cursor-pointer gap-3 group">
-                <div class="flex items-center gap-3 flex-wrap flex-grow">
-                    <input type="checkbox" aria-label="Select category ${sanitize(name.replace(/_/g, ' '))}" class="category-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" onclick="event.stopPropagation();">
-                    <h2 class="text-xl font-semibold text-accent select-none editable-wrapper"><span class="editable-name category-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit category name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span></h2>
-                    <div class="editable-wrapper flex-grow items-center">
-                    <input type="text" readonly aria-label="Folder instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500 w-full transition-all duration-200" placeholder="Folder instructions..." style="min-width: 200px;" value="${sanitize(data.instruction || '')}">
-                    <span class="edit-icon" title="Double-click to edit">✏️</span>
+            <summary class="flex justify-between items-center p-2 cursor-pointer gap-2 group" title="${sanitize(tooltipText)}">
+                <div class="flex items-center gap-2 flex-grow min-w-0">
+                    <input type="checkbox" aria-label="Select category" class="category-batch-checkbox w-3.5 h-3.5 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500 flex-shrink-0" onclick="event.stopPropagation();">
+                    <h2 class="text-lg font-semibold text-accent select-none editable-wrapper truncate"><span class="editable-name category-name outline-none rounded px-0.5" tabindex="0">${name.replace(/_/g, ' ')}</span><span class="edit-icon">✏️</span></h2>
                 </div>
-                </div>
-                <div class="flex items-center gap-2 ml-auto flex-shrink-0">
-                    <button class="pin-btn btn-action-icon text-yellow-400 hover:text-yellow-300 text-lg transition-all duration-200" title="${isPinned ? 'Unpin' : 'Pin to top'}" aria-label="${isPinned ? 'Unpin category' : 'Pin category'}">${isPinned ? '📌' : '📍'}</button>
-                    <button class="delete-btn btn-action-icon text-red-400 hover:text-red-300 transition-all duration-200 p-1 rounded hover:bg-red-400/10" title="Delete this category" aria-label="Delete this category">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
-                    <span class="arrow-down transition-transform duration-300 text-accent"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
+                <div class="flex items-center gap-1 ml-auto flex-shrink-0">
+                    <button class="pin-btn header-icon-btn text-yellow-400" title="${isPinned ? 'Unpin' : 'Pin'}">${isPinned ? '📌' : '📍'}</button>
+                    <button class="delete-btn header-icon-btn text-red-400" title="Delete">🗑</button>
+                    <span class="arrow-down transition-transform duration-300 text-accent text-sm">▼</span>
                 </div>
             </summary>
-            <div class="content-wrapper p-4 border-t border-gray-700 flex flex-col gap-4"></div>
+            <div class="content-wrapper p-2 border-t border-gray-700/50 flex flex-col gap-2"></div>
         `;
     },
 
     getWildcardCardHtml(name, data, path) {
         const parentPath = path.includes('/') ? path.substring(0, path.lastIndexOf('/')).replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top Level';
+        const instruction = data.instruction || '';
+        const tooltipText = `Path: ${parentPath}${instruction ? ' | ' + instruction : ''}`;
+        const isTemplateCard = path.startsWith('0_TEMPLATES');
         return `
-            <button class="delete-btn btn-action-icon absolute top-2 right-2 text-red-400 hover:text-red-300 transition-all duration-200 p-1 rounded hover:bg-red-400/10 z-10" title="Delete this card" aria-label="Delete this card">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-            </button>
-            <div class="text-xs text-gray-400 mb-1 uppercase tracking-wider">${sanitize(parentPath)}</div>
-            <div class="flex justify-between items-center mb-2 gap-3">
-                <input type="checkbox" aria-label="Select list ${sanitize(name.replace(/_/g, ' '))}" class="card-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500 flex-shrink-0" onclick="event.stopPropagation();">
-                <h3 class="font-bold text-lg text-gray-100 flex-grow editable-wrapper"><span class="editable-name wildcard-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit list name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span> <span class="wildcard-count text-gray-400 text-sm ml-2" title="${(data.wildcards || []).length} items in this list">(${(data.wildcards || []).length})</span></h3>
-            </div>
-            <div class="editable-wrapper w-full items-center my-2">
-            <input type="text" readonly aria-label="Custom instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 w-full focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200" placeholder="Custom generation instructions..." value="${sanitize(data.instruction || '')}" title="Length: ${(data.instruction || '').length} chars">
-            <span class="edit-icon" title="Double-click to edit">✏️</span>
-        </div>
-            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded-md p-1.5 w-full border border-gray-600 overflow-y-auto" style="max-height: 100px; min-height: 2rem;">
-                ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
-            </div>
-            <div class="flex gap-2 mt-2">
-                <input type="text" aria-label="New wildcard text" placeholder="Add new wildcard (Press Enter)" class="add-wildcard-input flex-grow input-primary px-2 py-1 text-sm">
-                <button class="add-wildcard-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-md" aria-label="Add wildcard item">+
-                </button>
-            </div>
-            <div class="flex justify-between items-center mt-2 flex-wrap gap-1">
-                <button class="generate-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-3 rounded-md flex items-center gap-2 shadow-sm hover:shadow-md transition-all"><span class="btn-text">${path.startsWith('0_TEMPLATES') ? 'Generate Templates' : 'Generate More'}</span><div class="loader hidden"></div></button>
-                <div class="flex gap-1 ml-auto">
-                    <button class="copy-btn btn-secondary text-gray-400 hover:text-white p-2 rounded-md transition-colors" title="Copy all wildcards" aria-label="Copy all wildcards" data-original-title="Copy all wildcards"><span class="btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></button>
-                    <button class="select-all-btn btn-secondary text-xs py-1.5 px-2 rounded-md" title="Select All">Select All</button>
-                    <button class="batch-delete-btn bg-red-900/50 hover:bg-red-700 text-red-200 hover:text-white text-xs py-1.5 px-2 rounded-md transition-colors" title="Delete Selected">Delete</button>
+            <!-- Compact Header: Title + Action Icons -->
+            <div class="flex items-center gap-2 mb-1" title="${sanitize(tooltipText)}">
+                <input type="checkbox" aria-label="Select list" class="card-batch-checkbox w-3.5 h-3.5 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500 flex-shrink-0" onclick="event.stopPropagation();">
+                <h3 class="font-bold text-sm text-gray-100 flex-grow editable-wrapper truncate"><span class="editable-name wildcard-name outline-none rounded px-0.5" tabindex="0">${name.replace(/_/g, ' ')}</span><span class="edit-icon">✏️</span></h3>
+                <span class="wildcard-count text-gray-500 text-xs">(${(data.wildcards || []).length})</span>
+                <!-- Header Action Icons -->
+                <div class="flex items-center gap-0.5 ml-auto header-actions">
+                    <button class="generate-btn header-icon-btn" title="${isTemplateCard ? 'Generate Templates' : 'Generate More'}">🎲<div class="loader hidden"></div></button>
+                    <button class="copy-btn header-icon-btn" title="Copy all" data-original-title="Copy all">📋</button>
+                    <button class="select-all-btn header-icon-btn" title="Select All">☑</button>
+                    <button class="batch-delete-btn header-icon-btn text-red-400" title="Delete Selected">🗑</button>
+                    <button class="delete-btn header-icon-btn text-red-400" title="Delete Card">✕</button>
                 </div>
+            </div>
+            <!-- Chips Container -->
+            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto" style="max-height: 80px; min-height: 1.5rem;">
+                ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
+                <button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 bg-green-600/50 hover:bg-green-600 cursor-pointer" title="Add new item">+</button>
+            </div>
+            <!-- Hidden Add Input (revealed on + click) -->
+            <div class="add-input-row hidden flex gap-1 mt-1">
+                <input type="text" aria-label="New wildcard" placeholder="Add item (Enter)" class="add-wildcard-input flex-grow input-primary px-2 py-0.5 text-xs">
+                <button class="add-wildcard-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2 rounded">Add</button>
+                <button class="cancel-add-btn text-gray-400 hover:text-white text-xs px-1">✕</button>
             </div>
         `;
     },
