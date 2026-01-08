@@ -11,11 +11,13 @@ test.describe('LMStudio Compatibility Tests', () => {
         await page.evaluate(async () => {
             const originalFetch = window.fetch;
             let retryHappened = false;
+            /** @type {any} */
             let capturedSchema = null;
 
+            // @ts-ignore
             window.fetch = async (url, options) => {
-                if (url.includes('chat/completions')) {
-                    const body = JSON.parse(options.body);
+                if ((/** @type {string} */(url)).includes('chat/completions')) {
+                    const body = JSON.parse(/** @type {string} */(options.body));
 
                     // First attempt: sending json_object
                     if (body.response_format?.type === 'json_object') {
@@ -74,9 +76,10 @@ test.describe('LMStudio Compatibility Tests', () => {
         await page.evaluate(async () => {
             // Expose a way to test the private method or indirectly test via behavior
             const originalFetch = window.fetch;
+            // @ts-ignore
             window.fetch = async (url, options) => {
                 // We just want to inspect the body of the successful request
-                const body = JSON.parse(options.body);
+                const body = JSON.parse(/** @type {string} */(options.body));
                 if (body.response_format?.type === 'json_schema') {
                     return {
                         ok: true,

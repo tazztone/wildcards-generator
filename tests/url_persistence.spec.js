@@ -4,7 +4,7 @@ test.describe('Setting Persistence Tests', () => {
 
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.waitForFunction(() => typeof window.UI !== 'undefined');
+        await page.waitForFunction(() => typeof (/** @type {any} */ (window)).UI !== 'undefined');
     });
 
     test('should persist Custom API URL when changed', async ({ page }) => {
@@ -23,7 +23,7 @@ test.describe('Setting Persistence Tests', () => {
 
         // 3. Reload page to simulate new session
         await page.reload();
-        await page.waitForFunction(() => typeof window.UI !== 'undefined');
+        await page.waitForFunction(() => typeof (/** @type {any} */ (window)).UI !== 'undefined');
 
         // 4. Check if value is restored
         // Open Settings again
