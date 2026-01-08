@@ -1503,7 +1503,7 @@
             font-size: 0.875rem;
             padding: 0.125rem 0.25rem;
             border-radius: 0.25rem;
-            opacity: 0.5;
+            opacity: 0.75;
             cursor: pointer;
             background: transparent;
             border: none;
@@ -1516,7 +1516,7 @@
         }
 
         .header-actions {
-            opacity: 0.3;
+            opacity: 0.6;
             transition: opacity 0.2s;
         }
 
