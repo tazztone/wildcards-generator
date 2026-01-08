@@ -1475,12 +1475,12 @@
         .card-wildcard {
             background-color: var(--bg-tertiary);
             position: relative;
-            min-width: 320px;
+            min-width: 350px;
             /* Ensure enough width for title + instructions */
         }
 
-        /* Allow smaller width on mobile */
-        @media (max-width: 640px) {
+        /* Allow smaller width on mobile/tablet */
+        @media (max-width: 800px) {
             .card-wildcard {
                 min-width: 100%;
             }

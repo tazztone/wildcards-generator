@@ -1218,7 +1218,7 @@ export const UI = {
 
         const gridWrapper = document.createElement('div');
         gridWrapper.className = 'grid gap-4 w-full';
-        gridWrapper.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
+        gridWrapper.style.gridTemplateColumns = 'repeat(auto-fill, minmax(350px, 1fr))';
         leafNodes.forEach(node => gridWrapper.appendChild(node));
 
         // Placeholders
