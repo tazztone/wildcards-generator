@@ -1263,7 +1263,7 @@ export const UI = {
     getCategoryFolderHtml(name, data, path) {
         const isPinned = State.state.pinnedCategories && State.state.pinnedCategories.includes(path); // Use State.state
         return `
-            <summary class="flex justify-between items-center p-4 cursor-pointer gap-4 group">
+            <summary class="flex justify-between items-center p-3 cursor-pointer gap-3 group">
                 <div class="flex items-center gap-3 flex-wrap flex-grow">
                     <input type="checkbox" aria-label="Select category ${sanitize(name.replace(/_/g, ' '))}" class="category-batch-checkbox w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" onclick="event.stopPropagation();">
                     <h2 class="text-xl font-semibold text-accent select-none editable-wrapper"><span class="editable-name category-name outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit category name">${name.replace(/_/g, ' ')}</span><span class="edit-icon" title="Double-click to edit">✏️</span></h2>
@@ -1303,7 +1303,7 @@ export const UI = {
             <input type="text" readonly aria-label="Custom instructions" class="editable-input custom-instructions-input input-ghost bg-transparent text-sm border border-transparent rounded-md px-2 py-1 w-full focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200" placeholder="Custom generation instructions..." value="${sanitize(data.instruction || '')}" title="Length: ${(data.instruction || '').length} chars">
             <span class="edit-icon" title="Double-click to edit">✏️</span>
         </div>
-            <div class="chip-container custom-scrollbar flex flex-wrap gap-2 card-folder rounded-md p-2 w-full border border-gray-600 overflow-y-auto" style="max-height: 150px; min-height: 2.5rem;">
+            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded-md p-1.5 w-full border border-gray-600 overflow-y-auto" style="max-height: 100px; min-height: 2rem;">
                 ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
             </div>
             <div class="flex gap-2 mt-2">
@@ -1311,7 +1311,7 @@ export const UI = {
                 <button class="add-wildcard-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-md" aria-label="Add wildcard item">+
                 </button>
             </div>
-            <div class="flex justify-between items-center mt-3 flex-wrap gap-2">
+            <div class="flex justify-between items-center mt-2 flex-wrap gap-1">
                 <button class="generate-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-3 rounded-md flex items-center gap-2 shadow-sm hover:shadow-md transition-all"><span class="btn-text">${path.startsWith('0_TEMPLATES') ? 'Generate Templates' : 'Generate More'}</span><div class="loader hidden"></div></button>
                 <div class="flex gap-1 ml-auto">
                     <button class="copy-btn btn-secondary text-gray-400 hover:text-white p-2 rounded-md transition-colors" title="Copy all wildcards" aria-label="Copy all wildcards" data-original-title="Copy all wildcards"><span class="btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></button>
@@ -1323,7 +1323,7 @@ export const UI = {
     },
 
     createChip(wildcard, index) {
-        return `<div class="chip chip-base text-sm px-2 py-1 rounded-md flex items-center gap-2 whitespace-nowrap" data-index="${index}"><input type="checkbox" aria-label="Select ${sanitize(wildcard)}" class="batch-select bg-gray-700 border-gray-500 text-indigo-600 focus:ring-indigo-500"><span class="editable-name chip-text outline-none rounded px-1" tabindex="0" aria-label="Double-click to edit item">${sanitize(wildcard)}</span></div>`;
+        return `<div class="chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap" data-index="${index}"><input type="checkbox" aria-label="Select ${sanitize(wildcard)}" class="batch-select w-3 h-3 bg-gray-700 border-gray-500 text-indigo-600 focus:ring-indigo-500"><span class="editable-name chip-text outline-none rounded px-0.5" tabindex="0" aria-label="Double-click to edit item">${sanitize(wildcard)}</span></div>`;
     },
 
     createPlaceholderCategory() {
@@ -1354,16 +1354,14 @@ export const UI = {
     },
     createWildcardPlaceholder(parentPath) {
         const div = document.createElement('div');
-        div.className = 'bg-gray-700/50 p-4 rounded-lg flex flex-col min-h-[288px]';
+        div.className = 'bg-gray-700/30 p-3 rounded-lg flex items-center justify-center min-h-[60px] border-2 border-dashed border-gray-600 hover:border-indigo-500 transition-colors';
         div.dataset.parentPath = parentPath;
         div.innerHTML = `
-             <div class="flex-grow flex flex-col items-center justify-center text-center">
-                 <p class="text-gray-400 mb-4">Add new wildcard list</p>
-                 <div class="flex gap-4">
-                    <button class="add-wildcard-list-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-2xl" aria-label="Add new wildcard list">+</button>
-                    <button class="suggest-wildcard-list-btn bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md">Suggest</button>
-                </div>
-            </div>`;
+             <div class="flex items-center gap-3">
+                 <span class="text-gray-400 text-sm">Add list</span>
+                 <button class="add-wildcard-list-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-md" aria-label="Add new wildcard list">+</button>
+                 <button class="suggest-wildcard-list-btn bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-1 px-3 rounded-md">Suggest</button>
+             </div>`;
         return div;
     },
 
