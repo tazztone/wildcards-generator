@@ -1,4 +1,9 @@
+CUSTOM API: 
+LM Studio now has its own REST API, in addition to OpenAI compatibility mode (learn more).
+The REST API includes enhanced stats such as Token / Second and Time To First Token (TTFT), as well as rich information about models such as loaded vs unloaded, max context, quantization, and more.:
+https://lmstudio.ai/docs/developer/rest/endpoints
 ---
+openrouter below: 
 title: API Reference
 subtitle: An overview of OpenRouter's API
 headline: OpenRouter API Reference | Complete API Documentation
