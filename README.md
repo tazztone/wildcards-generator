@@ -1,30 +1,74 @@
-# AI-Powered Wildcard Generator (Web Version)
+# Wildcards Generator (AI-Powered)
 
-A standalone Single Page Application (SPA) for managing and generating "wildcards" (dynamic lists of terms) for AI image generation prompts. Runs directly in your browser with a **Modern Glassmorphism UI** and **Smooth Animations**.
+A powerful, standalone **Single Page Application (SPA)** for organizing, managing, and generating dynamic "wildcards" for AI image generation prompts. Built with a modern **Glassmorphism UI**, smooth animations, and direct **LLM Integration**.
 
-## Quick Start
+> **What are Wildcards?**
+> Wildcards are dynamic lists of terms (e.g., `__colors__`, `__styles__`) used to randomize image prompts. This tool helps you organize thousands of terms into a clean hierarchy and uses AI to generate new ideas automatically.
 
-1. **Run a Local Server**
-   Because this app uses ES Modules and fetches local data files, modern browser security (CORS) requires it to be served via HTTP, not opened directly as a file.
+## ✨ Key Features
 
-   - **Node**: Run `npm run dev` (or `npx serve .`) and open `http://localhost:3000`.
+- **🧠 AI-Powered Generation**: Connect to **OpenRouter**, **Google Gemini**, or any **OpenAI-compatible** API to generate new wildcards contextually.
+- **📂 Hierarchical Organization**: unlimited nested folders and drag-and-drop management.
+- **🗺️ Mindmap View**: Visualize and manage your collection as an interactive mindmap.
+- **⚡ Batch Operations**: Generate, move, or delete items across multiple folders at once.
+- **🎨 Template Architect**: Create complex prompt templates by combining existing categories (e.g., `~~Creature~~` in `~~Environment~~` style).
+- **🔍 Smart Search & Deduplication**: Instantly find terms and cleanup duplicate entries with AI assistance.
+- **📱 Responsive & Fast**: Runs entirely in the browser with no build step required for basic usage. PWA-ready.
 
-2. **Setup API Key** (Required for AI features)
-   - Click **Global Settings** (top of the page)
-   - Select your preferred AI provider (OpenRouter, Gemini, or Custom).
-   - Enter your API Key. Keys are stored in **session memory** by default, with an option to remember them (saved to local storage).
+## 🚀 Quick Start
 
-## Documentation
+### 1. Run Locally
+Since this app uses ES Modules, it must be served via a local web server (not opened directly as a file).
 
-- **[Features](docs/features.md)**: Detailed list of features, including recent updates (v2.9 - v2.14).
-- **[Architecture](docs/architecture.md)**: Technical overview of the code structure and design patterns.
-- **[Testing](tests/testing.md)**: How to run and write tests.
-- **[API Reference](docs/openrouter_API_docs.md)**: OpenRouter API documentation.
+**Using Node (Recommended)**:
+```bash
+# Install dependencies
+npm install
 
-## Contributing
+# Start development server
+npm run dev
 
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for development guidelines.
+# Open http://localhost:3000
+```
 
-## For AI Agents
+### 2. Configure AI Provider
+To unlock AI generation features:
+1. Click **Global Settings** (bottom-left or top toolbar).
+2. Choose your provider:
+   - **OpenRouter**: Best for access to hundreds of models (Claude, GPT-4, Llama 3).
+   - **Google Gemini**: Great free tier and high speed.
+   - **Custom / Local**: Connect to LM Studio or Ollama running locally.
+3. Enter your API Key. (Keys are stored safely in your browser's session memory).
+
+## 📖 Usage Guide
+
+### Managing Wildcards
+- **Create**: Use the `+` buttons to add categories (folders) or wildcard lists.
+- **Edit**: **Double-click** any name to rename it.
+- **Drag & Drop**: Move items anywhere in the hierarchy.
+
+### Generating Content
+- **Single List**: Click the **Generate** button on any wildcard card.
+- **Contextual**: The AI sees the path (e.g., `Characters > Fantasy > Orcs`) and existing items to generate relevant additions.
+- **Templates**: Create a folder named `0_TEMPLATES`. Lists created here allow you to select other categories as "sources" to generate complex combinatorial prompts.
+
+### Views
+- **List View**: Classic vertical hierarchy.
+- **Mindmap View**: Visual node-based graph. Great for brainstorming structure.
+- **Focus Mode**: Hides everything except the active category for distraction-free work.
+
+## 📚 Documentation
+
+- **[Features](docs/features.md)**: detailed breakdown of all capabilities (v2.0+).
+- **[Architecture](docs/architecture.md)**: how the code is structured (Vanilla JS + Proxies).
+- **[Testing](tests/testing.md)**: running the Playwright test suite.
+- **[API Reference](docs/openrouter_API_docs.md)**: OpenRouter integration details.
+
+## 🤝 Contributing
+
+Contributions are welcome! converting to a framework is NOT a goal; we aim to keep this vanilla and lightweight.
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for guidelines.
+
+## 🤖 For AI Agents
 
 See **[AGENTS.md](AGENTS.md)** for strict architectural rules and workflow instructions.
