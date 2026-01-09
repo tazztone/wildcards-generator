@@ -524,7 +524,12 @@ export const Api = {
                 payload.reasoning = reasoning;
             }
 
-            payload.response_format = { type: "json_object" };
+            if (isCustom) {
+                const schema = this._constructJsonSchema(generationConfig);
+                payload.response_format = { type: "json_schema", json_schema: schema };
+            } else {
+                payload.response_format = { type: "json_object" };
+            }
         } else {
             throw new Error("Invalid API endpoint.");
         }
@@ -943,7 +948,7 @@ export const Api = {
                 stats: {
                     responseTime: duration,
                     supportsJson: isValidArray,
-                    validSchema: hasCorrectShape,
+                    validSchema: !!hasCorrectShape,
                     parsedCount: isValidArray ? parsed.length : 0,
                     parsedContent: parsed,
                     rawResponse: this._extractRawContent(result, provider),
@@ -1001,7 +1006,7 @@ export const Api = {
                 stats: {
                     responseTime: duration,
                     supportsJson: isValidArray,
-                    validSchema: hasValidTemplates,
+                    validSchema: !!hasValidTemplates,
                     parsedCount: isValidArray ? parsed.length : 0,
                     parsedContent: parsed,
                     rawResponse: this._extractRawContent(result, provider),
@@ -1082,7 +1087,7 @@ export const Api = {
                 stats: {
                     responseTime: duration,
                     supportsJson: isValidArray,
-                    validSchema: hasCorrectShape,
+                    validSchema: !!hasCorrectShape,
                     parsedCount: isValidArray ? parsed.length : 0,
                     parsedContent: parsed,
                     rawResponse: this._extractRawContent(result, provider),
