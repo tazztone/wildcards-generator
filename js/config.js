@@ -34,7 +34,10 @@ export async function loadConfig() {
             MODEL_TOP_A: 0.0,
             MODEL_SEED: 0,
             MODEL_REASONING_EFFORT: 'default', // default, high, medium, low, none
-            MODEL_REASONING_MAX_TOKENS: 0 // 0 = disabled
+            MODEL_REASONING_MAX_TOKENS: 0, // 0 = disabled
+            // Mindmap Configuration
+            MINDMAP_NODE_FONT_SIZE: 24,
+            MINDMAP_CATEGORY_FONT_SIZE: 32
         };
 
         Object.assign(Config, defaultConfig, userDefaults, savedConfig ? JSON.parse(savedConfig) : {});
@@ -92,7 +95,9 @@ export async function saveConfig() {
             MODEL_TOP_A: 0.0,
             MODEL_SEED: 0,
             MODEL_REASONING_EFFORT: 'default',
-            MODEL_REASONING_MAX_TOKENS: 0
+            MODEL_REASONING_MAX_TOKENS: 0,
+            MINDMAP_NODE_FONT_SIZE: 24,
+            MINDMAP_CATEGORY_FONT_SIZE: 32
         };
         const allDefaults = { ...defaultConfig, ...userDefaults };
 
@@ -112,7 +117,8 @@ export async function saveConfig() {
                 // If it's a user setting loaded from storage (not in static defaults but valid config)
                 else if (['API_URL_CUSTOM', 'MODEL_NAME_GEMINI', 'MODEL_NAME_OPENROUTER', 'MODEL_NAME_CUSTOM', 'API_ENDPOINT', 'CUSTOM_SYSTEM_PROMPT', 'CUSTOM_SUGGEST_PROMPT', 'CUSTOM_TEMPLATE_PROMPT', 'PREFERRED_VIEW',
                     'MODEL_TEMPERATURE', 'MODEL_MAX_TOKENS', 'MODEL_TOP_P', 'MODEL_TOP_K', 'MODEL_FREQUENCY_PENALTY', 'MODEL_PRESENCE_PENALTY', 'MODEL_REPETITION_PENALTY', 'MODEL_MIN_P', 'MODEL_TOP_A', 'MODEL_SEED',
-                    'MODEL_REASONING_EFFORT', 'MODEL_REASONING_MAX_TOKENS'
+                    'MODEL_REASONING_EFFORT', 'MODEL_REASONING_MAX_TOKENS',
+                    'MINDMAP_NODE_FONT_SIZE', 'MINDMAP_CATEGORY_FONT_SIZE'
                 ].includes(key)) {
                     changedConfig[key] = Config[key];
                 }

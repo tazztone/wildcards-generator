@@ -176,6 +176,23 @@ export const UI = {
             saveConfig(); // Persist provider selection
             this.updateSettingsVisibility(provider);
         });
+        // Advanced Configuration Handlers - Mindmap Font Sizes
+        document.getElementById('config-mindmap-node-size')?.addEventListener('change', (e) => {
+            const val = parseInt(/** @type {HTMLInputElement} */(e.target).value);
+            if (!isNaN(val)) {
+                Config.MINDMAP_NODE_FONT_SIZE = val;
+                saveConfig();
+                this.updateMindmapStyles();
+            }
+        });
+        document.getElementById('config-mindmap-category-size')?.addEventListener('change', (e) => {
+            const val = parseInt(/** @type {HTMLInputElement} */(e.target).value);
+            if (!isNaN(val)) {
+                Config.MINDMAP_CATEGORY_FONT_SIZE = val;
+                saveConfig();
+                this.updateMindmapStyles();
+            }
+        });
     },
 
     sortKeys(keys, parentPath) {
@@ -225,6 +242,8 @@ export const UI = {
             apiEndpoint.value = Config.API_ENDPOINT || 'openrouter';
             this.updateSettingsVisibility(apiEndpoint.value);
         }
+
+        this.renderAdvancedSettings();
 
         // Efficient full render
         this.elements.container.innerHTML = '';
@@ -399,6 +418,31 @@ export const UI = {
         }
 
         this.updateStats();
+    },
+
+    renderAdvancedSettings() {
+        /** @type {HTMLInputElement|null} */
+        // @ts-ignore
+        const nodeSizeInput = document.getElementById('config-mindmap-node-size');
+        /** @type {HTMLInputElement|null} */
+        // @ts-ignore
+        const catSizeInput = document.getElementById('config-mindmap-category-size');
+
+        if (nodeSizeInput) {
+            nodeSizeInput.value = String(Config.MINDMAP_NODE_FONT_SIZE || 24);
+        }
+        if (catSizeInput) {
+            catSizeInput.value = String(Config.MINDMAP_CATEGORY_FONT_SIZE || 32);
+        }
+
+        // Apply styles
+        this.updateMindmapStyles();
+    },
+
+    updateMindmapStyles() {
+        const root = document.documentElement;
+        root.style.setProperty('--mindmap-node-size', `${Config.MINDMAP_NODE_FONT_SIZE || 24}px`);
+        root.style.setProperty('--mindmap-category-size', `${Config.MINDMAP_CATEGORY_FONT_SIZE || 32}px`);
     },
 
     /**
@@ -1422,7 +1466,7 @@ export const UI = {
         countData(State.state.wildcards || {});
         // Update DOM
         if (document.getElementById('stat-categories')) {
-            document.getElementById('stat-categories').textContent = categoryCount;
+            document.getElementById('stat-categories').textContent = String(categoryCount);
             document.getElementById('stat-wildcards').textContent = wildcardCount.toLocaleString();
         }
     },
@@ -1665,7 +1709,7 @@ export const UI = {
 
             const handleClose = (result) => {
                 if (rememberKey) {
-                    const remember = dialog.querySelector('#confirm-remember-choice')?.checked;
+                    const remember = /** @type {HTMLInputElement} */ (dialog.querySelector('#confirm-remember-choice'))?.checked;
                     // Only save if action was confirmed and "don't ask again" was checked
                     if (result && remember) {
                         localStorage.setItem(rememberKey, 'true');
@@ -1686,6 +1730,7 @@ export const UI = {
             dialog.addEventListener('cancel', () => handleClose(false)); // Handle Escape key
 
             // Focus confirm button by default for quick action
+            // @ts-ignore
             confirmBtn.focus();
         });
     },
@@ -1809,9 +1854,9 @@ export const UI = {
     },
 
     /**
- * Show the Clean Up Duplicates dialog (accessed from Dupe Finder bar)
- * @param {Array} duplicates - List of duplicate objects
- */
+    * Show the Clean Up Duplicates dialog (accessed from Dupe Finder bar)
+    * @param {Array} duplicates - List of duplicate objects
+    */
     showCleanDuplicatesDialog(duplicates) {
         const totalOccurrences = duplicates.reduce((sum, d) => sum + d.count, 0);
 
@@ -1970,18 +2015,18 @@ export const UI = {
             const aiBtn = document.getElementById('dupe-clean-ai');
 
             if (progressContainer) progressContainer.classList.remove('hidden');
-            if (aiBtn) aiBtn.disabled = true;
+            if (aiBtn) /** @type {HTMLButtonElement} */ (aiBtn).disabled = true;
 
             let startTime = Date.now();
 
             try {
                 // Get settings from inline inputs (fallback to old config ids)
-                const batchSize = parseInt(document.getElementById('ai-batch-size')?.value) ||
-                    parseInt(document.getElementById('config-ai-batch-size')?.value) || 10;
-                const parallelRequests = parseInt(document.getElementById('ai-parallel')?.value) ||
-                    parseInt(document.getElementById('config-ai-parallel')?.value) || 1;
-                const cooldownMs = parseInt(document.getElementById('ai-cooldown')?.value) ||
-                    parseInt(document.getElementById('config-ai-cooldown')?.value) || 0;
+                const batchSize = parseInt(/** @type {HTMLInputElement} */(document.getElementById('ai-batch-size'))?.value) ||
+                    parseInt(/** @type {HTMLInputElement} */(document.getElementById('config-ai-batch-size'))?.value) || 10;
+                const parallelRequests = parseInt(/** @type {HTMLInputElement} */(document.getElementById('ai-parallel'))?.value) ||
+                    parseInt(/** @type {HTMLInputElement} */(document.getElementById('config-ai-parallel'))?.value) || 1;
+                const cooldownMs = parseInt(/** @type {HTMLInputElement} */(document.getElementById('ai-cooldown'))?.value) ||
+                    parseInt(/** @type {HTMLInputElement} */(document.getElementById('config-ai-cooldown'))?.value) || 0;
 
                 // Import API and call AI
                 const { Api } = await import('./api.js');
@@ -2022,7 +2067,7 @@ export const UI = {
                 console.error('AI cleanup failed:', error);
                 UI.showToast(`AI cleanup failed: ${error.message}`, 'error');
                 if (progressContainer) progressContainer.classList.add('hidden');
-                if (aiBtn) aiBtn.disabled = false;
+                if (aiBtn) /** @type {HTMLButtonElement} */ (aiBtn).disabled = false;
             }
         } else {
             // Synchronous strategies
