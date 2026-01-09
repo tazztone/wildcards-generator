@@ -1,3 +1,5 @@
+visit the links below to read docs:
+
 [Skip to main content](https://docs.mind-elixir.com/docs/api/mind-elixir#__docusaurus_skipToContent_fallback)
 [Mind Elixir](https://docs.mind-elixir.com/)
 [Tutorial](https://docs.mind-elixir.com/docs/getting-started/intro)

@@ -80,11 +80,32 @@ const Mindmap = {
         const buildNode = (name, data, parentPath = '') => {
             const path = parentPath ? `${parentPath}/${name}` : name;
             const wildcardCount = data.wildcards?.length || 0;
+            const hasWildcards = wildcardCount > 0;
 
             // Build display name with count indicator when wildcards are hidden
-            const displayName = (!showWildcards && wildcardCount > 0)
+            const displayName = (!showWildcards && hasWildcards)
                 ? `${name} (${wildcardCount})`
                 : name;
+
+            // Determine node type for styling:
+            // - Category/Subcategory: nodes without wildcards (only contains subcategories)
+            // - WildcardList: nodes that have wildcards array
+            const isWildcardList = hasWildcards;
+
+            // Style based on node type for consistent appearance:
+            // - Categories/Subcategories: outlined style (blue border, transparent bg)
+            // - WildcardLists: distinct filled style (subtle background)
+            const nodeStyle = isWildcardList
+                ? {
+                    // WildcardList style: subtle filled background
+                    fontSize: '28',
+                    background: 'var(--bg-tertiary, #374151)',
+                    color: 'var(--text-secondary, #9ca3af)'
+                }
+                : {
+                    // Category/Subcategory style: outlined (handled via CSS class)
+                    fontSize: '60' // Updated to be 2x larger (matches CSS override)
+                };
 
             const node = {
                 id: generateId(path),
@@ -94,12 +115,10 @@ const Mindmap = {
                 data: {
                     path: path.split('/'),
                     originalName: name,
-                    wildcardCount: wildcardCount
+                    wildcardCount: wildcardCount,
+                    isWildcardList: isWildcardList
                 },
-                // Set larger font size for category nodes (3x default)
-                style: {
-                    fontSize: '36'
-                }
+                style: nodeStyle
             };
 
             // Add instruction as a tooltip (note) on hover instead of visible tag
@@ -118,10 +137,11 @@ const Mindmap = {
                             path: [...path.split('/'), 'wildcards', index],
                             isWildcard: true
                         },
+                        // Wildcard style: most basic/simple - minimal styling
                         style: {
-                            background: 'var(--chip-bg, #374151)',
-                            color: 'var(--chip-text, #e5e7eb)',
-                            fontSize: '24'
+                            fontSize: '20',
+                            background: 'transparent',
+                            color: 'var(--text-muted, #6b7280)'
                         }
                     });
                 });
