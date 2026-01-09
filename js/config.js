@@ -1,12 +1,28 @@
 import { UI } from './ui.js';
 
+// Hardcoded defaults as Single Source of Truth for structure and prompts
+const CONFIG_CONSTANTS = {
+    CONFIG_STORAGE_KEY: "wildcardGeneratorConfig_v1",
+    STORAGE_KEY: "wildcardGeneratorState_v12",
+    HISTORY_KEY: "wildcardGeneratorHistory_v12",
+    HISTORY_LIMIT: 20,
+    SEARCH_DEBOUNCE_DELAY: 300,
+    DEFAULT_SYSTEM_PROMPT: "You are a creative assistant. Generate exactly 20 unique, creative wildcards for the provided category path. Ensure they are diverse and fit the context. Return a valid JSON array of strings containing only the new items.",
+    DEFAULT_SUGGEST_ITEM_PROMPT: "You are a creative assistant. Suggest exactly 20 unique, specific sub-category names (using snake_case) for the parent category '{parentPath}'. Ensure names are descriptive and distinct from siblings. Return a valid JSON array of objects, where each object has 'name' and 'instruction' keys.",
+    DEFAULT_TEMPLATE_PROMPT: "You are a Template Architect. Create abstract, reusable prompt patterns using the provided UPPERCASE codes (e.g. __A__) as placeholders. Connect placeholders using only minimal prepositions or conjunctions (e.g., '__A__ in __B__ with __C__'). Return a valid JSON array of 20 template strings.",
+    DEFAULT_DEDUPLICATE_PROMPT: "You are a data organizer. Select the best semantic category path for each duplicate wildcard. Return a JSON array of objects, each containing 'wildcard' and the chosen 'keep_path'."
+};
+
 export const Config = {};
 
 export async function loadConfig() {
     try {
         const response = await fetch('config/config.json');
         if (!response.ok) throw new Error('Could not fetch default configuration.');
-        const defaultConfig = await response.json();
+        const fileConfig = await response.json();
+
+        // Merge file config over constants (allowing file to override, but constants provide safety)
+        const defaultConfig = { ...CONFIG_CONSTANTS, ...fileConfig };
 
         const savedConfig = localStorage.getItem(defaultConfig.CONFIG_STORAGE_KEY);
 
@@ -83,8 +99,12 @@ export async function loadConfig() {
 
     } catch (error) {
         console.error("Failed to load configuration:", error);
-        // Fallback to minimal config
-        Object.assign(Config, { STORAGE_KEY: 'wildcardGeneratorState_fallback', HISTORY_KEY: 'wildcardGeneratorHistory_fallback', HISTORY_LIMIT: 10 });
+        // Fallback to constants + minimal essentials
+        Object.assign(Config, CONFIG_CONSTANTS, {
+            STORAGE_KEY: 'wildcardGeneratorState_fallback',
+            HISTORY_KEY: 'wildcardGeneratorHistory_fallback',
+            HISTORY_LIMIT: 10
+        });
     }
 }
 

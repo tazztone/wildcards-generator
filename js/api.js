@@ -585,9 +585,7 @@ export const Api = {
         }
 
         // Use the actual system prompt from the app's config
-        const systemPrompt = Config.DEFAULT_SYSTEM_PROMPT ||
-            "You are a creative assistant for generating wildcards for AI image prompts. You will be given a category path, a list of existing wildcards, and optional custom instructions. Your task is to generate 20 more diverse and creative wildcards that fit the category. Do not repeat any from the existing list. Follow all custom instructions. Return ONLY the new wildcards as a JSON array of strings.";
-
+        const systemPrompt = Config.DEFAULT_SYSTEM_PROMPT;
         // Format the test exactly like the app does for wildcard generation
         const readablePath = testCategoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
         const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${testExistingItems.slice(0, 20).join(', ')}\nCustom Instructions: "${testInstruction}"`;
@@ -907,8 +905,7 @@ export const Api = {
         const startTime = performance.now();
 
         // Use the configured suggestion prompt
-        const basePrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT ||
-            "You are an expert creative assistant. Your task is to suggest new sub-category names.";
+        const basePrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT;
         const parentPath = 'CREATURES_and_BEINGS';
         const globalPrompt = basePrompt.replace('{parentPath}', parentPath);
 
@@ -971,8 +968,7 @@ export const Api = {
     async testTemplates(provider, apiKey, modelName) {
         const startTime = performance.now();
 
-        const templatePrompt = Config.DEFAULT_TEMPLATE_PROMPT ||
-            "You are a Template Architect. Create prompt templates using __CODE__ syntax.";
+        const templatePrompt = Config.DEFAULT_TEMPLATE_PROMPT;
 
         // Mock path map like the real feature uses
         const pathMap = {
@@ -1029,8 +1025,7 @@ export const Api = {
     async testDupeFinder(provider, apiKey, modelName) {
         const startTime = performance.now();
 
-        const systemPrompt = Config.DEFAULT_DEDUPLICATE_PROMPT ||
-            "You are an expert at organizing data. Pick the best category for duplicates.";
+        const systemPrompt = Config.DEFAULT_DEDUPLICATE_PROMPT;
 
         // Mock duplicate data
         const mockDuplicates = [
