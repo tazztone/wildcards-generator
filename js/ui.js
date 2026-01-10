@@ -1,6 +1,7 @@
 import { State } from './state.js';
 import { sanitize } from './utils.js';
 import { Config, saveConfig, saveApiKey, getEffectivePrompt, setCustomPrompt, isUsingDefault, resetToDefault } from './config.js';
+import { Api } from './api.js';
 
 export const UI = {
     elements: {},
@@ -165,6 +166,9 @@ export const UI = {
                         content.classList.add('hidden');
                     }
                 });
+
+                // Trigger tab-specific renders
+                if (tabId === 'logs') this.renderLogs();
             });
         });
 
@@ -306,6 +310,46 @@ export const UI = {
                 });
             }
         });
+
+        // Debug Logs Handlers
+        document.getElementById('refresh-logs-btn')?.addEventListener('click', () => this.renderLogs());
+        document.getElementById('clear-logs-btn')?.addEventListener('click', () => {
+            if (confirm('Clear all captured logs?')) {
+                Api.clearLogs();
+                this.renderLogs();
+            }
+        });
+
+        // Event delegation for copy buttons in logs
+        document.getElementById('api-logs-container')?.addEventListener('click', async (e) => {
+            const target = /** @type {HTMLElement} */ (e.target);
+            const copyBtn = target.closest('.copy-log-resp-btn');
+            if (copyBtn) {
+                const logId = copyBtn.getAttribute('data-id');
+                const log = Api.getLogs().find(l => l.id === logId);
+                if (log && log.response) {
+                    try {
+                        const textToCopy = typeof log.response === 'string' ? log.response : JSON.stringify(log.response, null, 2);
+                        await navigator.clipboard.writeText(textToCopy);
+
+                        // Visual feedback
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '✅ Copied!';
+                        copyBtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
+                        copyBtn.classList.add('bg-green-900/40', 'text-green-400');
+
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                            copyBtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
+                            copyBtn.classList.remove('bg-green-900/40', 'text-green-400');
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy log:', err);
+                        UI.showToast('Failed to copy to clipboard', 'error');
+                    }
+                }
+            }
+        });
     },
 
     sortKeys(keys, parentPath) {
@@ -377,6 +421,66 @@ export const UI = {
         this.elements.container.appendChild(fragment);
 
         this.updateStats();
+    },
+
+    renderLogs() {
+        const container = document.getElementById('api-logs-container');
+        if (!container) return;
+
+        const logs = Api.getLogs();
+        if (logs.length === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-500 text-center py-8">No logs captured yet. Perform an API action to see logs here.</p>';
+            return;
+        }
+
+        container.innerHTML = logs.map(log => `
+            <div class="log-entry bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden mb-4 last:mb-0">
+                <div class="flex items-center justify-between p-2 bg-gray-800/80 border-b border-gray-700">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded ${log.status === 'success' ? 'bg-green-900/40 text-green-400' : log.status === 'error' ? 'bg-red-900/40 text-red-400' : 'bg-yellow-900/40 text-yellow-400'}">
+                            ${log.status.toUpperCase()}
+                        </span>
+                        <span class="text-[10px] text-gray-500 font-mono">${log.timestamp}</span>
+                        <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${log.url}">${log.url.length > 50 ? '...' + log.url.slice(-47) : log.url}</span>
+                    </div>
+                    <span class="text-[10px] text-gray-500">${log.duration}ms</span>
+                </div>
+                <div class="p-3 space-y-3">
+                    <details class="group">
+                        <summary class="text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none flex items-center gap-2">
+                            <span class="transition-transform group-open:rotate-90">▶</span>
+                            📤 Request Details
+                        </summary>
+                        <div class="mt-2 space-y-2 pl-4 border-l border-gray-700">
+                             <div class="text-[10px] text-gray-500 font-mono">
+                                <div class="font-bold text-indigo-300 mb-1">Headers:</div>
+                                <pre>${JSON.stringify(log.headers, null, 2)}</pre>
+                             </div>
+                             <div class="text-[10px] text-gray-400 font-mono">
+                                <div class="font-bold text-indigo-300 mb-1">Payload:</div>
+                                <pre class="bg-black/30 p-2 rounded max-h-40 overflow-auto custom-scrollbar whitespace-pre-wrap">${JSON.stringify(log.payload, null, 2)}</pre>
+                             </div>
+                        </div>
+                    </details>
+                    <details class="group" open>
+                        <summary class="text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="transition-transform group-open:rotate-90">▶</span>
+                                📥 Raw Response
+                            </div>
+                            <button class="copy-log-resp-btn text-[10px] bg-indigo-900/40 hover:bg-indigo-800 text-indigo-300 px-2 py-0.5 rounded transition-colors flex items-center gap-1" 
+                                    data-id="${log.id}" onclick="event.stopPropagation();">
+                                📋 Copy Response
+                            </button>
+                        </summary>
+                        <div class="mt-2 pl-4 border-l border-gray-700">
+                            <pre class="text-[10px] font-mono bg-black/40 p-2 rounded max-h-80 overflow-auto custom-scrollbar ${log.status === 'error' ? 'text-red-300' : 'text-green-300'} whitespace-pre-wrap">${typeof log.response === 'string' ? log.response : JSON.stringify(log.response, null, 2)}</pre>
+                        </div>
+                    </details>
+                    ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${log.error}</div>` : ''}
+                </div>
+            </div>
+        `).join('');
     },
 
     handleStateUpdate(e) {

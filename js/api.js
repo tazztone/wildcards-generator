@@ -3,6 +3,50 @@ import { Config } from './config.js';
 
 export const Api = {
     activeController: null,
+    requestLogs: [],
+
+    logRequest(url, payload, headers) {
+        const logEntry = {
+            id: Date.now() + Math.random().toString(36).substr(2, 5),
+            timestamp: new Date().toLocaleTimeString(),
+            url,
+            payload: JSON.parse(JSON.stringify(payload)), // Deep copy to avoid mutations
+            headers: { ...headers },
+            status: 'pending',
+            response: null,
+            error: null,
+            duration: 0,
+            startTime: performance.now()
+        };
+        // Obfuscate API keys in headers
+        if (logEntry.headers.Authorization) {
+            logEntry.headers.Authorization = 'Bearer ****' + logEntry.headers.Authorization.slice(-4);
+        }
+        // Obfuscate key in URL for Gemini
+        logEntry.url = logEntry.url.replace(/key=[^&]+/, 'key=****');
+
+        this.requestLogs.unshift(logEntry);
+        if (this.requestLogs.length > 50) this.requestLogs.pop(); // Keep last 50
+        return logEntry.id;
+    },
+
+    logResponse(id, response, error = null) {
+        const entry = this.requestLogs.find(l => l.id === id);
+        if (entry) {
+            entry.duration = Math.round(performance.now() - entry.startTime);
+            entry.status = error ? 'error' : 'success';
+            entry.response = response;
+            entry.error = error;
+        }
+    },
+
+    getLogs() {
+        return this.requestLogs;
+    },
+
+    clearLogs() {
+        this.requestLogs = [];
+    },
 
     async _makeRequest(globalPrompt, userPrompt, generationConfig) {
         if (this.activeController) this.activeController.abort();
@@ -11,6 +55,7 @@ export const Api = {
         try {
             const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
             const makeRequest = async (currentPayload) => {
+                const logId = this.logRequest(url, currentPayload, headers);
                 const res = await fetch(url, {
                     method: 'POST',
                     headers,
@@ -19,9 +64,12 @@ export const Api = {
                 });
                 if (!res.ok) {
                     const text = await res.text();
+                    this.logResponse(logId, text, `HTTP ${res.status}`);
                     return { ok: false, status: res.status, text };
                 }
-                return { ok: true, json: await res.json() };
+                const json = await res.json();
+                this.logResponse(logId, json);
+                return { ok: true, json };
             };
 
             let reqResult = await makeRequest(payload);
@@ -70,6 +118,7 @@ export const Api = {
             payload.stream = true; // Enable streaming
 
             const makeStreamingRequest = async (currentPayload) => {
+                const logId = this.logRequest(url, currentPayload, headers);
                 const res = await fetch(url, {
                     method: 'POST',
                     headers,
@@ -78,9 +127,10 @@ export const Api = {
                 });
                 if (!res.ok) {
                     const text = await res.text();
+                    this.logResponse(logId, text, `HTTP ${res.status}`);
                     return { ok: false, status: res.status, text };
                 }
-                return { ok: true, body: res.body };
+                return { ok: true, body: res.body, logId };
             };
 
             let reqResult = await makeStreamingRequest(payload);
@@ -143,6 +193,8 @@ export const Api = {
                     }
                 }
             }
+
+            this.logResponse(reqResult.logId, { text: accumulatedText });
 
             return {
                 result: { text: accumulatedText },
