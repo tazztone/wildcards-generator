@@ -30,6 +30,7 @@ This document details the features of the Wildcard Generator application.
   - **Flexible Generation Modes**:
     - **Wildcard**: Outputs `~~path/to/category~~` syntax for use in other tools.
     - **Strict**: Real-time expansion into final literal prompt text.
+  - **Template Generation Toggle**: Use the local Hybrid Engine or external LLM for `0_TEMPLATES` generation.
   - **Status Badge Tracking**: Real-time "Outdated" badge alerts when structural changes need a new analysis run.
 
 ### v2.20 Features 

@@ -175,6 +175,15 @@ export const TemplateEngine = {
      */
     generate(count, mode = 'wildcard', options = {}) {
         const roleIndex = State.buildRoleIndex();
+
+        // Optional: filter to specific paths
+        if (options.filterPaths?.length) {
+            const allowedPaths = new Set(options.filterPaths);
+            for (const role of Object.keys(roleIndex)) {
+                roleIndex[role] = roleIndex[role].filter(c => allowedPaths.has(c.path));
+            }
+        }
+
         const availableRoles = Object.keys(roleIndex).filter(role => roleIndex[role].length > 0);
 
         if (availableRoles.length === 0) {

@@ -363,6 +363,7 @@ export const App = {
                     }
                 }).then((results) => {
                     // Store results for copy button
+                    // @ts-ignore
                     dialog._benchmarkResults = {
                         provider,
                         model: modelName,
@@ -387,6 +388,7 @@ export const App = {
                 // Copy button handler
                 const copyBtn = document.getElementById('benchmark-copy-btn');
                 const copyHandler = async () => {
+                    // @ts-ignore
                     const results = dialog._benchmarkResults;
                     if (!results) {
                         UI.showToast('No results to copy yet', 'warning');
@@ -557,7 +559,7 @@ export const App = {
                 const iconEl = document.getElementById('analyze-btn-icon');
                 const textEl = document.getElementById('analyze-btn-text');
 
-                btn.disabled = true;
+                /** @type {HTMLButtonElement} */ (btn).disabled = true;
                 iconEl.textContent = '⏳';
                 textEl.textContent = 'Analyzing...';
 
@@ -577,14 +579,14 @@ export const App = {
                     setTimeout(() => {
                         iconEl.textContent = '🔍';
                         textEl.textContent = 'Analyze Categories';
-                        btn.disabled = false;
+                        /** @type {HTMLButtonElement} */ (btn).disabled = false;
                     }, 2000);
                 }).catch(err => {
                     console.error('Analysis failed:', err);
                     iconEl.textContent = '❌';
                     textEl.textContent = 'Analysis Failed';
                     UI.showToast('Category analysis failed', 'error');
-                    btn.disabled = false;
+                    /** @type {HTMLButtonElement} */ (btn).disabled = false;
                 });
             }
             // Test Hybrid Template Generation
@@ -600,7 +602,7 @@ export const App = {
                     return;
                 }
 
-                const templates = TemplateEngine.generate(5, mode);
+                const templates = TemplateEngine.generate(5, /** @type {"wildcard"|"strict"|"hybrid"} */(mode));
                 if (templates.length > 0) {
                     previewEl.textContent = templates.join('\n');
                     previewEl.classList.remove('text-yellow-400');
@@ -747,7 +749,7 @@ export const App = {
         }
         // Arrow key navigation
         // Arrow key navigation - Ignore if inside input/textarea unless it's Escape
-        if (target.matches('input, textarea') && e.key !== 'Escape') return;
+        if (/** @type {HTMLElement} */(e.target).matches('input, textarea') && e.key !== 'Escape') return;
 
         if (['ArrowUp', 'ArrowDown', 'Enter', 'Escape'].includes(e.key)) {
             const container = document.getElementById('wildcard-container');
@@ -1314,8 +1316,8 @@ export const App = {
                     selectedChips.forEach(chip => {
                         const card = chip.closest('.card-wildcard');
                         if (!card) return;
-                        const path = card.dataset.path;
-                        const index = parseInt(chip.dataset.index);
+                        const path = /** @type {HTMLElement} */ (card).dataset.path;
+                        const index = parseInt(/** @type {HTMLElement} */(chip).dataset.index);
 
                         if (!deletions[path]) deletions[path] = [];
                         deletions[path].push(index);
@@ -1370,13 +1372,13 @@ export const App = {
                 return;
             }
 
-            UI.showTemplateSourcesDialog(wildcardPaths, async (selectedPaths) => {
-                if (selectedPaths.length < 2) {
+            UI.showTemplateSourcesDialog(wildcardPaths, async (selectedPaths, useAllTagged) => {
+                if (!useAllTagged && selectedPaths.length < 2) {
                     UI.showToast('Select at least 2 categories', 'warning');
                     return;
                 }
                 UI.elements.dialog.close();
-                await this.executeTemplateGeneration(path, obj, selectedPaths);
+                await this.executeTemplateGeneration(path, obj, selectedPaths, useAllTagged);
             });
             return;
         }
@@ -1421,8 +1423,50 @@ export const App = {
      * @param {object} obj - The wildcard list object
      * @param {string[]} selectedPaths - Selected category paths for template generation
      */
-    async executeTemplateGeneration(path, obj, selectedPaths) {
+    async executeTemplateGeneration(path, obj, selectedPaths, useAllTagged = false) {
         UI.toggleLoader(path, true);
+
+        // Check if using Hybrid Engine
+        if (Config.USE_HYBRID_ENGINE) {
+            try {
+                const { TemplateEngine } = await import('./template-engine.js');
+                const readiness = TemplateEngine.checkReadiness();
+
+                if (!readiness.canGenerate) {
+                    UI.showToast('Hybrid engine not ready. Run "Analyze Categories" in Settings first.', 'warning');
+                    UI.toggleLoader(path, false);
+                    return;
+                }
+
+                const generateBtn = document.querySelector(`[data-path="${path}"] .generate-btn .btn-text`);
+                if (generateBtn) generateBtn.textContent = 'Generating...';
+
+                // Wait a tick to show loading state
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                const mode = Config.TEMPLATE_MODE || 'wildcard';
+                // If user unchecked "use all", filter roleIndex by selectedPaths
+                const options = useAllTagged ? {} : { filterPaths: selectedPaths };
+
+                const templates = TemplateEngine.generate(10, mode, options);
+
+                if (templates.length > 0) {
+                    State.saveStateToHistory();
+                    obj.wildcards.push(...templates);
+                    UI.showToast(`Generated ${templates.length} templates (Hybrid)`, 'success');
+                } else {
+                    UI.showToast('No templates generated. Check category tags.', 'warning');
+                }
+            } catch (error) {
+                console.error('Hybrid generation failed:', error);
+                UI.showNotification(`Hybrid generation failed: ${error.message}`);
+            } finally {
+                UI.toggleLoader(path, false);
+                const generateBtn = document.querySelector(`[data-path="${path}"] .generate-btn .btn-text`);
+                if (generateBtn) generateBtn.textContent = 'Generate Templates';
+            }
+            return;
+        }
 
         const pathElement = document.querySelector(`[data-path="${path}"]`);
         const generateBtn = pathElement?.querySelector('.generate-btn .btn-text');

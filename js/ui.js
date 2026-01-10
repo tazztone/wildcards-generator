@@ -151,7 +151,7 @@ export const UI = {
 
         settingsTabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                const tabId = tab.dataset.tab;
+                const tabId = /** @type {HTMLElement} */ (tab).dataset.tab;
 
                 // Update tab buttons
                 settingsTabs.forEach(t => t.classList.remove('active'));
@@ -297,7 +297,9 @@ export const UI = {
                         saveConfig();
 
                         // Refresh mindmap if active to update layout calculations
+                        // @ts-ignore
                         if (document.body.classList.contains('view-mindmap') && window.Mindmap) {
+                            // @ts-ignore
                             window.Mindmap.refresh();
                         }
                     }
@@ -552,9 +554,9 @@ export const UI = {
         const mindmapListSizeInput = document.getElementById('config-mindmap-list-size');
         const mindmapWildcardSizeInput = document.getElementById('config-mindmap-wildcard-size');
 
-        if (mindmapCatSizeInput) mindmapCatSizeInput.value = String(Config.MINDMAP_FONT_SIZE_CATEGORY || 96);
-        if (mindmapListSizeInput) mindmapListSizeInput.value = String(Config.MINDMAP_FONT_SIZE_LIST || 64);
-        if (mindmapWildcardSizeInput) mindmapWildcardSizeInput.value = String(Config.MINDMAP_FONT_SIZE_WILDCARD || 20);
+        if (mindmapCatSizeInput) /** @type {HTMLInputElement} */ (mindmapCatSizeInput).value = String(Config.MINDMAP_FONT_SIZE_CATEGORY || 96);
+        if (mindmapListSizeInput) /** @type {HTMLInputElement} */ (mindmapListSizeInput).value = String(Config.MINDMAP_FONT_SIZE_LIST || 64);
+        if (mindmapWildcardSizeInput) /** @type {HTMLInputElement} */ (mindmapWildcardSizeInput).value = String(Config.MINDMAP_FONT_SIZE_WILDCARD || 20);
 
         // Display & UI Settings
         /** @type {HTMLSelectElement|null} */
@@ -641,7 +643,7 @@ export const UI = {
     updateMindmapStyles() {
         const root = document.documentElement;
         const animateToggle = document.getElementById('config-enable-animations');
-        if (animateToggle) animateToggle.checked = Config.ENABLE_ANIMATIONS;
+        if (animateToggle) /** @type {HTMLInputElement} */ (animateToggle).checked = Config.ENABLE_ANIMATIONS;
 
         // Apply Mindmap Font Sizes
         root.style.setProperty('--mindmap-font-size-category', `${Config.MINDMAP_FONT_SIZE_CATEGORY || 96}px`);
@@ -743,6 +745,7 @@ export const UI = {
         }
 
         if (intervalMs > 0) {
+            // @ts-ignore
             this._autoSaveTimer = setInterval(() => {
                 // Trigger state save without notification
                 if (typeof State !== 'undefined' && State.state) {
@@ -812,7 +815,7 @@ export const UI = {
 
         // New profile handler
         newProfileBtn?.addEventListener('click', () => {
-            this.showNotification('Enter a name for the new profile:', true, null, false, [
+            this.showNotification('Enter a name for the new profile:', true, null, true, [
                 {
                     text: 'Create',
                     class: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded',
@@ -832,7 +835,7 @@ export const UI = {
                         this.elements.dialog.close();
                     }
                 }
-            ], true); // show input field
+            ]);
         });
 
         // Delete profile handler
@@ -1299,7 +1302,7 @@ export const UI = {
                 // JSON Support
                 const jsonLabel = document.createElement('label');
                 jsonLabel.className = 'flex items-center gap-2 cursor-pointer';
-                jsonLabel.innerHTML = `<input type="checkbox" id="${p.id}-json-only" class="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500" checked> <span>Require JSON Support</span>`;
+                jsonLabel.innerHTML = `<input type="checkbox" id="${p.id}-json-only" class="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-500 rounded focus:ring-indigo-500"> <span>Require JSON Support</span>`;
 
                 filtersDiv.appendChild(freeLabel);
                 filtersDiv.appendChild(jsonLabel);
@@ -2051,9 +2054,21 @@ export const UI = {
     /**
      * Show dialog for selecting wildcard categories as template sources.
      * @param {Array<{path: string, name: string, topLevel: string}>} wildcardPaths
-     * @param {function(string[]): void} onConfirm - Callback with selected paths
+     * @param {function(string[], boolean): void} onConfirm - Callback with (selectedPaths, useAllTagged)
      */
-    showTemplateSourcesDialog(wildcardPaths, onConfirm) {
+    async showTemplateSourcesDialog(wildcardPaths, onConfirm) {
+        let showHybridToggle = false;
+        if (Config.USE_HYBRID_ENGINE) {
+            try {
+                const { TemplateEngine } = await import('./template-engine.js');
+                const readiness = TemplateEngine.checkReadiness();
+                if (readiness.canGenerate) {
+                    showHybridToggle = true;
+                }
+            } catch (e) {
+                console.warn('Failed to load TemplateEngine for readiness check', e);
+            }
+        }
         // Group by top-level category
         const grouped = {};
         wildcardPaths.forEach(item => {
@@ -2068,6 +2083,17 @@ export const UI = {
                     <h3 class="text-xl font-bold text-white">Select Template Sources</h3>
                 </div>
                 <p class="text-xs text-gray-400">Choose wildcard categories to combine into templates:</p>
+                
+                ${showHybridToggle ? `
+                <label class="flex items-center gap-2 mb-3 p-2 bg-purple-900/40 rounded border border-purple-700/50 cursor-pointer hover:bg-purple-900/60 transition-colors">
+                    <input type="checkbox" id="tpl-use-all-tagged" checked class="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 rounded focus:ring-purple-500">
+                    <div>
+                        <span class="text-sm font-medium text-purple-200">Use all semantically-tagged categories</span>
+                        <p class="text-xs text-gray-400">Hybrid engine will pick automatically from all active tags.</p>
+                    </div>
+                </label>
+                <div id="tpl-selection-container" class="opacity-50 pointer-events-none transition-opacity">
+                ` : '<div id="tpl-selection-container">'}
                 
                 <div class="flex gap-2 text-xs mb-2">
                     <button id="tpl-select-all" class="text-indigo-400 hover:text-indigo-300 hover:underline">Select All</button>
@@ -2094,6 +2120,7 @@ export const UI = {
                         </details>
                     `).join('')}
                 </div>
+                </div> <!-- End tpl-selection-container -->
                 
                 <div class="text-xs text-gray-500 pt-2 border-t border-gray-700 flex justify-between">
                     <span><span id="tpl-count">${wildcardPaths.length}</span> categories selected</span>
@@ -2102,58 +2129,113 @@ export const UI = {
             </div>
         `;
 
+        // Define handleConfirm here so it can be passed to showNotification
+        const handleConfirm = () => {
+            const useAllToggle = this.elements.dialog.querySelector('#tpl-use-all-tagged');
+            const useAllTagged = useAllToggle ? /** @type {HTMLInputElement} */ (useAllToggle).checked : false;
+
+            // If using all tagged, we don't need to validate selection count
+            if (useAllTagged) {
+                onConfirm([], true);
+                return;
+            }
+
+            const checkboxes = this.elements.dialog.querySelectorAll('.tpl-path-cb');
+            const selectedPaths = Array.from(checkboxes)
+                .filter(cb => /** @type {HTMLInputElement} */(cb).checked)
+                .map(cb => /** @type {HTMLInputElement} */(cb).dataset.path || '');
+
+            if (selectedPaths.length < 2) {
+                this.showToast('Please select at least 2 categories', 'warning');
+                return;
+            }
+            onConfirm(selectedPaths, false);
+        };
+
         this.showNotification(html, false, null, false, [
-            {
-                text: 'Generate Templates',
-                class: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded',
-                onClick: () => {
-                    const selected = Array.from(document.querySelectorAll('.tpl-path-cb:checked'))
-                        .map(cb => /** @type {HTMLInputElement} */(cb).dataset.path);
-                    onConfirm(selected);
-                }
-            },
             {
                 text: 'Cancel',
                 class: 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded',
                 onClick: () => this.elements.dialog.close()
+            },
+            {
+                text: 'Generate Templates',
+                class: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded',
+                onClick: handleConfirm
             }
         ]);
 
-        // Bind helper listeners after dialog is shown
+        // Re-attach handlers since showNotification overwrites innerHTML
+        // (Wait, showNotification renders the HTML passed to it. We need to attach listeners AFTER render)
+        // Correction: showNotification implementation replaces innerHTML.
+        // We need to attach listeners to the *newly created* elements inside the dialog.
+
+        // Let's rely on the fact that showNotification executes synchronously for rendering? 
+        // No, showNotification takes buttons array. The HTML string is the content.
+
+        // We need to attach listeners AFTER showNotification
         setTimeout(() => {
-            const updateCount = () => {
-                const count = document.querySelectorAll('.tpl-path-cb:checked').length;
-                const countEl = document.getElementById('tpl-count');
-                if (countEl) countEl.textContent = String(count);
+            const dialog = this.elements.dialog;
+
+            // Re-query elements inside dialog
+            const newUseAllToggle = dialog.querySelector('#tpl-use-all-tagged');
+            const newContainer = dialog.querySelector('#tpl-selection-container');
+            const newSelectAllBtn = dialog.querySelector('#tpl-select-all');
+            const newSelectNoneBtn = dialog.querySelector('#tpl-select-none');
+            const newGroupToggles = dialog.querySelectorAll('.tpl-group-toggle');
+            const newCheckboxes = dialog.querySelectorAll('.tpl-path-cb');
+            const newCountEl = dialog.querySelector('#tpl-count');
+
+            // Initialize Toggle Logic if present
+            if (newUseAllToggle && newContainer) {
+                newUseAllToggle.addEventListener('change', (e) => {
+                    const checked = /** @type {HTMLInputElement} */ (e.target).checked;
+                    if (checked) {
+                        newContainer.classList.add('opacity-50', 'pointer-events-none');
+                    } else {
+                        newContainer.classList.remove('opacity-50', 'pointer-events-none');
+                    }
+                    // We don't have easy access to updateCount here without duplicating logic
+                    // logic is simple enough to duplicate or ignore visual validation for counting
+                });
+            }
+
+            // Restore selection logic
+            const updateCountRef = () => {
+                const count = Array.from(newCheckboxes).filter(cb => /** @type {HTMLInputElement} */(cb).checked).length;
+                if (newCountEl) newCountEl.textContent = String(count);
             };
 
-            document.getElementById('tpl-select-all')?.addEventListener('click', () => {
-                document.querySelectorAll('.tpl-path-cb, .tpl-group-toggle').forEach(cb =>
-                    /** @type {HTMLInputElement} */(cb).checked = true);
-                updateCount();
+            newSelectAllBtn?.addEventListener('click', () => {
+                newCheckboxes.forEach(cb => /** @type {HTMLInputElement} */(cb).checked = true);
+                newGroupToggles.forEach(cb => /** @type {HTMLInputElement} */(cb).checked = true);
+                updateCountRef();
             });
 
-            document.getElementById('tpl-select-none')?.addEventListener('click', () => {
-                document.querySelectorAll('.tpl-path-cb, .tpl-group-toggle').forEach(cb =>
-                    /** @type {HTMLInputElement} */(cb).checked = false);
-                updateCount();
+            newSelectNoneBtn?.addEventListener('click', () => {
+                newCheckboxes.forEach(cb => /** @type {HTMLInputElement} */(cb).checked = false);
+                newGroupToggles.forEach(cb => /** @type {HTMLInputElement} */(cb).checked = false);
+                updateCountRef();
             });
 
-            // Group toggle affects all children
-            document.querySelectorAll('.tpl-group-toggle').forEach(toggle => {
+            newGroupToggles.forEach(toggle => {
                 toggle.addEventListener('change', (e) => {
-                    const checked = /** @type {HTMLInputElement} */(e.target).checked;
                     const group = /** @type {HTMLInputElement} */(e.target).dataset.group;
-                    const details = /** @type {HTMLElement} */(e.target).closest('details');
-                    details?.querySelectorAll('.tpl-path-cb').forEach(cb =>
-                        /** @type {HTMLInputElement} */(cb).checked = checked);
-                    updateCount();
+                    const checked = /** @type {HTMLInputElement} */(e.target).checked;
+                    // Or find by DOM structure if easier, but path matching is safer
+                    // Actually, grouped rendering structure makes it easy:
+                    const details = toggle.closest('details');
+                    const cbs = details?.querySelectorAll('.tpl-path-cb');
+                    cbs?.forEach(cb => /** @type {HTMLInputElement} */(cb).checked = checked);
+                    updateCountRef();
                 });
             });
 
-            document.querySelectorAll('.tpl-path-cb').forEach(cb =>
-                cb.addEventListener('change', updateCount));
-        }, 50);
+            newCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateCountRef);
+            });
+
+        }, 0);
     },
 
     saveAllSettings() {
@@ -2260,11 +2342,11 @@ export const UI = {
 
     filterAndRenderModels(provider) {
         const models = State.state.availableModels || [];
-        const datalist = document.getElementById(`${provider} - model - list`);
+        const datalist = document.getElementById(`${provider}-model-list`);
         if (!datalist) return;
 
-        const freeOnly = /** @type {HTMLInputElement|null} */ (document.getElementById(`${provider} - free - only`))?.checked;
-        const jsonOnly = /** @type {HTMLInputElement|null} */ (document.getElementById(`${provider} - json - only`))?.checked;
+        const freeOnly = /** @type {HTMLInputElement|null} */ (document.getElementById(`${provider}-free-only`))?.checked;
+        const jsonOnly = /** @type {HTMLInputElement|null} */ (document.getElementById(`${provider}-json-only`))?.checked;
 
         datalist.innerHTML = '';
 
@@ -2308,12 +2390,17 @@ export const UI = {
         });
 
         // Update count helper?
-        const loadingInd = document.getElementById(`${provider} - model - loading - indicator`);
-        if (loadingInd) {
+        const loadingInd = document.getElementById(`${provider}-model-loading-indicator`);
+        if (filtered.length === 0 && models.length > 0) {
+            loadingInd.textContent = `0 models (Hidden by filters)`;
+            loadingInd.classList.remove('text-green-400');
+            loadingInd.classList.add('text-orange-400');
+        } else {
             loadingInd.textContent = `${filtered.length} models available`;
-            loadingInd.classList.remove('hidden', 'animate-pulse');
+            loadingInd.classList.remove('text-orange-400');
             loadingInd.classList.add('text-green-400');
         }
+        loadingInd.classList.remove('hidden', 'animate-pulse');
     },
 
     /**
