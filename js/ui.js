@@ -2016,7 +2016,7 @@ export const UI = {
                 </div>
             </div>
             <!-- Chips Container -->
-            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto" style="max-height: 54px; min-height: 1.5rem;">
+            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto resize-y items-start content-start" style="height: 54px; min-height: 1.5rem;">
                 <button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 bg-green-600/50 hover:bg-green-600 cursor-pointer" title="Add new item">+</button>
                 ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
             </div>
