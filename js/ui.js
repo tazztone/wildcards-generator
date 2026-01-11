@@ -2017,14 +2017,14 @@ export const UI = {
             </div>
             <!-- Chips Container -->
             <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto resize-y items-start content-start" style="height: 54px; min-height: 1.5rem;">
-                <button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 bg-green-600/50 hover:bg-green-600 cursor-pointer" title="Add new item">+</button>
+                <button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 btn-action btn-green" title="Add new item to this list">+</button>
                 ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
             </div>
             <!-- Hidden Add Input (revealed on + click) -->
             <div class="add-input-row hidden flex gap-1 mt-1">
                 <input type="text" aria-label="New wildcard" placeholder="Add item (Enter)" class="add-wildcard-input flex-grow input-primary px-2 py-0.5 text-xs">
-                <button class="add-wildcard-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2 rounded">Add</button>
-                <button class="cancel-add-btn text-gray-400 hover:text-white text-xs px-1">✕</button>
+                <button class="add-wildcard-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2 rounded" title="Confirm and add this item (or press Enter)">Add</button>
+                <button class="cancel-add-btn text-gray-400 hover:text-white text-xs px-1" title="Cancel and close the input (or press Escape)">✕</button>
             </div>
         `;
     },
@@ -2038,11 +2038,11 @@ export const UI = {
         div.className = 'placeholder-category card-folder rounded-lg shadow-md mt-4';
         div.innerHTML = `
             <div class="p-4 flex flex-wrap justify-between items-center gap-4">
-                <h2 class="text-xl sm:text-2xl font-semibold text-accent">Add New Top-Level Category</h2>
-                <div class="flex items-center gap-2">
-                    <button id="add-category-placeholder-btn" class="add-category-btn btn-action btn-green py-2 px-4 rounded-md" aria-label="Add new top-level category">+</button>
-                    <button id="suggest-toplevel-btn" class="btn-action btn-purple py-2 px-4 rounded-md">Suggest</button>
+                <div class="flex items-center gap-4">
+                    <button id="add-category-placeholder-btn" class="add-category-btn btn-action btn-green py-2 px-4 rounded-md" aria-label="Add new top-level category" title="Create a new top-level category from scratch">+</button>
+                    <h2 class="text-xl sm:text-2xl font-semibold text-accent">Add New Top-Level Category</h2>
                 </div>
+                <button id="suggest-toplevel-btn" class="btn-action btn-purple py-2 px-4 rounded-md" title="Let AI analyze your categories and suggest a new top-level group">Suggest</button>
             </div>`;
         return div;
     },
@@ -2051,11 +2051,11 @@ export const UI = {
         div.className = 'placeholder-subcategory p-2 rounded-lg flex items-center justify-between border border-dashed border-gray-600 hover:border-indigo-500 transition-colors mt-2 mb-2 bg-gray-800/30';
         div.dataset.parentPath = parentPath;
         div.innerHTML = `
-            <span class="text-gray-400 font-medium">Add new subcategory</span>
-            <div class="flex gap-2">
-                <button class="add-subcategory-btn btn-action btn-green py-1 px-3 rounded-md" aria-label="Add new subcategory">+</button>
-                <button class="suggest-subcategory-btn btn-action btn-purple py-1 px-3 rounded-md">Suggest</button>
+            <div class="flex items-center gap-3">
+                <button class="add-subcategory-btn btn-action btn-green py-1 px-3 rounded-md" aria-label="Add new subcategory" title="Create a new subfolder inside this category">+</button>
+                <span class="text-gray-400 font-medium">Add new subcategory</span>
             </div>
+            <button class="suggest-subcategory-btn btn-action btn-purple py-1 px-3 rounded-md" title="Get AI-powered suggestions for subcategories or wildcard lists based on this folder's theme">Suggest</button>
         `;
         return div;
     },
@@ -2064,11 +2064,11 @@ export const UI = {
         div.className = 'placeholder-wildcard p-2 rounded-lg flex items-center justify-between min-h-[50px] border border-dashed border-gray-600 hover:border-indigo-500 transition-colors bg-gray-700/20';
         div.dataset.parentPath = parentPath;
         div.innerHTML = `
-            <span class="text-gray-400 text-sm font-medium">Add list</span>
-            <div class="flex gap-2">
-                 <button class="add-wildcard-list-btn btn-action btn-green py-1 px-3 rounded-md" aria-label="Add new wildcard list">+</button>
-                 <button class="suggest-wildcard-list-btn btn-action btn-purple py-1 px-3 rounded-md">Suggest</button>
-            </div>`;
+            <div class="flex items-center gap-3">
+                 <button class="add-wildcard-list-btn btn-action btn-green py-1 px-3 rounded-md" aria-label="Add new wildcard list" title="Create a new empty wildcard list inside this category">+</button>
+                 <span class="text-gray-400 text-sm font-medium">Add list</span>
+            </div>
+            <button class="suggest-wildcard-list-btn btn-action btn-purple py-1 px-3 rounded-md" title="Let AI suggest new wildcard lists with themes that fit this category">Suggest</button>`;
         return div;
     },
 

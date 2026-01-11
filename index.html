@@ -59,23 +59,28 @@
             <!-- Suggestions will be dynamically inserted here -->
         </ul>
         <footer>
-            <button id="confirmBtn" class="btn primary">Confirm</button>
-            <button id="cancelBtn" class="btn ghost">Cancel</button>
+            <button id="confirmBtn" class="btn primary"
+                title="Add all selected suggestions to your library">Confirm</button>
+            <button id="cancelBtn" class="btn ghost"
+                title="Discard these suggestions and close the window">Cancel</button>
         </footer>
     </dialog>
 
     <dialog id="generatePopup" class="suggest" role="dialog" aria-labelledby="generateTitle">
         <header>
             <h2 id="generateTitle">Generated Wildcards</h2>
-            <button id="generate-select-all" class="btn ghost">Select All</button>
+            <button id="generate-select-all" class="btn ghost" title="Toggle selection for all items in the list">Select
+                All</button>
         </header>
         <p class="intro">Select the wildcards you want to add to the list. All are selected by default.</p>
         <ul class="suggest-list" id="generateList">
             <!-- Generated wildcards will be dynamically inserted here -->
         </ul>
         <footer>
-            <button id="generateConfirmBtn" class="btn primary">Add Selected</button>
-            <button id="generateCancelBtn" class="btn ghost">Cancel</button>
+            <button id="generateConfirmBtn" class="btn primary" title="Add the selected wildcards to your card">Add
+                Selected</button>
+            <button id="generateCancelBtn" class="btn ghost"
+                title="Discard generated items and close the window">Cancel</button>
         </footer>
     </dialog>
 
@@ -1107,8 +1112,8 @@
 
 
             <!-- Stats -->
-            <div
-                class="stats-container flex items-center gap-3 text-xs bg-gray-800/50 px-3 py-1.5 rounded-lg border border-gray-700/50 shadow-sm whitespace-nowrap">
+            <div class="stats-container flex items-center gap-3 text-xs bg-gray-800/50 px-3 py-1.5 rounded-lg border border-gray-700/50 shadow-sm whitespace-nowrap"
+                title="Current statistics for the loaded wildcard collection">
                 <span class="text-gray-400">Categories: <span id="stat-categories"
                         class="text-indigo-400 font-bold">0</span></span>
                 <span class="text-gray-600">|</span>
@@ -1288,10 +1293,10 @@
                 </div>
                 <div class="flex items-center gap-2 ml-auto flex-shrink-0">
                     <button class="add-subcategory-btn btn-action btn-green py-1 px-2 text-sm rounded-md"
-                        title="Create a new folder inside this category to further organize your wildcards."
+                        title="Create a new folder inside this category to further organize your wildcards (Double-click name to edit)."
                         aria-label="Add Subcategory">+</button>
                     <button class="suggest-subcategory-btn btn-action btn-purple py-1 px-2 text-sm rounded-md"
-                        title="Have AI analyze this folder's name and instructions to suggest relevant new subcategories or wildcard lists."
+                        title="Let AI analyze the theme of this folder and suggest new lists or subcategories to expand it."
                         aria-label="Suggest New Items">Suggest</button>
                     <span class="arrow-down transition-transform duration-300 text-indigo-400"><svg class="h-6 w-6"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
