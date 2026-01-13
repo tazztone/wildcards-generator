@@ -15,15 +15,24 @@ declare module 'https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js' {
 }
 
 // Augment the Window interface with globally attached properties
-interface Window {
-    JSZip: new () => {
-        file: (name: string, data: string | Blob) => void;
-        generateAsync: (options: { type: string }) => Promise<Blob>;
-    };
-    Config?: Record<string, any>;
-    ImportExport?: Record<string, any>;
-    Api?: {
-        testConnection: (provider: string, filters: any, apiKey: string) => Promise<any[]>;
-        [key: string]: any;
-    };
+declare global {
+    interface Window {
+        JSZip: new () => {
+            file: (name: string, data: string | Blob) => void;
+            generateAsync: (options: { type: string }) => Promise<Blob>;
+        };
+        App?: any;
+        State?: any;
+        UI?: any;
+        Api?: any;
+        Config?: any;
+        DragDrop?: any;
+        ImportExport?: any;
+        Settings?: any;
+        Mindmap?: any;
+    }
 }
+
+export { };
+
+

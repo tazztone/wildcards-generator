@@ -28,8 +28,9 @@ test.describe('Search Logic', () => {
             window.UI.renderAll();
             // Open Fantasy so we can check initial visibility
             const fantasy = document.querySelector('details[data-path="Fantasy"]');
-            if (fantasy) fantasy.open = true;
+            if (fantasy instanceof HTMLDetailsElement) fantasy.open = true;
         });
+
     });
 
     test('Search should filter categories and wildcards', async ({ page }) => {
