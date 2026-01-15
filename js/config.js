@@ -1,5 +1,10 @@
 import { UI } from './ui.js';
 
+// TODO: Add config schema validation on load to catch corrupted data
+// TODO: Implement config versioning with automatic migration on version bumps
+// TODO: Use Web Crypto API for proper API key encryption instead of btoa()
+// TODO: Add config diff/export for debugging user issues
+
 // Hardcoded defaults as Single Source of Truth for structure and prompts
 const CONFIG_CONSTANTS = {
     CONFIG_STORAGE_KEY: "wildcardGeneratorConfig_v1",
@@ -200,6 +205,8 @@ export function updateConfigValue(key, value) {
 }
 
 export function saveApiKey(provider, key, persist) {
+    // TODO: Implement proper encryption using Web Crypto API
+    // TODO: Add key format validation (e.g., OpenRouter keys start with 'sk-or-')
     const configKey = `API_KEY_${provider.toUpperCase()}`;
     Config[configKey] = key;
 

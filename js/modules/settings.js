@@ -3,6 +3,11 @@
  * Handles API key verification and settings-related operations.
  */
 
+// TODO: Add periodic API key re-verification (check every 24 hours)
+// TODO: Implement API key usage tracking and rate limit warnings
+// TODO: Add support for multiple API keys per provider (for load balancing)
+// TODO: Show remaining API credits/balance where provider supports it
+
 import { Api } from '../api.js';
 import { UI } from '../ui.js';
 
@@ -18,12 +23,13 @@ export const Settings = {
             const panel = document.getElementById(`settings-${provider}`);
             if (!panel) continue;
 
-            const input = panel.querySelector('.api-key-input');
-            const key = input ? input.value.trim() : '';
+            const input = /** @type {HTMLInputElement} */ (panel.querySelector('.api-key-input'));
+            if (!input) continue;
+            const key = input.value.trim();
 
             if (!key) continue;
 
-            const btn = panel.querySelector('.test-conn-btn');
+            const btn = /** @type {HTMLButtonElement} */ (panel.querySelector('.test-conn-btn'));
             if (!btn) continue;
 
             btn.disabled = true;

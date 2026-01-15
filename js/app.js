@@ -9,6 +9,10 @@ import { Settings } from './modules/settings.js';
 import { Mindmap } from './modules/mindmap.js';
 import { TemplateEngine } from './template-engine.js';
 
+// TODO: Consider implementing a loading/splash screen for initial app load
+// TODO: Add keyboard navigation focus management for accessibility (WCAG 2.1)
+// TODO: Implement offline detection and graceful degradation for API calls
+
 export const App = {
     draggedPath: null,
     lastCheckedBatch: null,
@@ -52,6 +56,8 @@ export const App = {
 
     bindEvents() {
         // Event Delegation on Container for all dynamic interactions
+        // TODO: Consider using AbortController to clean up event listeners on app teardown
+        // TODO: Add touch event handlers for better mobile experience (touchstart, touchmove)
         UI.elements.container.addEventListener('click', (e) => this.handleContainerClick(e));
         UI.elements.container.addEventListener('change', (e) => this.handleContainerChange(e));
         UI.elements.container.addEventListener('blur', (e) => this.handleContainerBlur(e), true);
@@ -758,6 +764,9 @@ export const App = {
     },
 
     handleKeyboardShortcuts(e) {
+        // TODO: Add more keyboard shortcuts (Ctrl+F for search, Ctrl+N for new category)
+        // TODO: Make keyboard shortcuts configurable via settings
+        // TODO: Add keyboard shortcut help overlay (show on '?')
         if (e.ctrlKey || e.metaKey) {
             switch (e.key.toLowerCase()) {
                 case 's': e.preventDefault(); UI.showToast('All changes are saved automatically.', 'info'); break;
@@ -1530,6 +1539,8 @@ export const App = {
     },
 
     createItem(parentPath, type) {
+        // TODO: Add input validation for special characters that might break YAML export
+        // TODO: Support creating multiple items at once (comma-separated names)
         UI.showNotification(`Enter name for new ${type}:`, true, (name) => {
             if (!name) return;
             const key = name.trim().replace(/\s+/g, '_');
@@ -1681,6 +1692,9 @@ export const App = {
         UI.showNotification(`Found ${tasks.length} wildcard lists.\nGenerate content for all of them?`, true, async () => {
             UI.showToast('Starting batch generation...', 'info');
 
+            // TODO: Implement configurable rate limiting (requests per minute)
+            // TODO: Add pause/resume capability for batch operations
+            // TODO: Show progress bar with estimated time remaining
             // Execute sequentially to be nice to API
             for (let i = 0; i < tasks.length; i++) {
                 const task = tasks[i];

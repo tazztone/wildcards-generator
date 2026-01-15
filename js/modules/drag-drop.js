@@ -3,6 +3,11 @@
  * Handles all drag-and-drop functionality for reordering categories and wildcards.
  */
 
+// TODO: Add touch support using Touch Events API or a library like SortableJS
+// TODO: Implement drag preview customization (ghost image)
+// TODO: Add haptic feedback on mobile devices when dragging
+// TODO: Support multi-select drag (drag multiple selected items at once)
+
 import { State } from '../state.js';
 import { UI } from '../ui.js';
 
@@ -34,7 +39,7 @@ export const DragDrop = {
      * @param {DragEvent} e 
      */
     handleDragStart(e) {
-        const target = e.target.closest('[data-path]');
+        const target = /** @type {HTMLElement} */ (e.target).closest('[data-path]');
         if (target) {
             this.draggedPath = target.dataset.path;
             e.dataTransfer.setData('text/plain', this.draggedPath);
@@ -50,7 +55,7 @@ export const DragDrop = {
      */
     handleDragOver(e) {
         e.preventDefault();
-        const target = e.target.closest('[data-path]');
+        const target = /** @type {HTMLElement} */ (e.target).closest('[data-path]');
         if (!target || target.dataset.path === this.draggedPath) return;
 
         // Clean up any existing classes on other elements
@@ -92,7 +97,7 @@ export const DragDrop = {
      * @param {DragEvent} e 
      */
     handleDragLeave(e) {
-        const target = e.target.closest('[data-path]');
+        const target = /** @type {HTMLElement} */ (e.target).closest('[data-path]');
         if (target) {
             target.classList.remove('drop-target-active', 'drop-line-before', 'drop-line-after', 'drop-inside');
         }
@@ -104,7 +109,7 @@ export const DragDrop = {
      */
     handleDrop(e) {
         e.preventDefault();
-        const target = e.target.closest('[data-path]');
+        const target = /** @type {HTMLElement} */ (e.target).closest('[data-path]');
 
         // Capture draggedPath before cleanup
         const srcPath = this.draggedPath;
@@ -200,6 +205,8 @@ export const DragDrop = {
         // 5. Insert into Destination
         destParent[srcKey] = srcData;
 
+        // TODO: Implement custom ordering (allow manual sort order, not just alphabetical)
+        // TODO: Add animation when items are reordered (FLIP technique)
         // Note: Current architecture uses alphabetically sorted Object keys.
         // 'before'/'after' positions work for selecting the target parent,
         // but final order is determined by alphabetical sorting in render.

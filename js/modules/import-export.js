@@ -3,6 +3,11 @@
  * Handles file I/O operations for YAML, ZIP, and Settings files.
  */
 
+// TODO: Add support for importing/exporting JSON format as alternative to YAML
+// TODO: Implement drag-and-drop file import on the main container
+// TODO: Add import validation with preview before applying changes
+// TODO: Consider cloud sync options (Google Drive, Dropbox integration)
+
 import { State } from '../state.js';
 import { UI } from '../ui.js';
 import { Config, saveConfig } from '../config.js';
@@ -111,6 +116,8 @@ export const ImportExport = {
             }
 
             const blob = await zip.generateAsync({ type: 'blob' });
+            // TODO: Add progress callback for large archives
+            // TODO: Support custom folder structure templates for different SD flavors
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -153,6 +160,9 @@ export const ImportExport = {
      * Opens a file picker to import YAML wildcard data.
      */
     handleImportYAML() {
+        // TODO: Add file size validation (warn for large files)
+        // TODO: Support importing multiple YAML files at once
+        // TODO: Add schema validation before import
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.yaml,.yml';
@@ -163,6 +173,7 @@ export const ImportExport = {
 
             try {
                 const text = await file.text();
+                // @ts-ignore
                 const YAML = (await import('https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js')).default;
 
                 // Use parseDocument to preserve comments (for # instruction: format)

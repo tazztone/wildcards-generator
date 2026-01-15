@@ -3,6 +3,11 @@ import { sanitize } from './utils.js';
 import { Config, saveConfig, saveApiKey, getEffectivePrompt, setCustomPrompt, isUsingDefault, resetToDefault } from './config.js';
 import { Api } from './api.js';
 
+// TODO: Implement virtual scrolling for large wildcard collections (1000+ items)
+// TODO: Add ARIA live regions for dynamic content updates (screen reader support)
+// TODO: Consider using Web Components for better encapsulation of complex UI elements
+// TODO: Add skeleton loading states for async operations
+
 export const UI = {
     elements: {},
     _settingsDirty: false, // Track if settings have been modified since dialog opened
@@ -57,6 +62,8 @@ export const UI = {
         }
         if (this.elements.searchClearBtn) {
             this.elements.searchClearBtn.addEventListener('click', () => {
+                // TODO: Add search history feature (recent searches dropdown)
+                // TODO: Implement advanced search syntax (e.g., "tag:subject", "in:category")
                 this.elements.search.value = '';
                 this.elements.searchClearBtn.classList.add('hidden');
                 this.elements.search.focus();
@@ -367,6 +374,9 @@ export const UI = {
     },
 
     renderAll() {
+        // TODO: Implement incremental rendering with requestIdleCallback for large datasets
+        // TODO: Add render performance metrics for debugging slow renders
+        // TODO: Consider using DocumentFragment pooling for memory efficiency
         const wildcards = State.state.wildcards;
 
         // Populate prompts from State

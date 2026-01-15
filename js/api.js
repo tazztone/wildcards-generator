@@ -1,6 +1,11 @@
 // @ts-nocheck
 import { Config } from './config.js';
 
+// TODO: Add request caching layer for identical prompts to reduce API costs
+// TODO: Implement exponential backoff retry logic for transient failures
+// TODO: Add support for request queuing with configurable concurrency limits
+// TODO: Create provider abstraction layer to simplify adding new LLM providers
+
 export const Api = {
     activeController: null,
     requestLogs: [],
@@ -96,6 +101,8 @@ export const Api = {
             const result = reqResult.json;
             return { result, request: { url, headers, payload } };
         } catch (error) {
+            // TODO: Implement more granular error classification (rate limit, auth, server error)
+            // TODO: Add automatic retry for 429 (rate limit) and 503 (service unavailable) errors
             if (error.name === 'AbortError') throw new Error("Request timed out or was aborted.");
             console.error("Error calling LLM API:", error);
             throw error;
@@ -211,6 +218,9 @@ export const Api = {
     },
 
     async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt) {
+        // TODO: Add option to specify desired output count (e.g., "generate 20 items")
+        // TODO: Implement streaming response display for better UX during generation
+        // TODO: Consider batching multiple small generation requests into one
         const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
         const sysPrompt = globalPrompt.replace('{category}', readablePath);
         const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
@@ -693,6 +703,9 @@ Return a JSON array with your classifications. Be concise.`;
     },
 
     _parseResponse(result) {
+        // TODO: Add response validation against expected schema
+        // TODO: Implement graceful extraction of partial data from malformed responses
+        // TODO: Log parsing failures with full context for debugging
         const endpoint = document.getElementById('api-endpoint').value;
         try {
             if (endpoint === 'gemini') return JSON.parse(result.candidates[0].content.parts[0].text);
