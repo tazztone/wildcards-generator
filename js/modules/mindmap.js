@@ -70,99 +70,80 @@ const Mindmap = {
         const generateId = (prefix) => `${prefix}-${++nodeId}`;
         const showWildcards = this.showWildcards;
 
-        /**
-         * Recursively build Mind Elixir node from wildcards data
-         * @param {string} name - Node name
-         * @param {Object} data - Node data (can have instruction, wildcards array, or subcategories)
-         * @param {string} parentPath - Path string for ID generation
-         * @returns {Object} Mind Elixir node
-         */
-        const buildNode = (name, data, parentPath = '') => {
-            const path = parentPath ? `${parentPath}/${name}` : name;
-            const wildcardCount = data.wildcards?.length || 0;
-            const hasWildcards = wildcardCount > 0;
+        const buildNodesFromEntries = (entries, parentPath = '') => {
+            const nodes = [];
+            for (const [name, data] of entries) {
+                const path = parentPath ? `${parentPath}/${name}` : name;
+                const wildcardCount = data.wildcards?.length || 0;
+                const hasWildcards = wildcardCount > 0;
+                const displayName = (!showWildcards && hasWildcards) ? `${name} (${wildcardCount})` : name;
+                const isWildcardList = hasWildcards;
 
-            // Build display name with count indicator when wildcards are hidden
-            const displayName = (!showWildcards && hasWildcards)
-                ? `${name} (${wildcardCount})`
-                : name;
+                const nodeStyle = isWildcardList
+                    ? {
+                        fontSize: String(Config.MINDMAP_FONT_SIZE_LIST || 64),
+                        background: 'var(--bg-tertiary, #374151)',
+                        color: 'var(--text-secondary, #9ca3af)'
+                    }
+                    : {
+                        fontSize: String(Config.MINDMAP_FONT_SIZE_CATEGORY || 96)
+                    };
 
-            // Determine node type for styling:
-            // - Category/Subcategory: nodes without wildcards (only contains subcategories)
-            // - WildcardList: nodes that have wildcards array
-            const isWildcardList = hasWildcards;
-
-            // Style based on node type for consistent appearance:
-            // - Categories/Subcategories: outlined style (blue border, transparent bg)
-            // - WildcardLists: distinct filled style (subtle background)
-            const nodeStyle = isWildcardList
-                ? {
-                    // WildcardList style: subtle filled background
-                    fontSize: String(Config.MINDMAP_FONT_SIZE_LIST || 64),
-                    background: 'var(--bg-tertiary, #374151)',
-                    color: 'var(--text-secondary, #9ca3af)'
-                }
-                : {
-                    // Category/Subcategory style: outlined (handled via CSS class)
-                    fontSize: String(Config.MINDMAP_FONT_SIZE_CATEGORY || 96) // Values must be string for Mind Elixir
+                const node = {
+                    id: generateId(path),
+                    topic: displayName,
+                    children: [],
+                    data: {
+                        path: path.split('/'),
+                        originalName: name,
+                        wildcardCount: wildcardCount,
+                        isWildcardList: isWildcardList
+                    },
+                    style: nodeStyle
                 };
 
-            const node = {
-                id: generateId(path),
-                topic: displayName,
-                children: [],
-                // Store original path for sync back
-                data: {
-                    path: path.split('/'),
-                    originalName: name,
-                    wildcardCount: wildcardCount,
-                    isWildcardList: isWildcardList
-                },
-                style: nodeStyle
-            };
-
-            // Add instruction as a tooltip (note) on hover instead of visible tag
-            if (data.instruction && typeof data.instruction === 'string') {
-                node.note = data.instruction;
-            }
-
-            // Process wildcards array (leaf items) - only if showWildcards is true
-            if (showWildcards && data.wildcards && Array.isArray(data.wildcards)) {
-                data.wildcards.forEach((wildcard, index) => {
-                    const wildcardText = typeof wildcard === 'string' ? wildcard : wildcard.name || String(wildcard);
-                    node.children.push({
-                        id: generateId(`${path}/w${index}`),
-                        topic: wildcardText,
-                        data: {
-                            path: [...path.split('/'), 'wildcards', index],
-                            isWildcard: true
-                        },
-                        // Wildcard style: most basic/simple - minimal styling
-                        style: {
-                            fontSize: String(Config.MINDMAP_FONT_SIZE_WILDCARD || 20),
-                            background: 'transparent',
-                            color: 'var(--text-muted, #6b7280)'
-                        }
-                    });
-                });
-            }
-
-            // Recursively process subcategories
-            Object.entries(data).forEach(([key, value]) => {
-                if (key !== 'instruction' && key !== 'wildcards' && typeof value === 'object' && value !== null) {
-                    node.children.push(buildNode(key, value, path));
+                if (data.instruction && typeof data.instruction === 'string') {
+                    node.note = data.instruction;
                 }
-            });
 
-            return node;
+                if (showWildcards && data.wildcards && Array.isArray(data.wildcards)) {
+                    data.wildcards.forEach((wildcard, index) => {
+                        const wildcardText = typeof wildcard === 'string' ? wildcard : wildcard.name || String(wildcard);
+                        node.children.push({
+                            id: generateId(`${path}/w${index}`),
+                            topic: wildcardText,
+                            data: {
+                                path: [...path.split('/'), 'wildcards', index],
+                                isWildcard: true
+                            },
+                            style: {
+                                fontSize: String(Config.MINDMAP_FONT_SIZE_WILDCARD || 20),
+                                background: 'transparent',
+                                color: 'var(--text-muted, #6b7280)'
+                            }
+                        });
+                    });
+                }
+
+                // Recursively process subcategories
+                if (typeof data === 'object' && data !== null) {
+                    const subCategoryEntries = Object.entries(data).filter(
+                        ([key]) => key !== 'instruction' && key !== 'wildcards'
+                    );
+                    if (subCategoryEntries.length > 0) {
+                        node.children.push(...buildNodesFromEntries(subCategoryEntries, path));
+                    }
+                }
+                nodes.push(node);
+            }
+            return nodes;
         };
 
-        // Build root node with all top-level categories
         const rootNode = {
             id: 'root',
             topic: '🎯 Wildcards',
             root: true,
-            children: Object.entries(wildcards).map(([name, data]) => buildNode(name, data))
+            children: wildcards ? buildNodesFromEntries(Object.entries(wildcards)) : []
         };
 
         return {
@@ -1111,27 +1092,25 @@ const Mindmap = {
          * Recursively search through wildcard data
          * @param {Object} obj - Object to search
          */
-        const searchWildcards = (obj) => {
-            if (!obj || typeof obj !== 'object') return;
+        const searchWildcards = (entries) => {
+            if (!entries) return;
 
-            // Check wildcards array
-            if (obj.wildcards && Array.isArray(obj.wildcards)) {
-                obj.wildcards.forEach(w => {
-                    if (String(w).toLowerCase().includes(normalizedQuery)) {
-                        count++;
-                    }
-                });
-            }
-
-            // Recurse into subcategories
-            Object.entries(obj).forEach(([key, value]) => {
-                if (typeof value === 'object' && value !== null && key !== 'wildcards' && key !== 'instruction') {
-                    searchWildcards(value);
+            for (const [key, value] of entries) {
+                if (key === 'wildcards' && Array.isArray(value)) {
+                    value.forEach(w => {
+                        if (String(w).toLowerCase().includes(normalizedQuery)) {
+                            count++;
+                        }
+                    });
+                } else if (typeof value === 'object' && value !== null && key !== 'instruction') {
+                    searchWildcards(Object.entries(value));
                 }
-            });
+            }
         };
 
-        searchWildcards(State._rawData.wildcards);
+        if (State._rawData.wildcards) {
+            searchWildcards(Object.entries(State._rawData.wildcards));
+        }
         return count;
     },
 

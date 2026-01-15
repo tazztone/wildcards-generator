@@ -621,8 +621,8 @@ const State = {
      */
     getAllWildcardPaths() {
         const paths = [];
-        const traverse = (obj, currentPath) => {
-            for (const [key, value] of Object.entries(obj)) {
+        const traverse = (entries, currentPath) => {
+            for (const [key, value] of entries) {
                 if (RESERVED_KEYS.has(key)) continue;
                 const path = currentPath ? `${currentPath}/${key}` : key;
                 // Skip 0_TEMPLATES category itself
@@ -635,11 +635,13 @@ const State = {
                         topLevel: path.split('/')[0]
                     });
                 } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-                    traverse(value, path);
+                    traverse(Object.entries(value), path);
                 }
             }
         };
-        traverse(this.state.wildcards, '');
+        if (this.state.wildcards) {
+            traverse(Object.entries(this.state.wildcards), '');
+        }
         return paths;
     },
 
@@ -724,19 +726,21 @@ const State = {
      * @returns {string|undefined}
      */
     getPathByNodeId(nodeId) {
-        const search = (obj, currentPath) => {
-            for (const [key, value] of Object.entries(obj)) {
+        const search = (entries, currentPath) => {
+            for (const [key, value] of entries) {
                 if (RESERVED_KEYS.has(key)) continue;
                 const path = currentPath ? `${currentPath}/${key}` : key;
                 if (value?._id === nodeId) return path;
                 if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                    const found = search(value, path);
+                    const found = search(Object.entries(value), path);
                     if (found) return found;
                 }
             }
             return undefined;
         };
-        return search(this.state?.wildcards || {}, '');
+        const wildcards = this.state?.wildcards;
+        if (!wildcards) return undefined;
+        return search(Object.entries(wildcards), '');
     },
 
     /**
@@ -744,19 +748,21 @@ const State = {
      */
     ensureNodeIds() {
         let modified = false;
-        const traverse = (obj) => {
-            for (const [key, value] of Object.entries(obj)) {
+        const traverse = (entries) => {
+            for (const [key, value] of entries) {
                 if (RESERVED_KEYS.has(key)) continue;
                 if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
                     if (!value._id) {
                         value._id = generateNodeId();
                         modified = true;
                     }
-                    traverse(value);
+                    traverse(Object.entries(value));
                 }
             }
         };
-        traverse(this._rawData.wildcards);
+        if (this._rawData.wildcards) {
+            traverse(Object.entries(this._rawData.wildcards));
+        }
         if (modified) {
             this._saveToLocalStorage();
         }
