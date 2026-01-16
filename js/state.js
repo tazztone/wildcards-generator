@@ -1,6 +1,7 @@
 import { Config, saveConfig } from './config.js';
 // @ts-ignore
 import YAML from 'https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js'; // Keep import consistent
+import { debounce } from './utils.js';
 
 // TODO: Consider implementing IndexedDB for larger datasets that exceed localStorage limits (~5MB)
 // TODO: Add data migration strategy for schema changes between versions
@@ -174,6 +175,7 @@ function deepDiff(oldObj, newObj, path = []) {
 const State = {
     _rawData: { wildcards: {}, systemPrompt: '', suggestItemPrompt: '', pinnedCategories: [], availableModels: [] }, // internal raw storage
     state: null, // The public reactive proxy
+    _debouncedSave: null,
 
     history: [],
     historyIndex: -1,
@@ -204,9 +206,17 @@ const State = {
 
         // Always dispatch state-reset for initial render
         this.events.dispatchEvent(new CustomEvent('state-reset'));
+
+        // Add beforeunload event listener to save pending changes
+        window.addEventListener('beforeunload', () => {
+            this.flushState();
+        });
     },
 
     _initProxy() {
+        // Initialize the debounced save function.
+        this._debouncedSave = debounce(() => this._saveToLocalStorage(), 500);
+
         this.state = createDeepProxy(this._rawData, [], (path, value, target, type) => {
             // 0. Auto-sort wildcard arrays (if enabled/applicable)
             // If the target is an array and it belongs to a 'wildcards' list, sort it.
@@ -228,7 +238,7 @@ const State = {
             }
 
             // 2. Save to LocalStorage
-            this._saveToLocalStorage();
+            this._debouncedSave();
 
             // 3. Dispatch Custom Event
             const event = new CustomEvent('state-updated', {
@@ -248,6 +258,12 @@ const State = {
             localStorage.setItem(Config.STORAGE_KEY, JSON.stringify(this._rawData));
         } catch (e) {
             console.error("Failed to save state:", e);
+        }
+    },
+
+    flushState() {
+        if (this._debouncedSave && typeof this._debouncedSave.flush === 'function') {
+            this._debouncedSave.flush();
         }
     },
 
