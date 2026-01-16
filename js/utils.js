@@ -11,9 +11,26 @@ export const sanitize = (input) => {
 
 export const debounce = (func, wait) => {
     let timeout;
-    return function executedFunction(...args) {
-        const later = () => { clearTimeout(timeout); func(...args); };
+    let latestArgs;
+    let context;
+
+    const debounced = function(...args) {
+        latestArgs = args;
+        context = this;
         clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+        timeout = setTimeout(() => {
+            func.apply(context, latestArgs);
+        }, wait);
     };
+
+    debounced.flush = function() {
+        clearTimeout(timeout);
+        if (latestArgs) {
+            func.apply(context, latestArgs);
+            latestArgs = null;
+            context = null;
+        }
+    };
+
+    return debounced;
 };
