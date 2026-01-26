@@ -1402,7 +1402,7 @@ export const App = {
         }
     },
 
-    async handleGenerate(path) {
+    async handleGenerate(path, rethrow = false) {
         const obj = State.getObjectByPath(path);
 
         // Template generation flow - detect if inside 0_TEMPLATES
@@ -1410,18 +1410,21 @@ export const App = {
             const wildcardPaths = State.getAllWildcardPaths();
             if (wildcardPaths.length < 2) {
                 UI.showToast('Need at least 2 wildcard lists to generate templates', 'warning');
-                return;
+                return false;
             }
 
-            UI.showTemplateSourcesDialog(wildcardPaths, async (selectedPaths, useAllTagged) => {
-                if (!useAllTagged && selectedPaths.length < 2) {
-                    UI.showToast('Select at least 2 categories', 'warning');
-                    return;
-                }
-                UI.elements.dialog.close();
-                await this.executeTemplateGeneration(path, obj, selectedPaths, useAllTagged);
+            return new Promise((resolve) => {
+                UI.showTemplateSourcesDialog(wildcardPaths, async (selectedPaths, useAllTagged) => {
+                    if (!useAllTagged && selectedPaths.length < 2) {
+                        UI.showToast('Select at least 2 categories', 'warning');
+                        resolve(false);
+                        return;
+                    }
+                    UI.elements.dialog.close();
+                    await this.executeTemplateGeneration(path, obj, selectedPaths, useAllTagged);
+                    resolve(true);
+                });
             });
-            return;
         }
 
         UI.toggleLoader(path, true);
@@ -1448,9 +1451,13 @@ export const App = {
                 obj.wildcards.push(...safeItems);
                 // Sort logic is now handled in the state proxy trap.
                 UI.showToast(`Generated ${newItems.length} items`, 'success');
+                return true;
             }
+            return true; // Use true even for empty results if no error occurred? Or maybe false? Let's say true for now as it's not an API error.
         } catch (e) {
+            if (rethrow) throw e; // Allow batch mode to handle it
             UI.showNotification(e.message);
+            return false;
         } finally {
             UI.toggleLoader(path, false);
             // Restore original button text
@@ -1664,7 +1671,7 @@ export const App = {
     async handleBatchGenerate(categories) {
         const tasks = [];
         const collectedPaths = new Set(); // Track already-collected paths to avoid duplicates
-        
+
         // Find all wildcard lists recursively
         const collectLists = (obj, currentPath) => {
             if (obj.wildcards && Array.isArray(obj.wildcards)) {
@@ -1704,18 +1711,48 @@ export const App = {
             for (let i = 0; i < tasks.length; i++) {
                 const task = tasks[i];
                 const cleanName = task.path.split('/').pop().replace(/_/g, ' ');
-                UI.showToast(`Generating for "${cleanName}" (${i + 1}/${tasks.length})...`, 'info');
 
-                // Scroll to item
-                const card = document.querySelector(`.wildcard-card[data-path="${task.path}"]`);
-                if (card) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Expand parents if hidden? ensure visibility
+                let retry = true;
+                while (retry) {
+                    UI.showToast(`Generating for "${cleanName}" (${i + 1}/${tasks.length})...`, 'info');
+
+                    // Scroll to item
+                    const card = document.querySelector(`.wildcard-card[data-path="${task.path}"]`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Expand parents if hidden? ensure visibility
+                    }
+
+                    try {
+                        // Pass true for rethrow so we can handle errors here
+                        await this.handleGenerate(task.path, true);
+                        retry = false; // Success, exit retry loop and continue to next task
+                    } catch (e) {
+                        console.error('Batch generation error:', e);
+
+                        // Ask user what to do
+                        const shouldRetry = await UI.showConfirmDialog(
+                            'Batch Generation Error',
+                            `Error generating for "${cleanName}":\n${e.message}\n\nDo you want to try again?`,
+                            {
+                                confirmText: 'Try Again',
+                                cancelText: 'Stop Batch',
+                                danger: true
+                            }
+                        );
+
+                        if (shouldRetry) {
+                            retry = true;
+                            UI.showToast('Retrying...', 'info');
+                            await new Promise(r => setTimeout(r, 1000)); // Wait a bit before retry
+                        } else {
+                            UI.showToast('Batch generation stopped by user', 'info');
+                            return; // Exit the entire generation function (stops the batch)
+                        }
+                    }
                 }
 
-                await this.handleGenerate(task.path);
-
-                // Small delay between requests
+                // Small delay between requests (only if we didn't return/cancel above)
                 await new Promise(r => setTimeout(r, 500));
             }
             UI.showToast('Batch generation complete!', 'success');
