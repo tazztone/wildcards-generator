@@ -1663,10 +1663,16 @@ export const App = {
 
     async handleBatchGenerate(categories) {
         const tasks = [];
+        const collectedPaths = new Set(); // Track already-collected paths to avoid duplicates
+        
         // Find all wildcard lists recursively
         const collectLists = (obj, currentPath) => {
             if (obj.wildcards && Array.isArray(obj.wildcards)) {
-                tasks.push({ path: currentPath, count: obj.wildcards.length });
+                // Only add if we haven't already collected this path
+                if (!collectedPaths.has(currentPath)) {
+                    collectedPaths.add(currentPath);
+                    tasks.push({ path: currentPath, count: obj.wildcards.length });
+                }
             } else {
                 Object.keys(obj).forEach(key => {
                     if (key !== 'instruction' && typeof obj[key] === 'object') {
