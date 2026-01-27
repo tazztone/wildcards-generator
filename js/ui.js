@@ -42,6 +42,13 @@ export const UI = {
             search: document.getElementById('search-wildcards'),
             searchClearBtn: document.getElementById('search-clear-btn'),
             searchResultsCount: document.getElementById('search-results-count'),
+            // Guidance Dialog
+            guidanceDialog: document.getElementById('guidance-dialog'),
+            guidanceInput: document.getElementById('guidance-input'),
+            guidanceConfirmBtn: document.getElementById('guidance-confirm-btn'),
+            guidanceCancelBtn: document.getElementById('guidance-cancel-btn'),
+            guidanceCloseBtn: document.getElementById('guidance-close-btn'),
+            guidanceDontShowAgain: document.getElementById('guidance-dont-show-again'),
         };
 
         // Search Handlers
@@ -276,7 +283,8 @@ export const UI = {
             'config-compact-mode': 'COMPACT_CARD_MODE',
             'config-default-wildcards-visible': 'DEFAULT_WILDCARDS_VISIBLE',
             'config-enable-animations': 'ENABLE_ANIMATIONS',
-            'config-use-hybrid-engine': 'USE_HYBRID_ENGINE'
+            'config-use-hybrid-engine': 'USE_HYBRID_ENGINE',
+            'config-show-guidance-step': 'SHOW_GUIDANCE_STEP'
         };
 
         Object.entries(layoutInputs).forEach(([id, configKey]) => {
@@ -932,6 +940,13 @@ export const UI = {
         const templateMode = document.getElementById('config-template-mode');
         if (templateMode) {
             templateMode.value = Config.TEMPLATE_MODE || 'wildcard';
+        }
+
+        // Guidance Step Setting
+        /** @type {HTMLInputElement|null} */
+        const showGuidanceStep = /** @type {HTMLInputElement|null} */ (document.getElementById('config-show-guidance-step'));
+        if (showGuidanceStep) {
+            showGuidanceStep.checked = Config.SHOW_GUIDANCE_STEP !== false;
         }
     },
 
@@ -2344,6 +2359,67 @@ export const UI = {
         if (firstInput) {
             setTimeout(() => firstInput.focus(), 50);
         }
+    },
+
+    /**
+     * Show guidance dialog before API call
+     * @param {string} title - Context title
+     * @param {function({confirmed: boolean, guidance: string}): void} onResult
+     */
+    showGuidanceDialog(title, onResult) {
+        if (!this.elements.guidanceDialog) {
+            onResult({ confirmed: true, guidance: '' });
+            return;
+        }
+
+        const dialog = this.elements.guidanceDialog;
+        const input = this.elements.guidanceInput;
+        const confirmBtn = this.elements.guidanceConfirmBtn;
+        const cancelBtn = this.elements.guidanceCancelBtn;
+        const closeBtn = this.elements.guidanceCloseBtn;
+        const dontShowAgain = this.elements.guidanceDontShowAgain;
+
+        // Reset state
+        if (input) input.value = '';
+        if (dontShowAgain) dontShowAgain.checked = false;
+
+        const handleConfirm = () => {
+            const guidance = input ? input.value.trim() : '';
+            if (dontShowAgain && dontShowAgain.checked) {
+                Config.SHOW_GUIDANCE_STEP = false;
+                saveConfig();
+            }
+            cleanup();
+            dialog.close();
+            onResult({ confirmed: true, guidance });
+        };
+
+        const handleCancel = () => {
+            cleanup();
+            dialog.close();
+            onResult({ confirmed: false, guidance: '' });
+        };
+
+        const cleanup = () => {
+            confirmBtn?.removeEventListener('click', handleConfirm);
+            cancelBtn?.removeEventListener('click', handleCancel);
+            closeBtn?.removeEventListener('click', handleCancel);
+            input?.removeEventListener('keydown', handleKeydown);
+        };
+
+        const handleKeydown = (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                handleConfirm();
+            }
+        };
+
+        confirmBtn?.addEventListener('click', handleConfirm);
+        cancelBtn?.addEventListener('click', handleCancel);
+        closeBtn?.addEventListener('click', handleCancel);
+        input?.addEventListener('keydown', handleKeydown);
+
+        dialog.showModal();
+        if (input) setTimeout(() => input.focus(), 50);
     },
 
     /**

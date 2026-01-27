@@ -1402,6 +1402,22 @@ export const App = {
         }
     },
 
+    /**
+     * Helper to get guidance from user if enabled
+     * @param {string} title
+     * @returns {Promise<{confirmed: boolean, guidance: string}>}
+     */
+    async getGuidance(title) {
+        if (!Config.SHOW_GUIDANCE_STEP) {
+            return { confirmed: true, guidance: '' };
+        }
+        return new Promise((resolve) => {
+            UI.showGuidanceDialog(title, (result) => {
+                resolve(result);
+            });
+        });
+    },
+
     async handleGenerate(path, rethrow = false) {
         const obj = State.getObjectByPath(path);
 
@@ -1427,6 +1443,9 @@ export const App = {
             });
         }
 
+        const guidanceResult = await this.getGuidance(`Generate Wildcards: ${path.replace(/\//g, ' > ')}`);
+        if (!guidanceResult.confirmed) return false;
+
         UI.toggleLoader(path, true);
 
         // Enhancement #3: Update button text during loading
@@ -1440,7 +1459,9 @@ export const App = {
                 State.state.systemPrompt,
                 path,
                 obj.wildcards,
-                obj.instruction
+                obj.instruction,
+                null,
+                guidanceResult.guidance
             );
             if (newItems && newItems.length) {
                 // Show modal to confirm addition (Legacy behavior)
@@ -1453,7 +1474,7 @@ export const App = {
                 UI.showToast(`Generated ${newItems.length} items`, 'success');
                 return true;
             }
-            return true; // Use true even for empty results if no error occurred? Or maybe false? Let's say true for now as it's not an API error.
+            return true;
         } catch (e) {
             if (rethrow) throw e; // Allow batch mode to handle it
             UI.showNotification(e.message);
@@ -1472,6 +1493,9 @@ export const App = {
      * @param {string[]} selectedPaths - Selected category paths for template generation
      */
     async executeTemplateGeneration(path, obj, selectedPaths, useAllTagged = false) {
+        const guidanceResult = await this.getGuidance(`Generate Templates: ${path.replace(/\//g, ' > ')}`);
+        if (!guidanceResult.confirmed) return;
+
         UI.toggleLoader(path, true);
 
         // Check if using Hybrid Engine
@@ -1527,7 +1551,7 @@ export const App = {
             const templatePrompt = getEffectivePrompt('template');
             const instructions = obj.instruction || 'Generate creative scene templates combining the selected categories';
 
-            const templates = await Api.generateTemplates(pathMap, instructions, templatePrompt);
+            const templates = await Api.generateTemplates(pathMap, instructions, templatePrompt, guidanceResult.guidance);
 
             if (templates && templates.length > 0) {
                 State.saveStateToHistory();
@@ -1576,11 +1600,15 @@ export const App = {
         UI.showToast('Generating suggestions...', 'info');
 
         try {
+            const guidanceResult = await this.getGuidance(`Suggest Items: ${parentPath ? parentPath.replace(/\//g, ' > ') : 'Top-Level'}`);
+            if (!guidanceResult.confirmed) return;
+
             const { suggestions, request } = await Api.suggestItems(
                 parentPath,
                 existingStructure,
                 State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT,
-                (parent && parent.instruction) || ''
+                (parent && parent.instruction) || '',
+                guidanceResult.guidance
             );
 
             if (!suggestions || suggestions.length === 0) {

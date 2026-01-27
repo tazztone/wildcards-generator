@@ -216,20 +216,25 @@ export const Api = {
         }
     },
 
-    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt) {
+    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '') {
         // TODO: Add option to specify desired output count (e.g., "generate 20 items")
         // TODO: Implement streaming response display for better UX during generation
         // TODO: Consider batching multiple small generation requests into one
         const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
         const sysPrompt = globalPrompt.replace('{category}', readablePath);
-        const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+        let userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+
+        if (guidance) {
+            userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;
+        }
+
         const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
 
         const { result } = await this._makeRequest(sysPrompt, userPrompt, generationConfig);
         return this._parseResponse(result);
     },
 
-    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '') {
+    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '', guidance = '') {
         const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
         const globalPrompt = suggestItemPrompt.replace('{parentPath}', readablePath);
 
@@ -238,7 +243,11 @@ export const Api = {
             contextInfo = `Parent Category: "${readablePath}"\nInstructions: "${parentInstruction}"\n\n${contextInfo}`;
         }
 
-        const userPrompt = `${contextInfo}\n\nPlease provide new suggestions for the '${readablePath}' category.`;
+        let userPrompt = `${contextInfo}\n\nPlease provide new suggestions for the '${readablePath}' category.`;
+
+        if (guidance) {
+            userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;
+        }
         const generationConfig = {
             responseMimeType: "application/json",
             responseSchema: {
@@ -272,12 +281,16 @@ export const Api = {
      * @param {string} templatePrompt - The system prompt for template generation
      * @returns {Promise<string[]>} Array of generated template strings with full paths
      */
-    async generateTemplates(pathMap, instructions, templatePrompt) {
+    async generateTemplates(pathMap, instructions, templatePrompt, guidance = '') {
         // Build list of leaf names for LLM (semantic context without full path clutter)
         const leafNames = Object.keys(pathMap);
         const leafList = leafNames.map(name => `~~${name}~~`).join(', ');
 
-        const userPrompt = `AVAILABLE WILDCARD CATEGORIES:\n${leafList}\n\nINSTRUCTIONS: ${instructions}`;
+        let userPrompt = `AVAILABLE WILDCARD CATEGORIES:\n${leafList}\n\nINSTRUCTIONS: ${instructions}`;
+
+        if (guidance) {
+            userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;
+        }
         const generationConfig = {
             responseMimeType: "application/json",
             responseSchema: { type: "ARRAY", items: { type: "STRING" } }
