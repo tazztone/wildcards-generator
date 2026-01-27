@@ -8,9 +8,7 @@ const CACHE_NAME = 'wildcards-v1';
 const STATIC_ASSETS = [
     './',
     './index.html',
-    './wildcards.js',
     './css/wildcards.css',
-    './config/config.json',
     './data/initial-data.yaml',
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
