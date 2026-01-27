@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { Config } from './config.js';
+import { Logger } from './logger.js';
 
 // TODO: Add request caching layer for identical prompts to reduce API costs
 // TODO: Implement exponential backoff retry logic for transient failures
@@ -8,11 +9,12 @@ import { Config } from './config.js';
 
 export const Api = {
     activeController: null,
-    requestLogs: [],
+    // requestLogs: [], // Removed in favor of persistent Logger
 
     logRequest(url, payload, headers) {
         const logEntry = {
             id: Date.now() + Math.random().toString(36).substr(2, 5),
+            createdAt: Date.now(),
             timestamp: new Date().toLocaleTimeString(),
             url,
             payload: JSON.parse(JSON.stringify(payload)), // Deep copy to avoid mutations
@@ -30,27 +32,24 @@ export const Api = {
         // Obfuscate key in URL for Gemini
         logEntry.url = logEntry.url.replace(/key=[^&]+/, 'key=****');
 
-        this.requestLogs.unshift(logEntry);
-        if (this.requestLogs.length > 50) this.requestLogs.pop(); // Keep last 50
+        // Fire and forget - don't await persistence
+        Logger.logRequest(logEntry).catch(e => console.error("Failed to persist log:", e));
+
         return logEntry.id;
     },
 
     logResponse(id, response, error = null) {
-        const entry = this.requestLogs.find(l => l.id === id);
-        if (entry) {
-            entry.duration = Math.round(performance.now() - entry.startTime);
-            entry.status = error ? 'error' : 'success';
-            entry.response = response;
-            entry.error = error;
-        }
+        // Fire and forget
+        Logger.logResponse(id, response, error).catch(e => console.error("Failed to update log:", e));
     },
 
     getLogs() {
-        return this.requestLogs;
+        // specific view logic should use Logger.getRecent() directly
+        return [];
     },
 
     clearLogs() {
-        this.requestLogs = [];
+        Logger.clear().catch(e => console.error("Failed to clear logs:", e));
     },
 
     async _makeRequest(globalPrompt, userPrompt, generationConfig) {

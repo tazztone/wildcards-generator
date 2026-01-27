@@ -2,6 +2,7 @@ import { State } from './state.js';
 import { sanitize } from './utils.js';
 import { Config, saveConfig, saveApiKey, getEffectivePrompt, setCustomPrompt, isUsingDefault, resetToDefault } from './config.js';
 import { Api } from './api.js';
+import { Logger } from './logger.js';
 
 // TODO: Implement virtual scrolling for large wildcard collections (1000+ items)
 // TODO: Add ARIA live regions for dynamic content updates (screen reader support)
@@ -319,13 +320,7 @@ export const UI = {
         });
 
         // Debug Logs Handlers
-        document.getElementById('refresh-logs-btn')?.addEventListener('click', () => this.renderLogs());
-        document.getElementById('clear-logs-btn')?.addEventListener('click', () => {
-            if (confirm('Clear all captured logs?')) {
-                Api.clearLogs();
-                this.renderLogs();
-            }
-        });
+        this.setupLogListeners();
 
         // Event delegation for copy buttons in logs
         document.getElementById('api-logs-container')?.addEventListener('click', async (e) => {
@@ -412,6 +407,13 @@ export const UI = {
 
         this.renderAdvancedSettings();
 
+        // Auto-populate Auto-Delete input
+        const autoDel = document.getElementById('config-log-auto-delete');
+        if (autoDel) {
+            // @ts-ignore
+            autoDel.value = Config.LOG_AUTO_DELETE_DAYS || 0;
+        }
+
         // Efficient full render
         this.elements.container.innerHTML = '';
 
@@ -433,64 +435,243 @@ export const UI = {
         this.updateStats();
     },
 
-    renderLogs() {
+    setupLogListeners() {
+        document.getElementById('refresh-logs-btn')?.addEventListener('click', () => this.renderLogs());
+
+        document.getElementById('clear-logs-btn')?.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to clear ALL logs? This cannot be undone.')) {
+                await Logger.clear();
+                this.renderLogs();
+                this.showToast('Logs cleared successfully', 'success');
+            }
+        });
+
+        document.getElementById('export-logs-btn')?.addEventListener('click', () => this.handleExportLogs());
+
+        document.getElementById('import-logs-btn')?.addEventListener('click', () => {
+            // Create a hidden file input if not exists
+            let input = /** @type {HTMLInputElement} */ (document.getElementById('logs-file-input'));
+            if (!input) {
+                input = document.createElement('input');
+                input.id = 'logs-file-input';
+                input.type = 'file';
+                input.accept = '.json';
+                input.style.display = 'none';
+                document.body.appendChild(input);
+
+                input.addEventListener('change', (e) => this.handleImportLogs(e));
+            }
+            input.click();
+        });
+
+        // Filter listeners
+        const filterEvents = ['change', 'input'];
+        filterEvents.forEach(evt => {
+            document.getElementById('logs-filter-status')?.addEventListener(evt, () => this.renderLogs());
+            document.getElementById('logs-filter-date-start')?.addEventListener(evt, () => this.renderLogs());
+            document.getElementById('logs-filter-date-end')?.addEventListener(evt, () => this.renderLogs());
+            document.getElementById('logs-filter-search')?.addEventListener(evt, () => {
+                // simple debounce for search
+                clearTimeout(this._logSearchTimeout);
+                this._logSearchTimeout = setTimeout(() => this.renderLogs(), 300);
+            });
+        });
+
+        // Auto-Delete Setting Listener
+        document.getElementById('config-log-auto-delete')?.addEventListener('change', (e) => {
+            const val = parseInt(/** @type {HTMLInputElement} */(e.target).value, 10);
+            if (!isNaN(val) && val >= 0) {
+                Config.LOG_AUTO_DELETE_DAYS = val;
+                saveConfig();
+                if (val > 0) {
+                    Logger.deleteOlderThan(val).then(count => {
+                        if (count > 0) this.showToast(`Pruned ${count} old logs`, 'info');
+                    });
+                }
+            }
+        });
+    },
+
+    async handleExportLogs() {
+        const btn = /** @type {HTMLButtonElement} */ (document.getElementById('export-logs-btn'));
+        const originalText = btn.innerHTML;
+        try {
+            btn.innerHTML = '⏳ Exporting...';
+            btn.disabled = true;
+
+            const logs = await Logger.getAll();
+            const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `wildcards-api-logs-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            this.showToast(`Exported ${logs.length} logs`, 'success');
+        } catch (error) {
+            console.error("Export failed:", error);
+            this.showNotification(`Export failed: ${error.message}`);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    },
+
+    async handleImportLogs(e) {
+        const file = /** @type {HTMLInputElement} */ (e.target).files[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const logs = JSON.parse(text);
+
+            if (!Array.isArray(logs)) throw new Error("Invalid log file format");
+
+            const count = await Logger.import(logs);
+            this.showToast(`Imported ${count} logs successfully`, 'success');
+            this.renderLogs();
+        } catch (error) {
+            console.error("Import failed:", error);
+            this.showNotification(`Import failed: ${error.message}`);
+        }
+
+        // Reset input
+        e.target.value = '';
+    },
+
+    async renderLogs() {
         const container = document.getElementById('api-logs-container');
         if (!container) return;
 
-        const logs = Api.getLogs();
-        if (logs.length === 0) {
-            container.innerHTML = '<p class="text-sm text-gray-500 text-center py-8">No logs captured yet. Perform an API action to see logs here.</p>';
-            return;
-        }
+        // Get filter values
+        const statusFilter = /** @type {HTMLSelectElement} */ (document.getElementById('logs-filter-status'))?.value || 'all';
+        const searchQuery = /** @type {HTMLInputElement} */ (document.getElementById('logs-filter-search'))?.value.toLowerCase() || '';
+        const dateStartStr = /** @type {HTMLInputElement} */ (document.getElementById('logs-filter-date-start'))?.value;
+        const dateEndStr = /** @type {HTMLInputElement} */ (document.getElementById('logs-filter-date-end'))?.value;
 
-        container.innerHTML = logs.map(log => `
-            <div class="log-entry bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden mb-4 last:mb-0">
-                <div class="flex items-center justify-between p-2 bg-gray-800/80 border-b border-gray-700">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded ${log.status === 'success' ? 'bg-green-900/40 text-green-400' : log.status === 'error' ? 'bg-red-900/40 text-red-400' : 'bg-yellow-900/40 text-yellow-400'}">
-                            ${log.status.toUpperCase()}
-                        </span>
-                        <span class="text-[10px] text-gray-500 font-mono">${log.timestamp}</span>
-                        <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${log.url}">${log.url.length > 50 ? '...' + log.url.slice(-47) : log.url}</span>
-                    </div>
-                    <span class="text-[10px] text-gray-500">${log.duration}ms</span>
-                </div>
-                <div class="p-3 space-y-3">
-                    <details class="group">
-                        <summary class="text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none flex items-center gap-2">
-                            <span class="transition-transform group-open:rotate-90">▶</span>
-                            📤 Request Details
-                        </summary>
-                        <div class="mt-2 space-y-2 pl-4 border-l border-gray-700">
-                             <div class="text-[10px] text-gray-500 font-mono">
-                                <div class="font-bold text-indigo-300 mb-1">Headers:</div>
-                                <pre>${JSON.stringify(log.headers, null, 2)}</pre>
-                             </div>
-                             <div class="text-[10px] text-gray-400 font-mono">
-                                <div class="font-bold text-indigo-300 mb-1">Payload:</div>
-                                <pre class="bg-black/30 p-2 rounded max-h-40 overflow-auto custom-scrollbar whitespace-pre-wrap">${JSON.stringify(log.payload, null, 2)}</pre>
-                             </div>
+        try {
+            let logs;
+            if (dateStartStr || dateEndStr) {
+                const start = dateStartStr ? new Date(dateStartStr).getTime() : 0;
+                // End of day for end date
+                const end = dateEndStr ? new Date(dateEndStr).setHours(23, 59, 59, 999) : Date.now() + 86400000;
+                logs = await Logger.query({ start, end, limit: 1000 });
+            } else {
+                logs = await Logger.getRecent(200);
+            }
+
+            // Update Badge
+            const badge = document.getElementById('logs-count-badge');
+            if (badge) {
+                const count = logs.length;
+                badge.textContent = count > 999 ? '999+' : String(count);
+                if (count > 0) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            }
+
+            const filtered = logs.filter(log => {
+                if (statusFilter !== 'all') {
+                    if (statusFilter === 'error' && log.status !== 'error') return false;
+                    if (statusFilter === 'success' && log.status !== 'success') return false;
+                }
+                if (searchQuery) {
+                    const searchStr = (log.url + JSON.stringify(log.payload || '') + JSON.stringify(log.response || '') + (log.error || '')).toLowerCase();
+                    if (!searchStr.includes(searchQuery)) return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 text-center py-8">No matching logs found.</p>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(log => `
+                <div class="log-entry bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden mb-4 last:mb-0">
+                    <div class="flex items-center justify-between p-2 bg-gray-800/80 border-b border-gray-700">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded ${log.status === 'success' ? 'bg-green-900/40 text-green-400' : log.status === 'error' ? 'bg-red-900/40 text-red-400' : 'bg-yellow-900/40 text-yellow-400'}">
+                                ${log.status.toUpperCase()}
+                            </span>
+                            <span class="text-[10px] text-gray-500 font-mono">${log.timestamp}</span>
+                            <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${log.url}">${log.url.length > 50 ? '...' + log.url.slice(-47) : log.url}</span>
                         </div>
-                    </details>
-                    <details class="group" open>
-                        <summary class="text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <span class="transition-transform group-open:rotate-90">▶</span>
-                                📥 Raw Response
-                            </div>
-                            <button class="copy-log-resp-btn text-[10px] bg-indigo-900/40 hover:bg-indigo-800 text-indigo-300 px-2 py-0.5 rounded transition-colors flex items-center gap-1" 
-                                    data-id="${log.id}" onclick="event.stopPropagation();">
-                                📋 Copy Response
+                        <div class="flex items-center gap-2">
+                             <button class="text-[10px] bg-gray-700 hover:bg-gray-600 px-2 py-0.5 rounded transition-colors"
+                                onclick="UI.copyToClipboard('${this.generateCurl(log).replace(/'/g, "\\'")}')">
+                                Copy cURL
                             </button>
-                        </summary>
-                        <div class="mt-2 pl-4 border-l border-gray-700">
-                            <pre class="text-[10px] font-mono bg-black/40 p-2 rounded max-h-80 overflow-auto custom-scrollbar ${log.status === 'error' ? 'text-red-300' : 'text-green-300'} whitespace-pre-wrap">${typeof log.response === 'string' ? log.response : JSON.stringify(log.response, null, 2)}</pre>
+                            <span class="text-[10px] text-gray-500">${log.duration}ms</span>
                         </div>
-                    </details>
-                    ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${log.error}</div>` : ''}
+                    </div>
+                    <div class="p-3 space-y-3">
+                        <details class="group">
+                            <summary class="text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none flex items-center gap-2">
+                                <span class="transition-transform group-open:rotate-90">▶</span>
+                                📤 Request Details
+                            </summary>
+                            <div class="mt-2 space-y-2 pl-4 border-l border-gray-700">
+                                 <div class="text-[10px] text-gray-500 font-mono">
+                                    <div class="font-bold text-indigo-300 mb-1">Headers:</div>
+                                    <pre>${JSON.stringify(log.headers, null, 2)}</pre>
+                                 </div>
+                                 <div class="text-[10px] text-gray-400 font-mono">
+                                    <div class="font-bold text-indigo-300 mb-1">Payload:</div>
+                                    <pre class="bg-black/30 p-2 rounded max-h-40 overflow-auto custom-scrollbar whitespace-pre-wrap">${JSON.stringify(log.payload, null, 2)}</pre>
+                                 </div>
+                            </div>
+                        </details>
+                        <details class="group" open>
+                            <summary class="text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="transition-transform group-open:rotate-90">▶</span>
+                                    📥 Raw Response
+                                </div>
+                                <button class="copy-log-resp-btn text-[10px] bg-indigo-900/40 hover:bg-indigo-800 text-indigo-300 px-2 py-0.5 rounded transition-colors flex items-center gap-1" 
+                                        data-id="${log.id}" onclick="event.stopPropagation();">
+                                    📋 Copy Response
+                                </button>
+                            </summary>
+                            <div class="mt-2 pl-4 border-l border-gray-700">
+                                <pre class="text-[10px] font-mono bg-black/40 p-2 rounded max-h-80 overflow-auto custom-scrollbar ${log.status === 'error' ? 'text-red-300' : 'text-green-300'} whitespace-pre-wrap">${typeof log.response === 'string' ? log.response : JSON.stringify(log.response, null, 2)}</pre>
+                            </div>
+                        </details>
+                        ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${log.error}</div>` : ''}
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+
+        } catch (e) {
+            console.error("Failed to load selected logs:", e);
+            container.innerHTML = '<p class="text-sm text-red-500 text-center py-8">Failed to load logs from storage.</p>';
+        }
+    },
+
+    generateCurl(log) {
+        let cmd = `curl -X POST '${log.url}'`;
+        if (log.headers) {
+            for (const [key, value] of Object.entries(log.headers)) {
+                cmd += ` -H '${key}: ${value}'`;
+            }
+        }
+        if (log.payload) {
+            cmd += ` -d '${JSON.stringify(log.payload)}'`;
+        }
+        return cmd;
+    },
+
+    async copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            this.showToast('Copied to clipboard!', 'success');
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            this.showToast('Failed to copy', 'error');
+        }
     },
 
     handleStateUpdate(e) {

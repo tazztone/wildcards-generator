@@ -251,11 +251,15 @@
                         <span>Data</span>
                     </button>
                     <button class="settings-tab" data-tab="logs">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span>Logs</span>
+                        Debug Logs
+                        <span id="logs-count-badge"
+                            class="ml-1 text-[10px] bg-indigo-500/50 text-indigo-100 px-1.5 rounded-full hidden">0</span>
+                    </button>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Logs</span>
                     </button>
                 </div>
                 <!-- Modal Body - Tab Content -->
@@ -668,6 +672,20 @@
                             </div>
                         </div>
 
+                        <!-- Logging & Privacy -->
+                        <div class="grid grid-cols-1 gap-6 mt-6">
+                            <div class="setting-group bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+                                <label for="config-log-auto-delete"
+                                    class="block text-sm font-medium text-gray-300 mb-2">Auto-Delete Logs Older Than
+                                    (Days)</label>
+                                <input type="number" id="config-log-auto-delete"
+                                    class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="0 = disabled">
+                                <p class="text-xs text-gray-400 mt-1">0 = disabled. Logs older than this will be
+                                    automatically removed.</p>
+                            </div>
+                        </div>
+
                         <!-- AI Cleanup Settings -->
                         <div class="mt-6">
                             <h3 class="text-lg font-semibold text-indigo-300 mb-3">AI Cleanup Settings</h3>
@@ -890,22 +908,58 @@
 
                     <!-- Tab: Debug Logs -->
                     <div id="settings-tab-logs" class="settings-tab-content hidden">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-indigo-300">API Request Logs</h3>
-                            <div class="flex gap-2">
-                                <button id="refresh-logs-btn"
-                                    class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors">Refresh</button>
-                                <button id="clear-logs-btn"
-                                    class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors">Clear</button>
+                        <div class="flex flex-col gap-4 mb-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-semibold text-indigo-300">API Request Logs</h3>
+                                <div class="flex gap-2">
+                                    <button id="export-logs-btn"
+                                        class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors flex items-center gap-1">
+                                        ⬇️ Export
+                                    </button>
+                                    <button id="import-logs-btn"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors flex items-center gap-1">
+                                        ⬆️ Import
+                                    </button>
+                                    <button id="refresh-logs-btn"
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors">Refresh</button>
+                                    <button id="clear-logs-btn"
+                                        class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors">Clear</button>
+                                </div>
+                            </div>
+
+                            <!-- Filters -->
+                            <div
+                                class="flex flex-wrap gap-2 items-center bg-gray-900/50 p-2 rounded-lg border border-gray-700">
+                                <span class="text-xs text-gray-400 font-bold uppercase">Filter:</span>
+                                <select id="logs-filter-status"
+                                    class="bg-gray-800 text-xs text-white border border-gray-600 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none">
+                                    <option value="all">All Status</option>
+                                    <option value="error">Errors Only</option>
+                                    <option value="success">Success Only</option>
+                                </select>
+
+                                <span class="text-xs text-gray-500 ml-1">Date:</span>
+                                <input type="date" id="logs-filter-date-start"
+                                    class="bg-gray-800 text-xs text-white border border-gray-600 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    placeholder="Start">
+                                <span class="text-xs text-gray-400">-</span>
+                                <input type="date" id="logs-filter-date-end"
+                                    class="bg-gray-800 text-xs text-white border border-gray-600 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    placeholder="End">
+
+                                <input type="text" id="logs-filter-search"
+                                    class="bg-gray-800 text-xs text-white border border-gray-600 rounded px-2 py-1 flex-grow focus:ring-1 focus:ring-indigo-500 outline-none min-w-[150px]"
+                                    placeholder="Search URL or Payload...">
                             </div>
                         </div>
-                        <p class="text-xs text-gray-400 mb-4 italic">Logs are kept in memory only and cleared on page
-                            reload.</p>
+
+                        <p class="text-xs text-gray-400 mb-4 italic">Logs are stored locally in your browser's IndexedDB
+                            and persist across reloads.</p>
+
                         <div id="api-logs-container"
                             class="space-y-4 custom-scrollbar overflow-y-auto max-h-[55vh] pr-2">
                             <p class="text-sm text-gray-500 text-center py-8">No logs captured yet. Perform an API
-                                action
-                                to see logs here.</p>
+                                action to see logs here.</p>
                         </div>
                     </div>
                 </div>

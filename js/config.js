@@ -65,7 +65,10 @@ export async function loadConfig() {
             STORAGE_PROFILE: 'default',
             // Hybrid Template Engine
             USE_HYBRID_ENGINE: false,
-            TEMPLATE_MODE: 'wildcard'  // 'wildcard' | 'strict' | 'hybrid'
+            TEMPLATE_MODE: 'wildcard',  // 'wildcard' | 'strict' | 'hybrid'
+            // Logging
+            LOG_MAX_ENTRIES: 5000,
+            LOG_AUTO_DELETE_DAYS: 0 // 0 = disabled, delete logs older than X days
         };
 
         Object.assign(Config, defaultConfig, userDefaults, savedConfig ? JSON.parse(savedConfig) : {});
@@ -168,7 +171,9 @@ export async function saveConfig() {
                     'MODEL_REASONING_EFFORT', 'MODEL_REASONING_MAX_TOKENS',
                     'MINDMAP_FONT_SIZE_CATEGORY', 'MINDMAP_FONT_SIZE_LIST', 'MINDMAP_FONT_SIZE_WILDCARD',
                     'DEFAULT_WILDCARDS_VISIBLE', 'ENABLE_ANIMATIONS', 'COMPACT_CARD_MODE', 'AUTO_SAVE_INTERVAL', 'STORAGE_PROFILE',
-                    'USE_HYBRID_ENGINE', 'TEMPLATE_MODE'
+                    'DEFAULT_WILDCARDS_VISIBLE', 'ENABLE_ANIMATIONS', 'COMPACT_CARD_MODE', 'AUTO_SAVE_INTERVAL', 'STORAGE_PROFILE',
+                    'USE_HYBRID_ENGINE', 'TEMPLATE_MODE',
+                    'LOG_MAX_ENTRIES', 'LOG_AUTO_DELETE_DAYS'
                 ].includes(key)) {
                     changedConfig[key] = Config[key];
                 }
