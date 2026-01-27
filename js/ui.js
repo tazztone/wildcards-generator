@@ -12,6 +12,31 @@ import { Logger } from './logger.js';
 export const UI = {
     elements: {},
     _settingsDirty: false, // Track if settings have been modified since dialog opened
+    _newlyAdded: new Map(), // Track newly added items by path: Map<string, Set<string>>
+
+    /**
+     * Mark items as newly added to highlight them in the UI
+     * @param {string} path - The path to the wildcard list
+     * @param {string[]} items - The items that were added
+     */
+    setNewlyAdded(path, items) {
+        this._newlyAdded.set(path, new Set(items));
+    },
+
+    /**
+     * Clear the newly added highlight for a specific path
+     * @param {string} path - The path to clear
+     */
+    clearNewlyAdded(path) {
+        if (this._newlyAdded.has(path)) {
+            this._newlyAdded.delete(path);
+            const el = this.findElement(path);
+            if (el) {
+                const data = State.getObjectByPath(path);
+                if (data) this.updateCardContent(el, data, path);
+            }
+        }
+    },
 
     init() {
         this.cacheElements();
@@ -2183,7 +2208,7 @@ export const UI = {
             // Re-render chips + add-chip-btn. Diffing individual chips is Overkill for V1, but better than full page re-render.
             const wildcards = data.wildcards || [];
             const chipsHtml = wildcards.length > 0
-                ? wildcards.map((wc, i) => this.createChip(wc, i)).join('')
+                ? wildcards.map((wc, i) => this.createChip(wc, i, path)).join('')
                 : this.getEmptyListHtml();
             const addBtnHtml = `<button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 btn-action btn-green" title="Add new item">+</button>`;
             chipContainer.innerHTML = addBtnHtml + chipsHtml;
@@ -2266,7 +2291,7 @@ export const UI = {
             <!-- Chips Container -->
             <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto resize-y items-start content-start" style="height: ${Config.CARD_HEIGHT}px; min-height: 1.5rem;">
                 <button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 btn-action btn-green" title="Add new item to this list">+</button>
-                ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
+                ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i, path)).join('') : this.getEmptyListHtml()}
             </div>
             <!-- Hidden Add Input (revealed on + click) -->
             <div class="add-input-row hidden flex gap-1 mt-1">
@@ -2277,8 +2302,18 @@ export const UI = {
         `;
     },
 
-    createChip(wildcard, index) {
-        return `<div class="chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap cursor-pointer select-none" data-index="${index}" tabindex="0" role="checkbox" aria-checked="false" aria-label="Select ${sanitize(wildcard)}"><span class="editable-name chip-text outline-none rounded px-0.5" aria-label="Double-click to edit item">${sanitize(wildcard)}</span></div>`;
+    createChip(wildcard, index, path = null) {
+        let classes = "chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap cursor-pointer select-none";
+
+        // Highlight if newly added
+        if (path && this._newlyAdded.has(path)) {
+            const newItems = this._newlyAdded.get(path);
+            if (newItems.has(wildcard)) {
+                classes += " chip-new";
+            }
+        }
+
+        return `<div class="${classes}" data-index="${index}" tabindex="0" role="checkbox" aria-checked="false" aria-label="Select ${sanitize(wildcard)}"><span class="editable-name chip-text outline-none rounded px-0.5" aria-label="Double-click to edit item">${sanitize(wildcard)}</span></div>`;
     },
 
     createPlaceholderCategory() {

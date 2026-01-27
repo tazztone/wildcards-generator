@@ -1446,6 +1446,9 @@ export const App = {
         const guidanceResult = await this.getGuidance(`Generate Wildcards: ${path.replace(/\//g, ' > ')}`);
         if (!guidanceResult.confirmed) return false;
 
+        // Clear previous newly-added highlights for this path
+        UI.clearNewlyAdded(path);
+
         UI.toggleLoader(path, true);
 
         // Enhancement #3: Update button text during loading
@@ -1469,6 +1472,10 @@ export const App = {
                 State.saveStateToHistory();
                 // Ensure we only push strings
                 const safeItems = newItems.map(item => (typeof item === 'object' && item !== null) ? (item.wildcard || item.text || item.value || JSON.stringify(item)) : String(item));
+
+                // Mark for UI highlighting
+                UI.setNewlyAdded(path, safeItems);
+
                 obj.wildcards.push(...safeItems);
                 // Sort logic is now handled in the state proxy trap.
                 UI.showToast(`Generated ${newItems.length} items`, 'success');
@@ -1495,6 +1502,9 @@ export const App = {
     async executeTemplateGeneration(path, obj, selectedPaths, useAllTagged = false) {
         const guidanceResult = await this.getGuidance(`Generate Templates: ${path.replace(/\//g, ' > ')}`);
         if (!guidanceResult.confirmed) return;
+
+        // Clear previous newly-added highlights for this path
+        UI.clearNewlyAdded(path);
 
         UI.toggleLoader(path, true);
 
@@ -1524,6 +1534,10 @@ export const App = {
 
                 if (templates.length > 0) {
                     State.saveStateToHistory();
+
+                    // Mark for UI highlighting
+                    UI.setNewlyAdded(path, templates);
+
                     obj.wildcards.push(...templates);
                     UI.showToast(`Generated ${templates.length} templates (Hybrid)`, 'success');
                 } else {
@@ -1555,6 +1569,10 @@ export const App = {
 
             if (templates && templates.length > 0) {
                 State.saveStateToHistory();
+
+                // Mark for UI highlighting
+                UI.setNewlyAdded(path, templates);
+
                 obj.wildcards.push(...templates);
                 UI.showToast(`Generated ${templates.length} templates`, 'success');
             } else {
