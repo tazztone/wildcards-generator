@@ -1,5 +1,5 @@
 import { State } from './state.js';
-import { sanitize } from './utils.js';
+import { sanitize, debounce } from './utils.js';
 import { Config, saveConfig, saveApiKey, getEffectivePrompt, setCustomPrompt, isUsingDefault, resetToDefault } from './config.js';
 import { Api } from './api.js';
 import { Logger } from './logger.js';
@@ -15,8 +15,43 @@ export const UI = {
 
     init() {
         this.cacheElements();
+        this.initResizeObserver();
         this.renderApiSettings(); // Initial render of settings panels
         this.bindGlobalEvents();
+    },
+
+    /** @type {ResizeObserver|null} */
+    _cardResizeObserver: null,
+
+    initResizeObserver() {
+        const debouncedSave = debounce(() => {
+            saveConfig();
+        }, 1000);
+
+        this._cardResizeObserver = new ResizeObserver(entries => {
+            // Find the entry that actually changed (usually just one during user resize)
+            // But if we sync others, they will also appear in entries.
+            for (const entry of entries) {
+                const targetHeight = /** @type {HTMLElement} */(entry.target).offsetHeight;
+
+                // If this is a meaningful change from our stored height
+                if (Math.abs(targetHeight - Config.CARD_HEIGHT) > 1) {
+                    Config.CARD_HEIGHT = targetHeight;
+                    debouncedSave();
+
+                    // Sync all boxes to this new height
+                    document.querySelectorAll('.chip-container').forEach(el => {
+                        const htmlEl = /** @type {HTMLElement} */(el);
+                        if (Math.abs(htmlEl.offsetHeight - targetHeight) > 1) {
+                            htmlEl.style.height = `${targetHeight}px`;
+                        }
+                    });
+
+                    // Break as we've already synced everything from this one change
+                    break;
+                }
+            }
+        });
     },
 
     cacheElements() {
@@ -2128,6 +2163,13 @@ export const UI = {
         element.dataset.path = path;
         element.draggable = true;
         element.innerHTML = this.getWildcardCardHtml(name, data, path);
+
+        // Track resize for all boxes sync
+        const chipContainer = element.querySelector('.chip-container');
+        if (chipContainer && this._cardResizeObserver) {
+            this._cardResizeObserver.observe(chipContainer);
+        }
+
         return element;
     },
 
@@ -2222,7 +2264,7 @@ export const UI = {
                 </div>
             </div>
             <!-- Chips Container -->
-            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto resize-y items-start content-start" style="height: 54px; min-height: 1.5rem;">
+            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto resize-y items-start content-start" style="height: ${Config.CARD_HEIGHT}px; min-height: 1.5rem;">
                 <button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 btn-action btn-green" title="Add new item to this list">+</button>
                 ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i)).join('') : this.getEmptyListHtml()}
             </div>
