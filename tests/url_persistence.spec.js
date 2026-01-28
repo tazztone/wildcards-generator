@@ -1,11 +1,6 @@
-import { test, expect } from '@playwright/test';
+const { test, expect } = require('./fixtures');
 
 test.describe('Setting Persistence Tests', () => {
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await page.waitForFunction(() => typeof (/** @type {any} */ (window)).UI !== 'undefined');
-    });
 
     test('should persist Custom API URL when changed', async ({ page }) => {
         // 0. Open Settings

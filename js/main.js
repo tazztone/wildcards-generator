@@ -7,6 +7,7 @@ import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
 import { Mindmap } from './modules/mindmap.js';
+import { Logger } from './logger.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadConfig();
@@ -23,5 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.ImportExport = ImportExport;
         window.Settings = Settings;
         window.Mindmap = Mindmap;
+        // @ts-ignore
+        window.Logger = Logger;
     }
 });

@@ -52,6 +52,11 @@ export const App = {
                 if (helpBtn) helpBtn.click();
             }, 1500);
         }
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => loadingOverlay.remove(), 300);
+        }
     },
 
     bindEvents() {

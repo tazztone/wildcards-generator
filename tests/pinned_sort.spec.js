@@ -1,15 +1,6 @@
-
-import { test, expect } from '@playwright/test';
+const { test, expect } = require('./fixtures');
 
 test.describe('Pinned Categories', () => {
-
-    test.beforeEach(async ({ page }) => {
-        await page.addInitScript(() => {
-            window.localStorage.setItem('wildcards-visited', 'true');
-        });
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-    });
 
     test('Pinned categories should be sorted first', async ({ page }) => {
 

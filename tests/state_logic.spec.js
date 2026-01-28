@@ -1,14 +1,6 @@
-// @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('State Management Logic', () => {
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-        // Wait for State to be exposed and initialized
-        await page.waitForFunction(() => window.State && window.State.state);
-    });
 
     test('Deep proxy triggers updates on nested change', async ({ page }) => {
         await page.evaluate(async () => {
@@ -33,12 +25,12 @@ test.describe('State Management Logic', () => {
 
     test('Undo/Redo restores state correctly', async ({ page }) => {
         await page.evaluate(async () => {
-             window.State._rawData.wildcards = {};
-             window.State._initProxy();
+            window.State._rawData.wildcards = {};
+            window.State._initProxy();
 
-             // Step 1
-             window.State.state.wildcards.UndoTest = { instruction: '', wildcards: ['step1'] };
-             window.State.saveStateToHistory();
+            // Step 1
+            window.State.state.wildcards.UndoTest = { instruction: '', wildcards: ['step1'] };
+            window.State.saveStateToHistory();
         });
 
         // Step 2
@@ -166,6 +158,7 @@ TestKey:
   # instruction: Do this
   - Item 1
 `;
+            // @ts-ignore
             const YAML = (await import('https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js')).default;
             const doc = YAML.parseDocument(yamlText);
 

@@ -1,12 +1,8 @@
-
-import { test, expect } from '@playwright/test';
+const { test, expect } = require('./fixtures');
 
 test.describe('Category Tinting', () => {
 
     test('should apply tint classes to top-level categories', async ({ page }) => {
-        // Go to app
-        await page.goto('http://localhost:3000');
-
         // Wait for wildcards to load
         await page.waitForSelector('.category-item');
 
@@ -30,7 +26,6 @@ test.describe('Category Tinting', () => {
     });
 
     test('should apply different tints based on index', async ({ page }) => {
-        await page.goto('http://localhost:3000');
         await page.waitForSelector('.category-item');
 
         const categories = page.locator('.level-0.category-item');

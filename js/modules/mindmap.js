@@ -48,8 +48,8 @@ const Mindmap = {
         }
 
         try {
-            // @ts-ignore - Dynamic import from CDN
-            const module = await import('https://cdn.jsdelivr.net/npm/mind-elixir/dist/MindElixir.js');
+            // Import from local vendor file
+            const module = await import('../../vendor/mind-elixir/MindElixir.js');
             this._MindElixir = module.default || module;
 
             return this._MindElixir;

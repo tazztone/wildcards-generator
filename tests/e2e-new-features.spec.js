@@ -1,12 +1,7 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('New UI Features', () => {
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-    });
 
     // Toolbar & Dropdown Tests
     test.describe('Toolbar Dropdown', () => {

@@ -1,20 +1,11 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 // =============================================================================
 // Test Fixtures & Helpers
 // =============================================================================
 
 test.describe('Wildcard Generator E2E Tests', () => {
-
-    test.beforeEach(async ({ page }) => {
-        // Disable first-run help dialog
-        await page.addInitScript(() => {
-            window.localStorage.setItem('wildcards-visited', 'true');
-        });
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-    });
 
     // =========================================================================
     // Core UI Tests

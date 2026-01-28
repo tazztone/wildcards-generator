@@ -177,6 +177,10 @@ const State = {
     state: null, // The public reactive proxy
     _debouncedSave: null,
 
+    // Initialization state
+    readyPromise: null,
+    _resolveReady: null,
+
     history: [],
     historyIndex: -1,
 
@@ -188,6 +192,10 @@ const State = {
     events: new EventTarget(),
 
     async init() {
+        this.readyPromise = new Promise(resolve => {
+            this._resolveReady = resolve;
+        });
+
         this.loadState();
         this.loadCategoryTags(); // Load tags from separate storage
 
@@ -211,6 +219,9 @@ const State = {
         window.addEventListener('beforeunload', () => {
             this.flushState();
         });
+
+        // Mark state as ready
+        if (this._resolveReady) this._resolveReady(true);
     },
 
     _initProxy() {
@@ -287,8 +298,16 @@ const State = {
         // Implementation of logic to load initial data
         try {
             const response = await fetch('data/initial-data.yaml');
+
             if (response.ok) {
                 const text = await response.text();
+
+                // Check if YAML library is loaded
+                if (typeof YAML === 'undefined') {
+                    console.error('YAML library not loaded!');
+                    throw new Error('YAML library missing');
+                }
+
                 const doc = YAML.parseDocument(text);
                 if (doc.errors && doc.errors.length > 0) {
                     console.error("YAML Parse Errors:", doc.errors);
@@ -322,7 +341,10 @@ const State = {
             this._rawData.systemPrompt = "";
             this._saveToLocalStorage();
             this._initProxy();
+            this._initProxy();
             this.events.dispatchEvent(new CustomEvent('state-reset'));
+        } finally {
+            if (this._resolveReady) this._resolveReady(true);
         }
     },
 

@@ -32,8 +32,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="css/wildcards.css">
-    <!-- Mind Elixir Mindmap CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-elixir/dist/style.css">
+    <!-- Mind Elixir Mindmap (Local Vendor) -->
+    <link rel="stylesheet" href="vendor/mind-elixir/style.css">
     <link rel="manifest" href="assets/manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <script>
@@ -53,6 +53,15 @@
 
     <div id="aria-live-region" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <div id="loading-overlay"
+        class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center transition-opacity duration-300">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4">
+            </div>
+            <h2 class="text-xl font-semibold text-white">Loading Wildcards...</h2>
+        </div>
+    </div>
 
     <dialog id="notification-dialog">
         <div class="bg-gray-800 rounded-lg shadow-xl p-4 w-full max-w-lg text-center">
@@ -269,6 +278,7 @@
                                 class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-base focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
                                 <option value="openrouter" selected>OpenRouter (Recommended)</option>
                                 <option value="gemini">Google Gemini</option>
+                                <option value="groq">Groq</option>
                                 <option value="custom">Custom (OpenAI-Compatible)</option>
                             </select>
                             <p class="text-sm text-gray-400 mt-2">Select the AI service you want to use for generating

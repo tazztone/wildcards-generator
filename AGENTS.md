@@ -12,7 +12,8 @@ The application runs entirely in the browser, relying on standard ES Modules and
 *   **No Build Step**: Works directly in the browser. No Webpack/Vite/Babel.
 *   **Styling**: 
     *   Tailwind CSS (via CDN) for utility classes.
-    *   `wildcards.css` for custom component styles (tree view, loaders, transitions).
+    *   `wildcards.css` for custom component styles.
+    *   **Prompt Caching**: Enabled for OpenRouter (via `api.js` multipart messages).
     *   Theming: Dark/Light mode supported via `dark` class on `html` element.
 *   **Libraries (Global Scope)**:
     *   `mind-elixir` (Mindmap visualization)

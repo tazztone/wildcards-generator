@@ -1,15 +1,7 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Bug Fix Tests', () => {
-    test.beforeEach(async ({ page }) => {
-        // Disable first-run help dialog
-        await page.addInitScript(() => {
-            window.localStorage.setItem('wildcards-visited', 'true');
-        });
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-    });
 
     test.describe('Add Category', () => {
         test('should add new top-level category via + button', async ({ page }) => {
@@ -171,7 +163,7 @@ test.describe('Bug Fix Tests', () => {
 
             // Step 6: Close Settings Modal
             await page.evaluate(() => {
-                const d = document.getElementById('settings-dialog');
+                const d = /** @type {HTMLDialogElement} */ (document.getElementById('settings-dialog'));
                 if (d) d.close();
             });
             await expect(page.locator('#settings-dialog')).toBeHidden();

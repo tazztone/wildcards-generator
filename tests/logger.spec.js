@@ -30,12 +30,14 @@ test.describe('Logger & Persistent Storage', () => {
 
         await page.setViewportSize({ width: 1600, height: 1200 });
         await page.goto('/');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
+        // Wait for app to be ready
+        await page.waitForSelector('#settings-btn', { state: 'visible', timeout: 5000 });
 
         // Clear logs before each test (Logger auto-initializes on first call)
         await page.evaluate(async () => {
             // @ts-ignore - dynamic import in browser context
-            const { Logger } = await import('./js/logger.js');
+            const { Logger } = window;
             await Logger.clear();
         });
     });
@@ -44,7 +46,7 @@ test.describe('Logger & Persistent Storage', () => {
         // Generate a complete log entry with all required fields
         await page.evaluate(async () => {
             // @ts-ignore
-            const { Logger } = await import('./js/logger.js');
+            const { Logger } = window;
             await Logger.logRequest({
                 id: 'test-persist-1',
                 url: 'https://api.example.com/persist',
@@ -69,7 +71,7 @@ test.describe('Logger & Persistent Storage', () => {
 
         // Reload page and verify persistence
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await openLogsTab(page);
 
@@ -82,7 +84,7 @@ test.describe('Logger & Persistent Storage', () => {
         // Inject logs with different dates - include all required fields
         await page.evaluate(async () => {
             // @ts-ignore
-            const { Logger } = await import('./js/logger.js');
+            const { Logger } = window;
             const now = Date.now();
             const twoDaysAgo = now - (2 * 24 * 60 * 60 * 1000);
 
@@ -136,7 +138,7 @@ test.describe('Logger & Persistent Storage', () => {
         // Create an old log entry with all required fields
         await page.evaluate(async () => {
             // @ts-ignore
-            const { Logger } = await import('./js/logger.js');
+            const { Logger } = window;
             const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
 
             await Logger.logRequest({
@@ -161,7 +163,7 @@ test.describe('Logger & Persistent Storage', () => {
         // Run deletion (delete logs older than 2 days)
         const deletedCount = await page.evaluate(async () => {
             // @ts-ignore
-            const { Logger } = await import('./js/logger.js');
+            const { Logger } = window;
             return await Logger.deleteOlderThan(2);
         });
 
@@ -179,7 +181,7 @@ test.describe('Logger & Persistent Storage', () => {
         // Create some log entries with all required fields
         await page.evaluate(async () => {
             // @ts-ignore
-            const { Logger } = await import('./js/logger.js');
+            const { Logger } = window;
             await Logger.logRequest({
                 id: 'badge-1',
                 url: 'https://a.com',

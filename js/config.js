@@ -16,7 +16,9 @@ const CONFIG_CONSTANTS = {
     DEFAULT_SUGGEST_ITEM_PROMPT: "You are an expert creative assistant. Your task is to suggest 20 new, unique, and descriptive sub-category names for a parent category called '{parentPath}'.\n\n**RULES:**\n1. The names must be suitable for use as filenames. Use underscores_between_words.\n2. The names must be specific and creative.\n3. **CRITICAL:** Do NOT include the parent category name ('{parentPath}') in your suggestions.\n4. **CRITICAL:** Do NOT use generic placeholders like \"new_item\", \"category_name\", or similar variations.\n5. The output MUST be ONLY a valid JSON array of objects. Each object must have a \"name\" and an \"instruction\" key.\n\nFor context, you will be given the existing items that are siblings to the one you are suggesting for. Do not suggest items that already exist in the provided structure.",
     DEFAULT_TEMPLATE_PROMPT: "You are a Template Architect for AI image prompts.\n\nCreate prompt TEMPLATES using ~~CategoryName~~ syntax that reference the provided wildcard categories.\n\nYou will receive a list of AVAILABLE WILDCARD CATEGORIES wrapped in ~~tildes~~.\n\n**RULES:**\n1. Use ONLY the provided category names in ~~CategoryName~~ format\n2. Each template MUST have at least 2 different categories\n3. Use natural English connectors between categories (doing, at, in, with, near, etc.)\n4. Create varied, semantically coherent scene compositions\n5. Combine subjects, actions, and environments creatively\n\nReturn ONLY a valid JSON array of 20 template strings.",
     DEFAULT_DEDUPLICATE_PROMPT: "You are an expert at organizing data. For each duplicate wildcard, determine which category path is the BEST semantic fit based on the category names. Choose the category that most naturally represents the wildcard's meaning.\n\nReturn a JSON array with your decisions. For each item, include:\n- \"wildcard\": the normalized wildcard text\n- \"keep_path\": the full path to the category that should keep this wildcard",
-    SHOW_GUIDANCE_STEP: true
+    SHOW_GUIDANCE_STEP: true,
+    ENABLE_PROMPT_CACHING: true,
+    CACHE_TTL: '1h'
 };
 
 export const Config = {};
@@ -33,6 +35,7 @@ export async function loadConfig() {
             API_URL_CUSTOM: "http://127.0.0.1:1234/v1",
             MODEL_NAME_GEMINI: "",
             MODEL_NAME_OPENROUTER: "",
+            MODEL_NAME_GROQ: "",
             MODEL_NAME_CUSTOM: "",
             API_ENDPOINT: "openrouter",
             CUSTOM_SYSTEM_PROMPT: null,  // null = use default from config.json
@@ -120,9 +123,10 @@ export async function loadConfig() {
             return '';
         };
 
-        Config.API_KEY_GEMINI = await loadKey('gemini');
-        Config.API_KEY_OPENROUTER = await loadKey('openrouter');
-        Config.API_KEY_CUSTOM = await loadKey('custom');
+        Config.GEMINI_API_KEY = await loadKey('gemini');
+        Config.OPENROUTER_API_KEY = await loadKey('openrouter');
+        Config.GROQ_API_KEY = await loadKey('groq');
+        Config.CUSTOM_API_KEY = await loadKey('custom');
 
     } catch (error) {
         console.error("Failed to load configuration:", error);
@@ -169,7 +173,10 @@ export async function saveConfig() {
             CARD_HEIGHT: 54,
             STORAGE_PROFILE: 'default',
             USE_HYBRID_ENGINE: false,
-            TEMPLATE_MODE: 'wildcard'
+            TEMPLATE_MODE: 'wildcard',
+            // Prompt Caching
+            ENABLE_PROMPT_CACHING: true,
+            CACHE_TTL: '1h'
         };
         const allDefaults = { ...CONFIG_CONSTANTS, ...userDefaults };
 
@@ -194,6 +201,7 @@ export async function saveConfig() {
                     'DEFAULT_WILDCARDS_VISIBLE', 'ENABLE_ANIMATIONS', 'COMPACT_CARD_MODE', 'AUTO_SAVE_INTERVAL', 'STORAGE_PROFILE', 'CARD_HEIGHT',
                     'DEFAULT_WILDCARDS_VISIBLE', 'ENABLE_ANIMATIONS', 'COMPACT_CARD_MODE', 'AUTO_SAVE_INTERVAL', 'STORAGE_PROFILE',
                     'USE_HYBRID_ENGINE', 'TEMPLATE_MODE',
+                    'ENABLE_PROMPT_CACHING', 'CACHE_TTL',
                     'LOG_MAX_ENTRIES', 'LOG_AUTO_DELETE_DAYS'
                 ].includes(key)) {
                     changedConfig[key] = Config[key];
@@ -243,7 +251,7 @@ function arrayBufferToBase64(buffer) {
 
 export async function saveApiKey(provider, key, persist) {
     // TODO: Add key format validation (e.g., OpenRouter keys start with 'sk-or-')
-    const configKey = `API_KEY_${provider.toUpperCase()}`;
+    const configKey = `${provider.toUpperCase()}_API_KEY`;
     Config[configKey] = key;
 
     const storageKey = `wildcards_api_key_${provider}`;

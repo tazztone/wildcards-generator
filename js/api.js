@@ -286,17 +286,29 @@ export const Api = {
         const leafNames = Object.keys(pathMap);
         const leafList = leafNames.map(name => `~~${name}~~`).join(', ');
 
-        let userPrompt = `AVAILABLE WILDCARD CATEGORIES:\n${leafList}\n\nINSTRUCTIONS: ${instructions}`;
+        // Create multipart prompt structure for caching
+        // Part 1: System Prompt (Template instructions) - Cached
+        // Part 2: Large Category List - Cached
+        // Part 3: User instructions - Not cached (handled in _makeRequest logic by appending userPrompt)
 
+        // We pass the "System" parts as the globalPrompt
+        const globalPromptParts = [
+            { text: templatePrompt, cache: true }, // Cache the base instruction
+            { text: `AVAILABLE WILDCARD CATEGORIES:\n${leafList}`, cache: true } // Cache the heavy list
+        ];
+
+        // The userPrompt will be appended as the final non-cached part
+        let userPrompt = `INSTRUCTIONS: ${instructions}`;
         if (guidance) {
             userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;
         }
+
         const generationConfig = {
             responseMimeType: "application/json",
             responseSchema: { type: "ARRAY", items: { type: "STRING" } }
         };
 
-        const { result } = await this._makeRequest(templatePrompt, userPrompt, generationConfig);
+        const { result } = await this._makeRequest(globalPromptParts, userPrompt, generationConfig);
         let templates = this._parseResponse(result);
 
         // Validation BEFORE expansion (leaf names are used directly)
@@ -561,6 +573,11 @@ Return a JSON array with your classifications. Be concise.`;
                 url = `https://openrouter.ai/api/v1/models`;
                 requestOptions.headers['Authorization'] = `Bearer ${apiKey}`;
 
+            } else if (provider === 'groq') {
+                const apiKey = getKey('groq-api-key');
+                if (!apiKey) throw new Error("Groq API key not provided.");
+                url = 'https://api.groq.com/openai/v1/models';
+                requestOptions.headers['Authorization'] = `Bearer ${apiKey}`;
             } else if (provider === 'custom') {
                 const customUrl = getVal('custom-api-url');
                 if (!customUrl) throw new Error("Custom API URL is not provided.");
@@ -592,6 +609,10 @@ Return a JSON array with your classifications. Be concise.`;
                 if (!list.length && !Array.isArray(list)) throw new Error('Invalid response from OpenRouter API.');
 
                 successMessage = `OpenRouter key verified! Found ${list.length} models.`;
+                models = list;
+            } else if (provider === 'groq') {
+                const list = Array.isArray(data) ? data : (data.data || []);
+                successMessage = `Groq connection successful! Found ${list.length} models.`;
                 models = list;
             } else if (provider === 'custom') {
                 const list = Array.isArray(data) ? data : (data.data || []);
@@ -649,28 +670,56 @@ Return a JSON array with your classifications. Be concise.`;
                 ],
                 generationConfig: geminiGenConfig
             };
-        } else if (endpoint === 'openrouter' || endpoint === 'custom') {
+        } else if (endpoint === 'openrouter' || endpoint === 'groq' || endpoint === 'custom') {
             const isCustom = endpoint === 'custom';
-            apiKey = getKey(isCustom ? 'custom-api-key' : 'openrouter-api-key');
-            const model = getVal(isCustom ? 'custom-model-name' : 'openrouter-model-name') || (isCustom ? "" : ":free");
+            const isGroq = endpoint === 'groq';
 
-            if (!isCustom && !apiKey) throw new Error("OpenRouter API key is not provided.");
+            if (isCustom) {
+                apiKey = getKey('custom-api-key');
+            } else if (isGroq) {
+                apiKey = getKey('groq-api-key');
+            } else {
+                apiKey = getKey('openrouter-api-key');
+            }
+
+            const model = getVal(isCustom ? 'custom-model-name' : (isGroq ? 'groq-model-name' : 'openrouter-model-name'))
+                || (isCustom ? "" : (isGroq ? "llama3-70b-8192" : ":free"));
+
+            if (!isCustom && !apiKey) throw new Error(`${isGroq ? 'Groq' : 'OpenRouter'} API key is not provided.`);
 
             if (isCustom) {
                 const customUrl = getVal('custom-api-url');
                 if (!customUrl) throw new Error("Custom API URL is not provided.");
                 url = `${customUrl.replace(/\/$/, '')}/chat/completions`;
+            } else if (isGroq) {
+                url = 'https://api.groq.com/openai/v1/chat/completions';
             } else {
                 url = `https://openrouter.ai/api/v1/chat/completions`;
             }
 
             if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 
+            // Handle multipart content for caching vs simple string
+            let messages;
+            if (Config.ENABLE_PROMPT_CACHING && Config.API_ENDPOINT === 'openrouter') {
+                const content = this._constructMultipartContent(globalPrompt, userPrompt, model);
+                messages = [{ role: "user", content }];
+            } else {
+                // Fallback / Standard handling (OpenAI/Grok don't need explicit multipart for simple caching usually, but consistent structure helps)
+                // However, for compatibility with non-vision/non-advanced endpoints, we keep simple string if not caching explicitly
+                // Actually, let's stick to simple string concatenation if caching is disabled or not OpenRouter to reduce risk
+                messages = [
+                    {
+                        role: "user", content: Array.isArray(globalPrompt)
+                            ? globalPrompt.map(p => p.text).join('\n\n') + '\n\n' + userPrompt
+                            : `${globalPrompt}\n\n${userPrompt}`
+                    }
+                ];
+            }
+
             payload = {
                 model,
-                messages: [
-                    { role: "user", content: `${globalPrompt}\n\n${userPrompt}` }
-                ]
+                messages
             };
 
             // Only include parameters if they differ from defaults
@@ -712,6 +761,50 @@ Return a JSON array with your classifications. Be concise.`;
             throw new Error("Invalid API endpoint.");
         }
         return { url, payload, headers };
+    },
+
+    /**
+     * Helper to construct multipart content for OpenRouter caching
+     * @param {string|Array} globalPrompt 
+     * @param {string} userPrompt 
+     * @param {string} model 
+     * @returns {Array} content array for messages
+     */
+    _constructMultipartContent(globalPrompt, userPrompt, model) {
+        // Only apply caching if enabled and using OpenRouter
+        const useCaching = Config.ENABLE_PROMPT_CACHING && Config.API_ENDPOINT === 'openrouter';
+        const isAnthropic = model.includes('claude');
+        const content = [];
+
+        // Handle globalPrompt (can be string or array of parts)
+        if (Array.isArray(globalPrompt)) {
+            globalPrompt.forEach((part, index) => {
+                const item = { type: "text", text: part.text };
+                // Apply cache control if requested and enabled
+                // For Anthropic, we can have up to 4 breakpoints.
+                // We typically cache the system prompt/large context.
+                if (useCaching && part.cache) {
+                    item.cache_control = { type: "ephemeral" };
+                    // For Anthropic models, explicit TTL is supported to extend cache lifetime
+                    if (isAnthropic && Config.CACHE_TTL) {
+                        item.cache_control.ttl = Config.CACHE_TTL;
+                    }
+                }
+                content.push(item);
+            });
+        } else {
+            // Standard string system prompt
+            const item = { type: "text", text: globalPrompt };
+            if (useCaching) {
+                item.cache_control = { type: "ephemeral" };
+            }
+            content.push(item);
+        }
+
+        // Add user prompt (never cached usually, as it changes)
+        content.push({ type: "text", text: userPrompt });
+
+        return content;
     },
 
     _parseResponse(result) {

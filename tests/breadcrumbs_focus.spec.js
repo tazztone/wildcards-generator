@@ -1,5 +1,4 @@
-
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Breadcrumb Navigation Focus', () => {
     test.beforeEach(async ({ page }) => {
@@ -29,9 +28,9 @@ test.describe('Breadcrumb Navigation Focus', () => {
             localStorage.setItem('wildcardGeneratorState_v12', JSON.stringify(mockData));
         });
 
-        // Serve the directory
-        await page.goto('/');
-        await page.waitForSelector('.category-item');
+        // Reload to apply the mock data (since fixture already navigated once)
+        await page.reload();
+        await page.waitForFunction(() => window.State && window.State._rawData && window.State._rawData.wildcards);
     });
 
     test('should expand details and scroll on breadcrumb navigation', async ({ page }) => {

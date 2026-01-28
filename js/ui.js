@@ -1424,6 +1424,19 @@ export const UI = {
                 showKeyHelp: false
             },
             {
+                id: 'groq',
+                title: 'Groq API',
+                linkUrl: 'https://console.groq.com/keys',
+                apiKeyId: 'groq-api-key',
+                apiKeyPlaceholder: 'gsk_...',
+                modelNameId: 'groq-model-name',
+                modelListId: 'groq-model-list',
+                modelPlaceholder: 'e.g., llama3-70b-8192',
+                loadingId: 'groq-model-loading-indicator',
+                errorId: 'groq-model-error-indicator',
+                showKeyHelp: false
+            },
+            {
                 id: 'custom',
                 title: 'Custom API',
                 isCustom: true,
@@ -1488,7 +1501,7 @@ export const UI = {
             apiKeyInput.placeholder = p.apiKeyPlaceholder;
 
             // POPULATE KEY FROM CONFIG
-            const configKey = `API_KEY_${p.id.toUpperCase()}`;
+            const configKey = `${p.id.toUpperCase()}_API_KEY`;
             if (Config[configKey]) {
                 apiKeyInput.value = Config[configKey];
             }
@@ -1692,7 +1705,7 @@ export const UI = {
                     btn.classList.add('animate-spin');
                     // Note: Api is imported in app.js and exposed globally
                     // @ts-ignore
-                    window.Api?.testConnection(p.id, null, Config[`API_KEY_${p.id.toUpperCase()}`]).then(models => {
+                    window.Api?.testConnection(p.id, null, Config[`${p.id.toUpperCase()}_API_KEY`]).then(models => {
                         this.populateModelList(p.id, models);
                         btn.classList.remove('animate-spin');
                         this.showToast(`Fetched ${models?.length || 0} models`, 'success');
