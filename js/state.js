@@ -539,83 +539,83 @@ const State = {
 
         this.saveStateToHistory(); // Crucial: Undo point
 
-        let removedCount = 0;
-        let requiresUpdate = false;
+        const removalsByParent = new Map(); // Map<path, Set<normalized_term>>
 
-        // Process each duplicate group
+        // Stage 1: Determine all removals and group them by parent path.
         duplicates.forEach(dupe => {
             let toKeep;
             let toRemove;
 
             if (strategy === 'ai-smart' && aiDecisions) {
-                // AI has decided which path to keep
                 const keepPath = aiDecisions.get(dupe.normalized);
                 if (keepPath) {
                     toKeep = dupe.locations.find(loc => loc.path === keepPath);
                     toRemove = dupe.locations.filter(loc => loc.path !== keepPath);
                 } else {
-                    // Fallback to first if AI didn't decide
                     toKeep = dupe.locations[0];
                     toRemove = dupe.locations.slice(1);
                 }
             } else if (strategy === 'keep-first') {
-                // Keep the first occurrence in traversal order (lowest index overall)
-                // Locations are already in traversal order from findDuplicates
                 toKeep = dupe.locations[0];
                 toRemove = dupe.locations.slice(1);
             } else if (strategy === 'keep-last') {
-                // Keep the last occurrence in traversal order
                 toKeep = dupe.locations[dupe.locations.length - 1];
                 toRemove = dupe.locations.slice(0, -1);
             } else {
-                // Sort locations based on path depth strategy
                 const sortedLocs = [...dupe.locations].sort((a, b) => {
                     const lenA = a.path.split('/').length;
                     const lenB = b.path.split('/').length;
-
                     if (strategy === 'shortest-path') {
-                        // We want shortest first (to keep)
-                        if (lenA !== lenB) return lenA - lenB;
-                        return a.path.localeCompare(b.path);
-                    } else {
-                        // longest-path: We want longest first (to keep)
-                        if (lenA !== lenB) return lenB - lenA;
-                        return a.path.localeCompare(b.path);
+                        return lenA !== lenB ? lenA - lenB : a.path.localeCompare(b.path);
+                    } else { // longest-path
+                        return lenA !== lenB ? lenB - lenA : a.path.localeCompare(b.path);
                     }
                 });
-
                 toKeep = sortedLocs[0];
                 toRemove = sortedLocs.slice(1);
             }
 
-            toRemove.forEach(loc => {
-                // Operate on _rawData directly to avoid Proxy traps and side effects during bulk delete
-                let parent = this._rawData.wildcards;
-                const parts = loc.path.split('/');
-                for (const part of parts) {
-                    if (parent && parent[part] !== undefined) {
-                        parent = parent[part];
-                    } else {
-                        parent = undefined;
-                        break;
-                    }
-                }
+            // If a location is kept, ensure its original value is preserved, not just the normalized form.
+            // This is implicitly handled by not removing it.
 
-                if (parent && parent.wildcards && Array.isArray(parent.wildcards)) {
-                    // Find index by value
-                    const idx = parent.wildcards.findIndex(w => w.toLowerCase().trim() === dupe.normalized);
-                    if (idx !== -1) {
-                        parent.wildcards.splice(idx, 1);
-                        removedCount++;
-                        requiresUpdate = true;
-                    }
+            toRemove.forEach(loc => {
+                if (!removalsByParent.has(loc.path)) {
+                    removalsByParent.set(loc.path, new Set());
                 }
+                removalsByParent.get(loc.path).add(dupe.normalized);
             });
         });
 
-        if (requiresUpdate) {
+        if (removalsByParent.size === 0) {
+            return 0; // Nothing to remove
+        }
+
+        let removedCount = 0;
+
+        // Stage 2: Process the batched removals efficiently.
+        removalsByParent.forEach((normalizedValuesToRemove, path) => {
+            // Get the parent object ONCE for this path.
+            let parent = this._rawData.wildcards;
+            const parts = path.split('/');
+            for (const part of parts) {
+                if (parent && parent[part] !== undefined) {
+                    parent = parent[part];
+                } else {
+                    parent = undefined;
+                    break;
+                }
+            }
+
+            if (parent && parent.wildcards && Array.isArray(parent.wildcards)) {
+                const originalLength = parent.wildcards.length;
+                parent.wildcards = parent.wildcards.filter(w => !normalizedValuesToRemove.has(w.toLowerCase().trim()));
+                removedCount += originalLength - parent.wildcards.length;
+            }
+        });
+
+        if (removedCount > 0) {
             this._saveToLocalStorage();
-            // Dispatch reset to force full UI refresh since we bypassed proxy events
+            // Dispatch reset to force full UI refresh since we bypassed proxy events.
             this.events.dispatchEvent(new CustomEvent('state-reset'));
         }
 

@@ -320,4 +320,53 @@ test.describe('Duplicate Cleaning Logic', () => {
         expect(resultingWildcards.B.wildcards).not.toContain('term');
         expect(resultingWildcards.C.wildcards).toContain('term');
     });
+
+    test('Clean Duplicates - Performance with many duplicates', async ({ page }) => {
+        // This test might be slow with the unoptimized version.
+        test.setTimeout(15000); // 15s timeout, might fail on slow machines before optimization
+
+        await page.evaluate(() => {
+            const wildcards = {};
+            for (let i = 0; i < 100; i++) {
+                wildcards[`Category_${i}`] = {
+                    wildcards: []
+                };
+                for (let j = 0; j < 50; j++) {
+                    wildcards[`Category_${i}`].wildcards.push(`term_${j}`);
+                }
+            }
+             // Add a few extra duplicates across all categories
+            for (let i = 0; i < 100; i++) {
+                 wildcards[`Category_${i}`].wildcards.push('shared_term');
+            }
+
+            window.State._rawData.wildcards = wildcards;
+            window.State._initProxy();
+        });
+
+        const duplicates = await page.evaluate(() => window.State.findDuplicates().duplicates);
+        expect(duplicates.find(d => d.normalized === 'shared_term').count).toBe(100);
+
+
+        const startTime = Date.now();
+        const removedCount = await page.evaluate(() => {
+            const dupes = window.State.findDuplicates().duplicates;
+            return window.State.cleanDuplicates(dupes, 'keep-first');
+        });
+        const endTime = Date.now();
+
+        const duration = endTime - startTime;
+        console.log(`cleanDuplicates took ${duration}ms to remove ${removedCount} duplicates.`);
+
+        // Expect it to be reasonably fast. This might fail before the fix.
+        // A reasonable expectation after optimization would be < 1000ms.
+        // Let's set a high bar that the current implementation might fail.
+        expect(duration).toBeLessThan(5000); // The current implementation will likely be much slower.
+
+        // Total shared_term duplicates are 100, we keep 1, so 99 are removed.
+        expect(removedCount).toBe(99);
+
+        const finalDuplicates = await page.evaluate(() => window.State.findDuplicates().duplicates);
+        expect(finalDuplicates.find(d => d.normalized === 'shared_term')).toBeUndefined();
+    });
 });
