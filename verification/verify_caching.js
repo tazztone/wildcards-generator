@@ -1,6 +1,6 @@
 
-import { Config } from './js/config.js';
-import { Api } from './js/api.js';
+import { Config } from '../js/config.js';
+import { Api } from '../js/api.js';
 
 // Mock Config
 Config.ENABLE_PROMPT_CACHING = true;

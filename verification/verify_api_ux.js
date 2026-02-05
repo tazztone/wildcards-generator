@@ -49,11 +49,12 @@ const path = require('path');
     }
 
     // Take screenshot of the settings panel with the new buttons
+    const screenshotPath = path.join(__dirname, 'settings-api-key-ux.png');
     await page.screenshot({
-        path: 'verification/settings-api-key-ux.png',
+        path: screenshotPath,
         clip: { x: 0, y: 0, width: 1000, height: 800 } // approximate clip, or full page
     });
 
-    console.log('Verification successful');
+    console.log('Verification successful: ' + screenshotPath);
     await browser.close();
 })();

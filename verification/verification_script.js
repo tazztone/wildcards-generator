@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const path = require('path');
 
 (async () => {
     const browser = await chromium.launch();
@@ -6,25 +7,25 @@ const { chromium } = require('playwright');
 
     // Mock data
     await page.addInitScript(() => {
-         const mockData = {
-                wildcards: {
-                    'Top': {
+        const mockData = {
+            wildcards: {
+                'Top': {
+                    instruction: '',
+                    'Mid': {
                         instruction: '',
-                        'Mid': {
+                        'Bot': {
                             instruction: '',
-                            'Bot': {
-                                instruction: '',
-                                wildcards: ['item1', 'item2']
-                            }
+                            wildcards: ['item1', 'item2']
                         }
-                    },
-                    'Other': {
-                        instruction: '',
-                        wildcards: ['x', 'y']
                     }
+                },
+                'Other': {
+                    instruction: '',
+                    wildcards: ['x', 'y']
                 }
-            };
-            localStorage.setItem('wildcardGeneratorState_v12', JSON.stringify(mockData));
+            }
+        };
+        localStorage.setItem('wildcardGeneratorState_v12', JSON.stringify(mockData));
     });
 
     // Use 8081
@@ -40,7 +41,7 @@ const { chromium } = require('playwright');
     await page.waitForTimeout(1000);
 
     // Screenshot
-    await page.screenshot({ path: '/home/jules/verification/breadcrumbs_focus.png', fullPage: true });
+    await page.screenshot({ path: path.join(__dirname, 'breadcrumbs_focus.png'), fullPage: true });
 
     await browser.close();
 })();

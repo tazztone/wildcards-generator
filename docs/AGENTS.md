@@ -57,11 +57,17 @@ The application runs entirely in the browser, relying on standard ES Modules and
 │   ├── ui.js            # DOM manipulation
 │   ├── api.js           # API Logic
 │   ├── logger.js        # IndexedDB Logging Wrapper
+│   ├── config.js        # Default configuration
 │   ├── modules/         # Feature modules (mindmap, drag-drop)
-├── config/              # Default configuration
 ├── data/                # Initial wildcard data (YAML)
-├── tests/               # Playwright E2E tests
-└── docs/                # Architecture & guides
+├── tests/               # Playwright spec files (.spec.js)
+├── verification/        # Manual/automated verification scripts & screenshots
+├── test-results/        # Test run outputs & reports
+└── docs/                # Architecture, guides, & agent rules
+    ├── AGENTS.md        # This file
+    ├── TESTING.md       # Testing guide (moved from tests/)
+    ├── LLM_API_docs.md  # API integration details
+    └── mind_elixir.md   # Mindmap library notes
 ```
 
 ### Core Module Responsibilities

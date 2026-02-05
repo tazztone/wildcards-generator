@@ -5,7 +5,7 @@ const fs = require('fs');
 
 (async () => {
     // Ensure directory exists
-    const dir = '/home/jules/verification';
+    const dir = __dirname;
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }

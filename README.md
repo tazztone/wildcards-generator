@@ -171,15 +171,15 @@ To unlock AI generation features:
 
 ## 📚 Documentation
 
-- **[Architecture](AGENTS.md)**: technical deep dive into modules, state management, and UI logic.
-- **[Testing](tests/testing.md)**: running the Playwright test suite.
-- **[API Reference](docs/openrouter_API_docs.md)**: OpenRouter integration details.
+- **[Architecture](docs/AGENTS.md)**: technical deep dive into modules, state management, and UI logic.
+- **[Testing](docs/TESTING.md)**: running the Playwright test suite.
+- **[API Reference](docs/LLM_API_docs.md)**: OpenRouter integration details.
 
 ## 🤝 Contributing
 
 Contributions are welcome! converting to a framework is NOT a goal; we aim to keep this vanilla and lightweight.
-See **[AGENTS.md](AGENTS.md)** for developer guidelines.
+See **[AGENTS.md](docs/AGENTS.md)** for developer guidelines.
 
 ## 🤖 For AI Agents
 
-See **[AGENTS.md](AGENTS.md)** for strict architectural rules and workflow instructions.
+See **[AGENTS.md](docs/AGENTS.md)** for strict architectural rules and workflow instructions.
