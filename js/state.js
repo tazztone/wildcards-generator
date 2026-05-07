@@ -463,7 +463,18 @@ const State = {
     // Helpers
     getObjectByPath(path) {
         if (!path) return this.state.wildcards;
-        return path.split('/').reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : undefined, this.state.wildcards);
+        let obj = this.state.wildcards;
+        let start = 0;
+        let pos = 0;
+        while (true) {
+            pos = path.indexOf('/', start);
+            const key = pos === -1 ? path.substring(start) : path.substring(start, pos);
+            if (obj === undefined || obj === null) return undefined;
+            obj = obj[key];
+            if (pos === -1) break;
+            start = pos + 1;
+        }
+        return obj;
     },
 
     getParentObjectByPath(path) {
