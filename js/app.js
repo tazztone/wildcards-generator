@@ -1816,13 +1816,12 @@ export const App = {
             UI.showToast('Generating suggestions batch...', 'info');
             const allResults = [];
 
-            // 1. Fetch suggestions for all categories
-            for (let i = 0; i < categories.length; i++) {
-                const cat = categories[i];
-                if (!cat.dataset.path) continue;
+            // 1. Fetch suggestions for all categories in parallel
+            const fetchPromises = categories.map(async (cat) => {
+                if (!cat.dataset.path) return null;
                 const path = cat.dataset.path;
                 const parent = State.getObjectByPath(path);
-                if (!parent) continue;
+                if (!parent) return null;
 
                 const cleanName = path.split('/').pop().replace(/_/g, ' ');
                 const existingStructure = Object.keys(parent).filter(k => k !== 'instruction' && k !== 'wildcards');
@@ -1831,15 +1830,22 @@ export const App = {
                     const { suggestions, request } = await Api.suggestItems(
                         path,
                         existingStructure,
-                        State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT
+                        State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT,
+                        (parent && parent.instruction) || '',
+                        '', // guidance
+                        false // abortPrevious
                     );
                     if (suggestions && suggestions.length > 0) {
-                        allResults.push({ path, name: cleanName, suggestions, parent, request });
+                        return { path, name: cleanName, suggestions, parent, request };
                     }
                 } catch (e) {
                     console.error(`Failed to suggest for ${path}`, e);
                 }
-            }
+                return null;
+            });
+
+            const results = await Promise.all(fetchPromises);
+            allResults.push(...results.filter(r => r !== null));
 
             if (allResults.length === 0) {
                 UI.showToast('No suggestions returned', 'info');

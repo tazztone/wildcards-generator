@@ -52,9 +52,10 @@ export const Api = {
         Logger.clear().catch(e => console.error("Failed to clear logs:", e));
     },
 
-    async _makeRequest(globalPrompt, userPrompt, generationConfig) {
-        if (this.activeController) this.activeController.abort();
-        this.activeController = new AbortController();
+    async _makeRequest(globalPrompt, userPrompt, generationConfig, abortPrevious = true) {
+        if (abortPrevious && this.activeController) this.activeController.abort();
+        const controller = new AbortController();
+        if (abortPrevious) this.activeController = controller;
 
         try {
             const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
@@ -64,7 +65,7 @@ export const Api = {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(currentPayload),
-                    signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)])
+                    signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)])
                 });
                 if (!res.ok) {
                     const text = await res.text();
@@ -106,7 +107,7 @@ export const Api = {
             console.error("Error calling LLM API:", error);
             throw error;
         } finally {
-            this.activeController = null;
+            if (abortPrevious && this.activeController === controller) this.activeController = null;
         }
     },
 
@@ -114,9 +115,10 @@ export const Api = {
      * Make a streaming request to the LLM API with progress callbacks.
      * Uses SSE (Server-Sent Events) format to receive streamed responses.
      */
-    async _makeStreamingRequest(globalPrompt, userPrompt, generationConfig, onProgress) {
-        if (this.activeController) this.activeController.abort();
-        this.activeController = new AbortController();
+    async _makeStreamingRequest(globalPrompt, userPrompt, generationConfig, onProgress, abortPrevious = true) {
+        if (abortPrevious && this.activeController) this.activeController.abort();
+        const controller = new AbortController();
+        if (abortPrevious) this.activeController = controller;
         const startTime = Date.now();
 
         try {
@@ -129,7 +131,7 @@ export const Api = {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(currentPayload),
-                    signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(60000)])
+                    signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60000)])
                 });
                 if (!res.ok) {
                     const text = await res.text();
@@ -212,7 +214,7 @@ export const Api = {
             console.error("Error calling LLM API (streaming):", error);
             throw error;
         } finally {
-            this.activeController = null;
+            if (abortPrevious && this.activeController === controller) this.activeController = null;
         }
     },
 
@@ -234,7 +236,7 @@ export const Api = {
         return this._parseResponse(result);
     },
 
-    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '', guidance = '') {
+    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '', guidance = '', abortPrevious = true) {
         const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
         const globalPrompt = suggestItemPrompt.replace('{parentPath}', readablePath);
 
@@ -269,7 +271,7 @@ export const Api = {
             }
         };
 
-        const { result, request } = await this._makeRequest(globalPrompt, userPrompt, generationConfig);
+        const { result, request } = await this._makeRequest(globalPrompt, userPrompt, generationConfig, abortPrevious);
         return { suggestions: this._parseResponse(result), request };
     },
 
@@ -499,7 +501,7 @@ Return a JSON array with your classifications. Be concise.`;
                 const userPrompt = `Please analyze these ${batch.length} duplicate wildcards and pick the best category for each:\n\n${batchPrompt}`;
 
                 try {
-                    const { result } = await this._makeRequest(systemPrompt, userPrompt, generationConfig);
+                    const { result } = await this._makeRequest(systemPrompt, userPrompt, generationConfig, false);
                     const parsed = this._parseResponse(result);
 
                     // Store decisions
