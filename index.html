@@ -1206,6 +1206,13 @@
         </div>
 
         <div class="space-y-4">
+            <div class="flex flex-col gap-2">
+                <label for="guidance-count" class="text-sm text-gray-400">Number of items to generate:</label>
+                <input type="number" id="guidance-count"
+                    class="w-24 bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    min="1" max="100" value="20">
+            </div>
+
             <p class="text-sm text-gray-400">Add specific instructions for this generation (optional):</p>
             <textarea id="guidance-input"
                 class="w-full h-32 bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none custom-scrollbar"

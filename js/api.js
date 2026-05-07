@@ -216,13 +216,21 @@ export const Api = {
         }
     },
 
-    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '') {
-        // TODO: Add option to specify desired output count (e.g., "generate 20 items")
+    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '', outputCount = 20) {
         // TODO: Implement streaming response display for better UX during generation
         // TODO: Consider batching multiple small generation requests into one
         const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
-        const sysPrompt = globalPrompt.replace('{category}', readablePath);
+        let sysPrompt = globalPrompt.replace('{category}', readablePath);
+
+        // Replace {count} placeholder or fallback to replacing literal "20"
+        if (sysPrompt.includes('{count}')) {
+            sysPrompt = sysPrompt.replace(/{count}/g, outputCount);
+        } else {
+            sysPrompt = sysPrompt.replace(/\b20\b/g, outputCount);
+        }
+
         let userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+        userPrompt += `\n\nDesired Output Count: Exactly ${outputCount} unique items.`;
 
         if (guidance) {
             userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;
