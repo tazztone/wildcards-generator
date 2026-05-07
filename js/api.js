@@ -194,7 +194,9 @@ export const Api = {
                                 }
                             }
                         } catch (e) {
-                            // Ignore parse errors for malformed chunks
+                            // Only log real parse errors, not just potentially incomplete chunks
+                            // though SSE should usually give us full JSON strings per 'data: ' line.
+                            console.debug("Failed to parse SSE chunk:", data, e);
                         }
                     }
                 }
@@ -810,20 +812,32 @@ Return a JSON array with your classifications. Be concise.`;
     _parseResponse(result) {
         // TODO: Add response validation against expected schema
         // TODO: Implement graceful extraction of partial data from malformed responses
-        // TODO: Log parsing failures with full context for debugging
         const endpoint = document.getElementById('api-endpoint').value;
+        let contentStr = '';
+
         try {
-            if (endpoint === 'gemini') return JSON.parse(result.candidates[0].content.parts[0].text);
-            if (endpoint === 'openrouter' || endpoint === 'custom') {
-                let contentStr = result.choices[0].message.content.trim();
+            if (endpoint === 'gemini') {
+                contentStr = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            } else if (endpoint === 'openrouter' || endpoint === 'custom' || endpoint === 'groq') {
+                contentStr = result?.choices?.[0]?.message?.content?.trim() || '';
                 const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
                 if (match) contentStr = match[1];
-                const content = JSON.parse(contentStr);
-                return Array.isArray(content) ? content : content.wildcards || content.categories || content.items || [];
             }
-            return [];
+
+            if (!contentStr) {
+                throw new Error("Empty response content");
+            }
+
+            const content = JSON.parse(contentStr);
+            return Array.isArray(content) ? content : content.wildcards || content.categories || content.items || [];
         } catch (e) {
-            console.error("Failed to parse AI response:", result, e);
+            console.error("Failed to parse AI response:", {
+                endpoint,
+                error: e.message,
+                stack: e.stack,
+                contentStr,
+                fullResult: result
+            });
             throw new Error(`The AI returned a malformed response. Error: ${e.message}`);
         }
     },
@@ -1511,23 +1525,34 @@ Return a JSON array with your classifications. Be concise.`;
      * Helper to parse test response based on provider format.
      */
     _parseTestResponse(provider, result) {
+        let contentStr = '';
         try {
-            let contentStr;
             if (provider === 'gemini') {
-                contentStr = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                contentStr = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
             } else {
-                contentStr = result.choices?.[0]?.message?.content || '';
+                contentStr = result?.choices?.[0]?.message?.content || '';
             }
 
             contentStr = contentStr.trim();
             const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
             if (match) contentStr = match[1];
 
+            if (!contentStr) {
+                throw new Error("Empty test response content");
+            }
+
             const parsed = JSON.parse(contentStr);
             // Handle wrapped responses
             if (parsed.items && Array.isArray(parsed.items)) return parsed.items;
             return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
+            console.error("Failed to parse AI test response:", {
+                provider,
+                error: e.message,
+                stack: e.stack,
+                contentStr,
+                fullResult: result
+            });
             return [];
         }
     },
