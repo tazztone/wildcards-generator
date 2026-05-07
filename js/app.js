@@ -518,11 +518,14 @@ export const App = {
     <section class="border-t border-indigo-500/20 pt-3">
         <h3 class="text-lg font-bold text-indigo-300 mb-2">⌨️ Keyboard Shortcuts</h3>
         <div class="grid grid-cols-2 gap-2 text-sm bg-gray-900/40 rounded-lg p-3 border border-gray-800">
-            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+S</kbd> <span class="text-gray-500 ml-1">Save info</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+F</kbd> <span class="text-gray-500 ml-1">Search</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+N</kbd> <span class="text-gray-500 ml-1">New Category</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+S</kbd> <span class="text-gray-500 ml-1">Save</span></div>
             <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+Z</kbd> <span class="text-gray-500 ml-1">Undo</span></div>
             <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+Y</kbd> <span class="text-gray-500 ml-1">Redo</span></div>
             <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Escape</kbd> <span class="text-gray-500 ml-1">Collapse All</span></div>
             <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">↑ / ↓</kbd> <span class="text-gray-500 ml-1">Navigate</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">?</kbd> <span class="text-gray-500 ml-1">Show Help</span></div>
         </div>
     </section>
 
@@ -652,15 +655,7 @@ export const App = {
             }
             // Add Category Placeholder
             if (target.matches('#add-category-placeholder-btn')) {
-                UI.showNotification('Enter new top-level category name:', true, (name) => {
-                    if (name && name.trim()) {
-                        const key = name.trim().replace(/\s+/g, '_');
-                        if (State.state.wildcards[key]) { UI.showToast('Category already exists', 'error'); return; }
-                        State.saveStateToHistory();
-                        State.state.wildcards[key] = { _id: crypto.randomUUID().slice(0, 8), instruction: '' };
-                        UI.showToast(`Created "${name.trim()}"`, 'success');
-                    }
-                }, true);
+                this.addNewCategory();
             }
             // Suggest Top-Level
             if (target.matches('#suggest-toplevel-btn')) {
@@ -769,15 +764,28 @@ export const App = {
     },
 
     handleKeyboardShortcuts(e) {
-        // TODO: Add more keyboard shortcuts (Ctrl+F for search, Ctrl+N for new category)
-
-        // TODO: Add keyboard shortcut help overlay (show on '?')
         if (e.ctrlKey || e.metaKey) {
             switch (e.key.toLowerCase()) {
                 case 's': e.preventDefault(); UI.showToast('All changes are saved automatically.', 'info'); break;
                 case 'z': e.preventDefault(); State.undo(); break;
                 case 'y': e.preventDefault(); State.redo(); break;
+                case 'f':
+                    e.preventDefault();
+                    UI.elements.search?.focus();
+                    UI.elements.search?.select();
+                    break;
+                case 'n':
+                    e.preventDefault();
+                    this.addNewCategory();
+                    break;
             }
+            return;
+        }
+
+        // Show help on '?'
+        if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName) && !e.target.isContentEditable) {
+            e.preventDefault();
+            document.getElementById('help-btn')?.click();
             return;
         }
         // Arrow key navigation
@@ -1606,6 +1614,18 @@ export const App = {
                 ? { _id: crypto.randomUUID().slice(0, 8), instruction: '', wildcards: [] }
                 : { _id: crypto.randomUUID().slice(0, 8), instruction: '' };
             UI.showToast(`Created "${name.trim()}"`, 'success');
+        }, true);
+    },
+
+    addNewCategory() {
+        UI.showNotification('Enter new top-level category name:', true, (name) => {
+            if (name && name.trim()) {
+                const key = name.trim().replace(/\s+/g, '_');
+                if (State.state.wildcards[key]) { UI.showToast('Category already exists', 'error'); return; }
+                State.saveStateToHistory();
+                State.state.wildcards[key] = { _id: crypto.randomUUID().slice(0, 8), instruction: '' };
+                UI.showToast(`Created "${name.trim()}"`, 'success');
+            }
         }, true);
     },
 
