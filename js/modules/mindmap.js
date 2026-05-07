@@ -1052,23 +1052,17 @@ const Mindmap = {
         const normalizedQuery = query.toLowerCase().trim();
         const matchedNodes = [];
 
-        containers.forEach(container => {
-            // Mind Elixir topic elements (various possible selectors)
-            const topicSelectors = [
-                '.mind-elixir-topic',
-                '.me-topic',
-                '[class*="topic"]',
-                'me-tpc'
-            ];
+        // Mind Elixir topic elements (various possible selectors)
+        // Optimized: Combined into a single selector string for a single DOM query
+        const topicSelector = '.mind-elixir-topic, .me-topic, [class*="topic"], me-tpc';
 
-            topicSelectors.forEach(selector => {
-                container.querySelectorAll(selector).forEach(topic => {
-                    const text = topic.textContent?.toLowerCase() || '';
-                    if (text.includes(normalizedQuery)) {
-                        topic.classList.add('mindmap-search-highlight');
-                        matchedNodes.push(topic);
-                    }
-                });
+        containers.forEach(container => {
+            container.querySelectorAll(topicSelector).forEach(topic => {
+                const text = topic.textContent?.toLowerCase() || '';
+                if (text.includes(normalizedQuery)) {
+                    topic.classList.add('mindmap-search-highlight');
+                    matchedNodes.push(topic);
+                }
             });
         });
 
