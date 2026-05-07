@@ -1756,6 +1756,13 @@ export const App = {
         UI.showNotification(`Found ${tasks.length} wildcard lists.\nGenerate content for all of them?`, true, async () => {
             UI.showToast('Starting batch generation...', 'info');
 
+            // Cache DOM elements for better performance in the loop
+            /** @type {Map<string, HTMLElement>} */
+            const cardMap = new Map();
+            document.querySelectorAll('.wildcard-card').forEach(card => {
+                const path = /** @type {HTMLElement} */(card).dataset.path;
+                if (path) cardMap.set(path, /** @type {HTMLElement} */(card));
+            });
 
             // TODO: Show progress bar with estimated time remaining
             // Execute sequentially to be nice to API
@@ -1768,7 +1775,7 @@ export const App = {
                     UI.showToast(`Generating for "${cleanName}" (${i + 1}/${tasks.length})...`, 'info');
 
                     // Scroll to item
-                    const card = document.querySelector(`.wildcard-card[data-path="${task.path}"]`);
+                    const card = cardMap.get(task.path);
                     if (card) {
                         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         // Expand parents if hidden? ensure visibility
