@@ -1410,11 +1410,11 @@ export const App = {
     /**
      * Helper to get guidance from user if enabled
      * @param {string} title
-     * @returns {Promise<{confirmed: boolean, guidance: string}>}
+     * @returns {Promise<{confirmed: boolean, guidance: string, count: number}>}
      */
     async getGuidance(title) {
         if (!Config.SHOW_GUIDANCE_STEP) {
-            return { confirmed: true, guidance: '' };
+            return { confirmed: true, guidance: '', count: 20 };
         }
         return new Promise((resolve) => {
             UI.showGuidanceDialog(title, (result) => {
@@ -1469,7 +1469,8 @@ export const App = {
                 obj.wildcards,
                 obj.instruction,
                 null,
-                guidanceResult.guidance
+                guidanceResult.guidance,
+                guidanceResult.count
             );
             if (newItems && newItems.length) {
                 // Show modal to confirm addition (Legacy behavior)
@@ -1570,7 +1571,7 @@ export const App = {
             const templatePrompt = getEffectivePrompt('template');
             const instructions = obj.instruction || 'Generate creative scene templates combining the selected categories';
 
-            const templates = await Api.generateTemplates(pathMap, instructions, templatePrompt, guidanceResult.guidance);
+            const templates = await Api.generateTemplates(pathMap, instructions, templatePrompt, guidanceResult.guidance, guidanceResult.count);
 
             if (templates && templates.length > 0) {
                 State.saveStateToHistory();
@@ -1631,7 +1632,8 @@ export const App = {
                 existingStructure,
                 State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT,
                 (parent && parent.instruction) || '',
-                guidanceResult.guidance
+                guidanceResult.guidance,
+                guidanceResult.count
             );
 
             if (!suggestions || suggestions.length === 0) {
@@ -1831,7 +1833,10 @@ export const App = {
                     const { suggestions, request } = await Api.suggestItems(
                         path,
                         existingStructure,
-                        State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT
+                        State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT,
+                        '',
+                        '',
+                        20
                     );
                     if (suggestions && suggestions.length > 0) {
                         allResults.push({ path, name: cleanName, suggestions, parent, request });

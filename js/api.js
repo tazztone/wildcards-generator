@@ -216,12 +216,11 @@ export const Api = {
         }
     },
 
-    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '') {
-        // TODO: Add option to specify desired output count (e.g., "generate 20 items")
+    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '', count = 20) {
         // TODO: Implement streaming response display for better UX during generation
         // TODO: Consider batching multiple small generation requests into one
         const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
-        const sysPrompt = globalPrompt.replace('{category}', readablePath);
+        const sysPrompt = globalPrompt.replace('{category}', readablePath).replace(/{count}/g, String(count));
         let userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
 
         if (guidance) {
@@ -234,9 +233,9 @@ export const Api = {
         return this._parseResponse(result);
     },
 
-    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '', guidance = '') {
+    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '', guidance = '', count = 20) {
         const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
-        const globalPrompt = suggestItemPrompt.replace('{parentPath}', readablePath);
+        const globalPrompt = suggestItemPrompt.replace('{parentPath}', readablePath).replace(/{count}/g, String(count));
 
         let contextInfo = `For context, here are the existing sibling items at the same level:\n${JSON.stringify(structure, null, 2)}`;
         if (parentInstruction) {
@@ -281,7 +280,7 @@ export const Api = {
      * @param {string} templatePrompt - The system prompt for template generation
      * @returns {Promise<string[]>} Array of generated template strings with full paths
      */
-    async generateTemplates(pathMap, instructions, templatePrompt, guidance = '') {
+    async generateTemplates(pathMap, instructions, templatePrompt, guidance = '', count = 20) {
         // Build list of leaf names for LLM (semantic context without full path clutter)
         const leafNames = Object.keys(pathMap);
         const leafList = leafNames.map(name => `~~${name}~~`).join(', ');
@@ -293,7 +292,7 @@ export const Api = {
 
         // We pass the "System" parts as the globalPrompt
         const globalPromptParts = [
-            { text: templatePrompt, cache: true }, // Cache the base instruction
+            { text: templatePrompt.replace(/{count}/g, String(count)), cache: true }, // Cache the base instruction
             { text: `AVAILABLE WILDCARD CATEGORIES:\n${leafList}`, cache: true } // Cache the heavy list
         ];
 
@@ -860,7 +859,7 @@ Return a JSON array with your classifications. Be concise.`;
 
         // Use the actual system prompt from the app's config
         const readablePath = testCategoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
-        const systemPrompt = Config.DEFAULT_SYSTEM_PROMPT.replace('{category}', readablePath);
+        const systemPrompt = Config.DEFAULT_SYSTEM_PROMPT.replace('{category}', readablePath).replace(/{count}/g, '20');
         const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${testExistingItems.slice(0, 20).join(', ')}\nCustom Instructions: "${testInstruction}"`;
 
         try {
@@ -1180,7 +1179,7 @@ Return a JSON array with your classifications. Be concise.`;
         // Use the configured suggestion prompt
         const basePrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT;
         const parentPath = 'CREATURES_and_BEINGS';
-        const globalPrompt = basePrompt.replace('{parentPath}', parentPath);
+        const globalPrompt = basePrompt.replace('{parentPath}', parentPath).replace(/{count}/g, '20');
 
         // Mock sibling structure for context
         const siblingStructure = {
@@ -1241,7 +1240,7 @@ Return a JSON array with your classifications. Be concise.`;
     async testTemplates(provider, apiKey, modelName) {
         const startTime = performance.now();
 
-        const templatePrompt = Config.DEFAULT_TEMPLATE_PROMPT;
+        const templatePrompt = Config.DEFAULT_TEMPLATE_PROMPT.replace(/{count}/g, '20');
 
         // Mock path map like the real feature uses
         const pathMap = {
