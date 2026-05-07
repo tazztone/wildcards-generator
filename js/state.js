@@ -573,8 +573,14 @@ const State = {
                 // AI has decided which path to keep
                 const keepPath = aiDecisions.get(dupe.normalized);
                 if (keepPath) {
-                    toKeep = dupe.locations.find(loc => loc.path === keepPath);
-                    toRemove = dupe.locations.filter(loc => loc.path !== keepPath);
+                    toRemove = [];
+                    for (const loc of dupe.locations) {
+                        if (loc.path === keepPath) {
+                            toKeep = loc;
+                        } else {
+                            toRemove.push(loc);
+                        }
+                    }
                 } else {
                     // Fallback to first if AI didn't decide
                     toKeep = dupe.locations[0];
