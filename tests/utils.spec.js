@@ -42,4 +42,34 @@ test.describe('Utils Unit Tests', () => {
         expect(result.check1).toBe(0);
         expect(result.check2).toBe(1);
     });
+
+    test('throttle function limits execution frequency', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const { throttle } = await import('./js/utils.js');
+            let counter = 0;
+            const inc = throttle(() => counter++, 50);
+
+            inc(); // Leading edge: immediate execution (counter: 1)
+            inc(); // Throttled
+            inc(); // Throttled
+
+            const afterFirstCall = counter;
+
+            // Wait a bit, but less than the 'wait' period (50ms)
+            await new Promise(r => setTimeout(r, 20));
+            inc(); // Still throttled, but updates latestArgs for trailing edge
+            const midWay = counter;
+
+            // Wait until after the throttle period (50ms total from start)
+            // We've waited 20ms already, so 40ms more should be enough.
+            await new Promise(r => setTimeout(r, 60));
+            const afterThrottle = counter; // Should be 2 now due to trailing edge
+
+            return { afterFirstCall, midWay, afterThrottle };
+        });
+
+        expect(result.afterFirstCall).toBe(1);
+        expect(result.midWay).toBe(1);
+        expect(result.afterThrottle).toBe(2);
+    });
 });
