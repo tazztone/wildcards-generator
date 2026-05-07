@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { Config } from './config.js';
+import { validate } from './schema-validator.js';
 
 // TODO: Add request caching layer for identical prompts to reduce API costs
 // TODO: Implement exponential backoff retry logic for transient failures
@@ -227,7 +228,7 @@ export const Api = {
         const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
 
         const { result } = await this._makeRequest(sysPrompt, userPrompt, generationConfig);
-        return this._parseResponse(result);
+        return this._parseResponse(result, generationConfig.responseSchema);
     },
 
     async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '') {
@@ -262,7 +263,7 @@ export const Api = {
         };
 
         const { result, request } = await this._makeRequest(globalPrompt, userPrompt, generationConfig);
-        return { suggestions: this._parseResponse(result), request };
+        return { suggestions: this._parseResponse(result, generationConfig.responseSchema), request };
     },
 
     /**
@@ -285,7 +286,7 @@ export const Api = {
         };
 
         const { result } = await this._makeRequest(templatePrompt, userPrompt, generationConfig);
-        let templates = this._parseResponse(result);
+        let templates = this._parseResponse(result, generationConfig.responseSchema);
 
         // Validation BEFORE expansion (leaf names are used directly)
         const validLeaves = new Set(leafNames);
@@ -386,7 +387,7 @@ Return a JSON array with your classifications. Be concise.`;
 
             try {
                 const { result } = await this._makeRequest(systemPrompt, userPrompt, generationConfig);
-                const parsed = this._parseResponse(result);
+                const parsed = this._parseResponse(result, generationConfig.responseSchema);
 
                 // Validate and store results
                 if (Array.isArray(parsed)) {
@@ -476,7 +477,7 @@ Return a JSON array with your classifications. Be concise.`;
 
                 try {
                     const { result } = await this._makeRequest(systemPrompt, userPrompt, generationConfig);
-                    const parsed = this._parseResponse(result);
+                    const parsed = this._parseResponse(result, generationConfig.responseSchema);
 
                     // Store decisions
                     if (Array.isArray(parsed)) {
@@ -702,20 +703,34 @@ Return a JSON array with your classifications. Be concise.`;
         return { url, payload, headers };
     },
 
-    _parseResponse(result) {
-        // TODO: Add response validation against expected schema
+    _parseResponse(result, schema) {
         // TODO: Implement graceful extraction of partial data from malformed responses
         // TODO: Log parsing failures with full context for debugging
         const endpoint = document.getElementById('api-endpoint').value;
         try {
-            if (endpoint === 'gemini') return JSON.parse(result.candidates[0].content.parts[0].text);
-            if (endpoint === 'openrouter' || endpoint === 'custom') {
+            let content;
+            if (endpoint === 'gemini') {
+                content = JSON.parse(result.candidates[0].content.parts[0].text);
+            } else if (endpoint === 'openrouter' || endpoint === 'custom') {
                 let contentStr = result.choices[0].message.content.trim();
                 const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
                 if (match) contentStr = match[1];
-                const content = JSON.parse(contentStr);
-                return Array.isArray(content) ? content : content.wildcards || content.categories || content.items || [];
+                content = JSON.parse(contentStr);
             }
+
+            if (content && schema) {
+                const { isValid, errors } = validate(content, schema);
+                if (!isValid) {
+                    console.error("Schema validation failed:", errors);
+                    throw new Error(`The AI returned data in an unexpected format. Details: ${errors.join(', ')}`);
+                }
+            }
+
+            if (Array.isArray(content)) return content;
+            if (typeof content === 'object' && content !== null) {
+                return content.wildcards || content.categories || content.items || content;
+            }
+
             return [];
         } catch (e) {
             console.error("Failed to parse AI response:", result, e);
@@ -1104,7 +1119,7 @@ Return a JSON array with your classifications. Be concise.`;
             const { result, request } = await this._makeTestRequest(provider, apiKey, modelName, globalPrompt, userPrompt, generationConfig);
             const duration = Math.round(performance.now() - startTime);
 
-            const parsed = this._parseTestResponse(provider, result);
+            const parsed = this._parseTestResponse(provider, result, generationConfig.responseSchema);
             const isValidArray = Array.isArray(parsed) && parsed.length > 0;
             const hasCorrectShape = isValidArray && parsed[0]?.name && parsed[0]?.instruction;
 
@@ -1160,7 +1175,7 @@ Return a JSON array with your classifications. Be concise.`;
             const { result, request } = await this._makeTestRequest(provider, apiKey, modelName, templatePrompt, userPrompt, generationConfig);
             const duration = Math.round(performance.now() - startTime);
 
-            const parsed = this._parseTestResponse(provider, result);
+            const parsed = this._parseTestResponse(provider, result, generationConfig.responseSchema);
             const isValidArray = Array.isArray(parsed) && parsed.length > 0;
             // Check if templates contain __X__ or ~~X~~ format codes
             const hasValidTemplates = isValidArray && parsed.some(t => /__[A-Z]+__|~~[A-Z]+~~/.test(String(t)));
@@ -1241,7 +1256,7 @@ Return a JSON array with your classifications. Be concise.`;
             const { result, request } = await this._makeTestRequest(provider, apiKey, modelName, systemPrompt, userPrompt, generationConfig);
             const duration = Math.round(performance.now() - startTime);
 
-            const parsed = this._parseTestResponse(provider, result);
+            const parsed = this._parseTestResponse(provider, result, generationConfig.responseSchema);
             const isValidArray = Array.isArray(parsed) && parsed.length > 0;
             const hasCorrectShape = isValidArray && parsed[0]?.wildcard && parsed[0]?.keep_path;
 
@@ -1405,7 +1420,7 @@ Return a JSON array with your classifications. Be concise.`;
     /**
      * Helper to parse test response based on provider format.
      */
-    _parseTestResponse(provider, result) {
+    _parseTestResponse(provider, result, schema) {
         try {
             let contentStr;
             if (provider === 'gemini') {
@@ -1419,7 +1434,18 @@ Return a JSON array with your classifications. Be concise.`;
             if (match) contentStr = match[1];
 
             const parsed = JSON.parse(contentStr);
-            // Handle wrapped responses
+
+            if (parsed && schema) {
+                const { isValid, errors } = validate(parsed, schema);
+                if (!isValid) {
+                    // In a test context, we might not want to throw, but returning an empty array
+                    // will likely cause the test to fail, which is desired.
+                    console.error("Test response schema validation failed:", errors);
+                    return [];
+                }
+            }
+
+            // Handle wrapped responses (common in OpenAI schema-based responses)
             if (parsed.items && Array.isArray(parsed.items)) return parsed.items;
             return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
