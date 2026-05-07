@@ -216,13 +216,22 @@ export const Api = {
         }
     },
 
-    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '') {
-        // TODO: Add option to specify desired output count (e.g., "generate 20 items")
+    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '', count = 20) {
         // TODO: Implement streaming response display for better UX during generation
         // TODO: Consider batching multiple small generation requests into one
         const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
-        const sysPrompt = globalPrompt.replace('{category}', readablePath);
-        let userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+
+        // Support dynamic item count in prompts
+        let sysPrompt = globalPrompt.replace('{category}', readablePath);
+        if (sysPrompt.includes('{count}')) {
+            sysPrompt = sysPrompt.replace(/{count}/g, count);
+        } else {
+            // Regex fallback for legacy prompts that don't have the {count} placeholder but might have hardcoded '20'
+            // We only replace '20' if it looks like a count instruction to avoid accidental corruption
+            sysPrompt = sysPrompt.replace(/\b20\b/g, count);
+        }
+
+        let userPrompt = `Category Path: '${readablePath}'\nRequested Count: ${count} new items\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
 
         if (guidance) {
             userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;

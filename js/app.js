@@ -1410,11 +1410,11 @@ export const App = {
     /**
      * Helper to get guidance from user if enabled
      * @param {string} title
-     * @returns {Promise<{confirmed: boolean, guidance: string}>}
+     * @returns {Promise<{confirmed: boolean, guidance: string, count: number}>}
      */
     async getGuidance(title) {
         if (!Config.SHOW_GUIDANCE_STEP) {
-            return { confirmed: true, guidance: '' };
+            return { confirmed: true, guidance: '', count: 20 };
         }
         return new Promise((resolve) => {
             UI.showGuidanceDialog(title, (result) => {
@@ -1469,7 +1469,8 @@ export const App = {
                 obj.wildcards,
                 obj.instruction,
                 null,
-                guidanceResult.guidance
+                guidanceResult.guidance,
+                guidanceResult.count
             );
             if (newItems && newItems.length) {
                 // Show modal to confirm addition (Legacy behavior)
