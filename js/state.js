@@ -515,7 +515,9 @@ const State = {
         const wildcardMap = new Map();
 
         const scanData = (data, path) => {
-            Object.keys(data).filter(k => !RESERVED_KEYS.has(k)).forEach(key => {
+            for (const key of Object.keys(data)) {
+                if (RESERVED_KEYS.has(key)) continue;
+
                 const item = data[key];
                 const currentPath = path ? `${path}/${key}` : key;
 
@@ -528,7 +530,7 @@ const State = {
                 } else if (typeof item === 'object' && item !== null) {
                     scanData(item, currentPath);
                 }
-            });
+            }
         };
 
         scanData(this.state.wildcards, '');
