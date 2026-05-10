@@ -1206,10 +1206,20 @@
         </div>
 
         <div class="space-y-4">
-            <p class="text-sm text-gray-400">Add specific instructions for this generation (optional):</p>
-            <textarea id="guidance-input"
-                class="w-full h-32 bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none custom-scrollbar"
-                placeholder="Ex: 'make them spooky', 'focused on sci-fi', 'use vivid adjectives'..."></textarea>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="flex-grow">
+                    <p class="text-sm text-gray-400 mb-1">Add specific instructions (optional):</p>
+                    <textarea id="guidance-input"
+                        class="w-full h-24 bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none custom-scrollbar"
+                        placeholder="Ex: 'make them spooky', 'focused on sci-fi', 'use vivid adjectives'..."></textarea>
+                </div>
+                <div class="w-full sm:w-24">
+                    <p class="text-sm text-gray-400 mb-1">Count:</p>
+                    <input type="number" id="guidance-count"
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                        min="1" max="100" value="20">
+                </div>
+            </div>
 
             <div class="flex items-center justify-between pt-2">
                 <label class="flex items-center gap-2 cursor-pointer group">

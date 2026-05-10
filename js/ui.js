@@ -105,6 +105,7 @@ export const UI = {
             // Guidance Dialog
             guidanceDialog: document.getElementById('guidance-dialog'),
             guidanceInput: document.getElementById('guidance-input'),
+            guidanceCount: document.getElementById('guidance-count'),
             guidanceConfirmBtn: document.getElementById('guidance-confirm-btn'),
             guidanceCancelBtn: document.getElementById('guidance-cancel-btn'),
             guidanceCloseBtn: document.getElementById('guidance-close-btn'),
@@ -2451,19 +2452,79 @@ export const UI = {
         }
     },
 
+    showHelp() {
+        this.showNotification(`
+<div class="text-left space-y-4 max-w-lg custom-scrollbar max-h-[70vh] overflow-y-auto pr-2">
+    <section>
+        <h3 class="text-xl font-bold text-indigo-300 flex items-center gap-2 mb-2">🚀 Getting Started</h3>
+        <p class="text-xs text-gray-400 mb-3">Welcome to Wildcards Generator! This tool helps you manage and expand complex prompt libraries for AI image and text generation.</p>
+        <ul class="list-none space-y-2 text-sm">
+            <li class="flex items-start gap-2">
+                <span class="text-indigo-400 mt-0.5">⚙️</span>
+                <span><strong>API Setup:</strong> Click the gear icon to configure your AI provider (OpenRouter, Gemini, or Custom). You'll need an API key to use generation features.</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-green-400 mt-0.5">📁</span>
+                <span><strong>Organize:</strong> Click categories to expand them. You can drag and drop to reorder, nest categories, or move wildcards between lists.</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-purple-400 mt-0.5">✨</span>
+                <span><strong>AI Generation:</strong> Click the "Sparkle" button on any list to have the AI suggest new terms based on the existing ones.</span>
+            </li>
+        </ul>
+    </section>
+
+    <section class="border-t border-indigo-500/20 pt-3">
+        <h3 class="text-lg font-bold text-indigo-300 flex items-center gap-2 mb-2">🧩 Templates & Automation</h3>
+        <p class="text-xs text-gray-400 mb-2">The <code class="text-indigo-400">0_TEMPLATES</code> category is special. It powers the <strong>Hybrid Template System</strong>:</p>
+        <ul class="text-sm text-gray-300 list-disc list-inside space-y-1">
+            <li>Items here can use <code class="text-indigo-400">~~wildcard_name~~</code> syntax to reference other lists.</li>
+            <li>Use the <strong>Analyze Categories</strong> button in settings to let AI tag your lists (e.g., "Subject", "Location").</li>
+            <li>The system can then generate complex prompts by intelligently picking items from matching categories.</li>
+        </ul>
+    </section>
+
+    <section class="border-t border-indigo-500/20 pt-3">
+        <h3 class="text-lg font-bold text-indigo-300 mb-2">⌨️ Keyboard Shortcuts</h3>
+        <div class="grid grid-cols-2 gap-2 text-sm bg-gray-900/40 rounded-lg p-3 border border-gray-800">
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+S</kbd> <span class="text-gray-500 ml-1">Save info</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+Z</kbd> <span class="text-gray-500 ml-1">Undo</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+Y</kbd> <span class="text-gray-500 ml-1">Redo</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+F</kbd> <span class="text-gray-500 ml-1">Search</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+N</kbd> <span class="text-gray-500 ml-1">New Category</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Escape</kbd> <span class="text-gray-500 ml-1">Collapse All</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">↑ / ↓</kbd> <span class="text-gray-500 ml-1">Navigate</span></div>
+            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">?</kbd> <span class="text-gray-500 ml-1">Help</span></div>
+        </div>
+    </section>
+
+    <section class="border-t border-indigo-500/20 pt-3">
+        <h3 class="text-lg font-bold text-indigo-300 mb-2">💡 Pro Tips</h3>
+        <ul class="text-sm text-gray-300 list-disc list-inside space-y-1">
+            <li><strong>Double-click</strong> any title or item to rename it instantly.</li>
+            <li>Use <strong>Dupe Finder</strong> (toolbar) to find and merge repeated entries across your collection.</li>
+            <li><strong>Pin</strong> categories via their header to keep your most-used lists at the top.</li>
+            <li>Export your collection as <strong>ZIP</strong> to get a portable structure ready for use in Stable Diffusion.</li>
+        </ul>
+    </section>
+</div>
+`);
+    },
+
     /**
      * Show guidance dialog before API call
      * @param {string} title - Context title
-     * @param {function({confirmed: boolean, guidance: string}): void} onResult
+     * @param {function({confirmed: boolean, guidance: string, count: number}): void} onResult
      */
     showGuidanceDialog(title, onResult) {
         if (!this.elements.guidanceDialog) {
-            onResult({ confirmed: true, guidance: '' });
+            onResult({ confirmed: true, guidance: '', count: 20 });
             return;
         }
 
         const dialog = this.elements.guidanceDialog;
         const input = this.elements.guidanceInput;
+        const countInput = this.elements.guidanceCount;
         const confirmBtn = this.elements.guidanceConfirmBtn;
         const cancelBtn = this.elements.guidanceCancelBtn;
         const closeBtn = this.elements.guidanceCloseBtn;
@@ -2471,23 +2532,25 @@ export const UI = {
 
         // Reset state
         if (input) input.value = '';
+        if (countInput) countInput.value = '20';
         if (dontShowAgain) dontShowAgain.checked = false;
 
         const handleConfirm = () => {
             const guidance = input ? input.value.trim() : '';
+            const count = countInput ? parseInt(countInput.value) || 20 : 20;
             if (dontShowAgain && dontShowAgain.checked) {
                 Config.SHOW_GUIDANCE_STEP = false;
                 saveConfig();
             }
             cleanup();
             dialog.close();
-            onResult({ confirmed: true, guidance });
+            onResult({ confirmed: true, guidance, count });
         };
 
         const handleCancel = () => {
             cleanup();
             dialog.close();
-            onResult({ confirmed: false, guidance: '' });
+            onResult({ confirmed: false, guidance: '', count: 20 });
         };
 
         const cleanup = () => {
@@ -3183,7 +3246,11 @@ export const UI = {
         if (!duplicates || duplicates.length === 0) return;
 
         const paths = new Set();
-        duplicates.forEach(d => d.locations.forEach(loc => paths.add(loc.path)));
+        for (const d of duplicates) {
+            for (const loc of d.locations) {
+                paths.add(loc.path);
+            }
+        }
 
         // Check if we're in mindmap view
         import('./modules/mindmap.js').then(({ Mindmap }) => {
@@ -3255,7 +3322,11 @@ export const UI = {
         }).catch(() => {
             // Fallback if mindmap module not available - just filter list view
             const paths = new Set();
-            duplicates.forEach(d => d.locations.forEach(loc => paths.add(loc.path)));
+            for (const d of duplicates) {
+                for (const loc of d.locations) {
+                    paths.add(loc.path);
+                }
+            }
             this._filterListToDuplicates(paths, duplicates);
         });
 

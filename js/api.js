@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { Config } from './config.js';
 import { Logger } from './logger.js';
+import { validate } from './schema-validator.js';
 
 // TODO: Add request caching layer for identical prompts to reduce API costs
 // TODO: Implement exponential backoff retry logic for transient failures
@@ -60,21 +61,63 @@ export const Api = {
         try {
             const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
             const makeRequest = async (currentPayload) => {
-                const logId = this.logRequest(url, currentPayload, headers);
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(currentPayload),
-                    signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)])
-                });
-                if (!res.ok) {
-                    const text = await res.text();
-                    this.logResponse(logId, text, `HTTP ${res.status}`);
-                    return { ok: false, status: res.status, text };
+                const maxRetries = 3;
+                let lastStatus = 0;
+                let lastText = "";
+
+                for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                    const logId = this.logRequest(url, currentPayload, headers);
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(currentPayload),
+                            signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)])
+                        });
+
+                        if (res.ok) {
+                            const json = await res.json();
+                            this.logResponse(logId, json);
+                            return { ok: true, json };
+                        }
+
+                        lastStatus = res.status;
+                        lastText = await res.text();
+                        this.logResponse(logId, lastText, `HTTP ${res.status}`);
+
+                        // Only retry on 429 (Rate Limit) or 503 (Service Unavailable)
+                        if (attempt < maxRetries && (res.status === 429 || res.status === 503)) {
+                            let delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
+
+                            // Respect Retry-After header if present
+                            const retryAfter = res.headers.get('Retry-After');
+                            if (retryAfter) {
+                                const seconds = parseInt(retryAfter);
+                                if (!isNaN(seconds)) {
+                                    delay = seconds * 1000;
+                                } else {
+                                    const date = new Date(retryAfter);
+                                    if (!isNaN(date.getTime())) {
+                                        delay = Math.max(0, date.getTime() - Date.now());
+                                    }
+                                }
+                            }
+
+                            console.warn(`API request failed with ${res.status}. Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue;
+                        }
+
+                        return { ok: false, status: lastStatus, text: lastText };
+                    } catch (e) {
+                        if (e.name === 'AbortError') throw e;
+                        console.error(`Attempt ${attempt + 1} failed:`, e);
+                        if (attempt === maxRetries) throw e;
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                    }
                 }
-                const json = await res.json();
-                this.logResponse(logId, json);
-                return { ok: true, json };
+                }
+                return { ok: false, status: lastStatus, text: lastText };
             };
 
             let reqResult = await makeRequest(payload);
@@ -95,14 +138,12 @@ export const Api = {
             }
 
             if (!reqResult.ok) {
-                throw new Error(`API request failed: ${reqResult.status} - ${reqResult.text}`);
+                throw this._getClassifiedError(reqResult.status, reqResult.text);
             }
 
             const result = reqResult.json;
             return { result, request: { url, headers, payload } };
         } catch (error) {
-            // TODO: Implement more granular error classification (rate limit, auth, server error)
-            // TODO: Add automatic retry for 429 (rate limit) and 503 (service unavailable) errors
             if (error.name === 'AbortError') throw new Error("Request timed out or was aborted.");
             console.error("Error calling LLM API:", error);
             throw error;
@@ -126,19 +167,52 @@ export const Api = {
             payload.stream = true; // Enable streaming
 
             const makeStreamingRequest = async (currentPayload) => {
-                const logId = this.logRequest(url, currentPayload, headers);
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(currentPayload),
-                    signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60000)])
-                });
-                if (!res.ok) {
-                    const text = await res.text();
-                    this.logResponse(logId, text, `HTTP ${res.status}`);
-                    return { ok: false, status: res.status, text };
+                const maxRetries = 3;
+                let lastStatus = 0;
+                let lastText = "";
+
+                for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                    const logId = this.logRequest(url, currentPayload, headers);
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(currentPayload),
+                            signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60000)])
+                        });
+
+                        if (res.ok) {
+                            return { ok: true, body: res.body, logId };
+                        }
+
+                        lastStatus = res.status;
+                        lastText = await res.text();
+                        this.logResponse(logId, lastText, `HTTP ${res.status}`);
+
+                        // Only retry on 429 (Rate Limit) or 503 (Service Unavailable)
+                        if (attempt < maxRetries && (res.status === 429 || res.status === 503)) {
+                            let delay = Math.pow(2, attempt) * 1000;
+                            const retryAfter = res.headers.get('Retry-After');
+                            if (retryAfter) {
+                                const seconds = parseInt(retryAfter);
+                                if (!isNaN(seconds)) delay = seconds * 1000;
+                            }
+
+                            console.warn(`Streaming request failed with ${res.status}. Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue;
+                        }
+
+                        return { ok: false, status: lastStatus, text: lastText };
+                    } catch (e) {
+                        if (e.name === 'AbortError') throw e;
+                        console.error(`Streaming attempt ${attempt + 1} failed:`, e);
+                        if (attempt === maxRetries) throw e;
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                    }
                 }
-                return { ok: true, body: res.body, logId };
+                }
+                return { ok: false, status: lastStatus, text: lastText };
             };
 
             let reqResult = await makeStreamingRequest(payload);
@@ -159,7 +233,7 @@ export const Api = {
             }
 
             if (!reqResult.ok) {
-                throw new Error(`API request failed: ${reqResult.status} - ${reqResult.text}`);
+                throw this._getClassifiedError(reqResult.status, reqResult.text);
             }
 
             // Parse SSE stream
@@ -196,7 +270,9 @@ export const Api = {
                                 }
                             }
                         } catch (e) {
-                            // Ignore parse errors for malformed chunks
+                            // Only log real parse errors, not just potentially incomplete chunks
+                            // though SSE should usually give us full JSON strings per 'data: ' line.
+                            console.debug("Failed to parse SSE chunk:", data, e);
                         }
                     }
                 }
@@ -218,12 +294,11 @@ export const Api = {
         }
     },
 
-    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '') {
-        // TODO: Add option to specify desired output count (e.g., "generate 20 items")
+    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '', count = 20) {
         // TODO: Implement streaming response display for better UX during generation
         // TODO: Consider batching multiple small generation requests into one
         const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
-        const sysPrompt = globalPrompt.replace('{category}', readablePath);
+        const sysPrompt = globalPrompt.replace('{category}', readablePath).replace(/{count}/g, String(count));
         let userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
 
         if (guidance) {
@@ -233,12 +308,12 @@ export const Api = {
         const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
 
         const { result } = await this._makeRequest(sysPrompt, userPrompt, generationConfig);
-        return this._parseResponse(result);
+        return this._parseResponse(result, generationConfig.responseSchema);
     },
 
-    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '', guidance = '', abortPrevious = true) {
+    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '', guidance = '', count = 20, abortPrevious = true) {
         const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
-        const globalPrompt = suggestItemPrompt.replace('{parentPath}', readablePath);
+        const globalPrompt = suggestItemPrompt.replace('{parentPath}', readablePath).replace(/{count}/g, String(count));
 
         let contextInfo = `For context, here are the existing sibling items at the same level:\n${JSON.stringify(structure, null, 2)}`;
         if (parentInstruction) {
@@ -272,7 +347,7 @@ export const Api = {
         };
 
         const { result, request } = await this._makeRequest(globalPrompt, userPrompt, generationConfig, abortPrevious);
-        return { suggestions: this._parseResponse(result), request };
+        return { suggestions: this._parseResponse(result, generationConfig.responseSchema), request };
     },
 
     /**
@@ -283,7 +358,7 @@ export const Api = {
      * @param {string} templatePrompt - The system prompt for template generation
      * @returns {Promise<string[]>} Array of generated template strings with full paths
      */
-    async generateTemplates(pathMap, instructions, templatePrompt, guidance = '') {
+    async generateTemplates(pathMap, instructions, templatePrompt, guidance = '', count = 20) {
         // Build list of leaf names for LLM (semantic context without full path clutter)
         const leafNames = Object.keys(pathMap);
         const leafList = leafNames.map(name => `~~${name}~~`).join(', ');
@@ -295,7 +370,7 @@ export const Api = {
 
         // We pass the "System" parts as the globalPrompt
         const globalPromptParts = [
-            { text: templatePrompt, cache: true }, // Cache the base instruction
+            { text: templatePrompt.replace(/{count}/g, String(count)), cache: true }, // Cache the base instruction
             { text: `AVAILABLE WILDCARD CATEGORIES:\n${leafList}`, cache: true } // Cache the heavy list
         ];
 
@@ -311,7 +386,7 @@ export const Api = {
         };
 
         const { result } = await this._makeRequest(globalPromptParts, userPrompt, generationConfig);
-        let templates = this._parseResponse(result);
+        let templates = this._parseResponse(result, generationConfig.responseSchema);
 
         // Validation BEFORE expansion (leaf names are used directly)
         const validLeaves = new Set(leafNames);
@@ -399,6 +474,10 @@ Return a JSON array with your classifications. Be concise.`;
             }
         };
 
+        // Pre-calculate lowercased versions for faster role validation inside the loop
+        const validRoles = ['Subject', 'Location', 'Style', 'Modifier', 'Wearable', 'Object', 'Action'];
+        const validRolesLower = validRoles.map(r => ({ original: r, lower: r.toLowerCase() }));
+
         // Process in batches
         for (let i = 0; i < unknownCategories.length; i += batchSize) {
             const batch = unknownCategories.slice(i, i + batchSize);
@@ -412,19 +491,19 @@ Return a JSON array with your classifications. Be concise.`;
 
             try {
                 const { result } = await this._makeRequest(systemPrompt, userPrompt, generationConfig);
-                const parsed = this._parseResponse(result);
+                const parsed = this._parseResponse(result, generationConfig.responseSchema);
 
                 // Validate and store results
                 if (Array.isArray(parsed)) {
                     for (const item of parsed) {
                         if (item.nodeId && item.role) {
                             // Validate role is one of the allowed values
-                            const validRoles = ['Subject', 'Location', 'Style', 'Modifier', 'Wearable', 'Object', 'Action'];
-                            const normalizedRole = validRoles.find(r => r.toLowerCase() === item.role.toLowerCase());
+                            const itemRoleLower = item.role.toLowerCase();
+                            const found = validRolesLower.find(v => v.lower === itemRoleLower);
 
-                            if (normalizedRole) {
+                            if (found) {
                                 results[item.nodeId] = {
-                                    role: normalizedRole,
+                                    role: found.original,
                                     type: item.type || 'General',
                                     confidence: 0.75 // LLM confidence
                                 };
@@ -502,7 +581,7 @@ Return a JSON array with your classifications. Be concise.`;
 
                 try {
                     const { result } = await this._makeRequest(systemPrompt, userPrompt, generationConfig, false);
-                    const parsed = this._parseResponse(result);
+                    const parsed = this._parseResponse(result, generationConfig.responseSchema);
 
                     // Store decisions
                     if (Array.isArray(parsed)) {
@@ -809,23 +888,47 @@ Return a JSON array with your classifications. Be concise.`;
         return content;
     },
 
-    _parseResponse(result) {
-        // TODO: Add response validation against expected schema
+    _parseResponse(result, schema) {
         // TODO: Implement graceful extraction of partial data from malformed responses
-        // TODO: Log parsing failures with full context for debugging
         const endpoint = document.getElementById('api-endpoint').value;
+        let contentStr = '';
+
         try {
-            if (endpoint === 'gemini') return JSON.parse(result.candidates[0].content.parts[0].text);
-            if (endpoint === 'openrouter' || endpoint === 'custom') {
-                let contentStr = result.choices[0].message.content.trim();
+            if (endpoint === 'gemini') {
+                contentStr = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            } else if (endpoint === 'openrouter' || endpoint === 'custom' || endpoint === 'groq') {
+                contentStr = result?.choices?.[0]?.message?.content?.trim() || '';
                 const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
                 if (match) contentStr = match[1];
-                const content = JSON.parse(contentStr);
-                return Array.isArray(content) ? content : content.wildcards || content.categories || content.items || [];
+            }
+
+            if (!contentStr) {
+                throw new Error("Empty response content");
+            }
+
+            const content = JSON.parse(contentStr);
+
+            if (content && schema) {
+                const { isValid, errors } = validate(content, schema);
+                if (!isValid) {
+                    console.error("Schema validation failed:", errors);
+                    throw new Error(`The AI returned data in an unexpected format. Details: ${errors.join(', ')}`);
+                }
+            }
+
+            if (Array.isArray(content)) return content;
+            if (typeof content === 'object' && content !== null) {
+                return content.wildcards || content.categories || content.items || content;
             }
             return [];
         } catch (e) {
-            console.error("Failed to parse AI response:", result, e);
+            console.error("Failed to parse AI response:", {
+                endpoint,
+                error: e.message,
+                stack: e.stack,
+                contentStr,
+                fullResult: result
+            });
             throw new Error(`The AI returned a malformed response. Error: ${e.message}`);
         }
     },
@@ -862,7 +965,7 @@ Return a JSON array with your classifications. Be concise.`;
 
         // Use the actual system prompt from the app's config
         const readablePath = testCategoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
-        const systemPrompt = Config.DEFAULT_SYSTEM_PROMPT.replace('{category}', readablePath);
+        const systemPrompt = Config.DEFAULT_SYSTEM_PROMPT.replace('{category}', readablePath).replace(/{count}/g, '20');
         const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${testExistingItems.slice(0, 20).join(', ')}\nCustom Instructions: "${testInstruction}"`;
 
         try {
@@ -1182,7 +1285,7 @@ Return a JSON array with your classifications. Be concise.`;
         // Use the configured suggestion prompt
         const basePrompt = Config.DEFAULT_SUGGEST_ITEM_PROMPT;
         const parentPath = 'CREATURES_and_BEINGS';
-        const globalPrompt = basePrompt.replace('{parentPath}', parentPath);
+        const globalPrompt = basePrompt.replace('{parentPath}', parentPath).replace(/{count}/g, '20');
 
         // Mock sibling structure for context
         const siblingStructure = {
@@ -1211,7 +1314,7 @@ Return a JSON array with your classifications. Be concise.`;
             const { result, request } = await this._makeTestRequest(provider, apiKey, modelName, globalPrompt, userPrompt, generationConfig);
             const duration = Math.round(performance.now() - startTime);
 
-            const parsed = this._parseTestResponse(provider, result);
+            const parsed = this._parseTestResponse(provider, result, generationConfig.responseSchema);
             const isValidArray = Array.isArray(parsed) && parsed.length > 0;
             const hasCorrectShape = isValidArray && parsed[0]?.name && parsed[0]?.instruction;
 
@@ -1243,7 +1346,7 @@ Return a JSON array with your classifications. Be concise.`;
     async testTemplates(provider, apiKey, modelName) {
         const startTime = performance.now();
 
-        const templatePrompt = Config.DEFAULT_TEMPLATE_PROMPT;
+        const templatePrompt = Config.DEFAULT_TEMPLATE_PROMPT.replace(/{count}/g, '20');
 
         // Mock path map like the real feature uses
         const pathMap = {
@@ -1267,7 +1370,7 @@ Return a JSON array with your classifications. Be concise.`;
             const { result, request } = await this._makeTestRequest(provider, apiKey, modelName, templatePrompt, userPrompt, generationConfig);
             const duration = Math.round(performance.now() - startTime);
 
-            const parsed = this._parseTestResponse(provider, result);
+            const parsed = this._parseTestResponse(provider, result, generationConfig.responseSchema);
             const isValidArray = Array.isArray(parsed) && parsed.length > 0;
             // Check if templates contain __X__ or ~~X~~ format codes
             const hasValidTemplates = isValidArray && parsed.some(t => /__[A-Z]+__|~~[A-Z]+~~/.test(String(t)));
@@ -1348,7 +1451,7 @@ Return a JSON array with your classifications. Be concise.`;
             const { result, request } = await this._makeTestRequest(provider, apiKey, modelName, systemPrompt, userPrompt, generationConfig);
             const duration = Math.round(performance.now() - startTime);
 
-            const parsed = this._parseTestResponse(provider, result);
+            const parsed = this._parseTestResponse(provider, result, generationConfig.responseSchema);
             const isValidArray = Array.isArray(parsed) && parsed.length > 0;
             const hasCorrectShape = isValidArray && parsed[0]?.wildcard && parsed[0]?.keep_path;
 
@@ -1512,24 +1615,46 @@ Return a JSON array with your classifications. Be concise.`;
     /**
      * Helper to parse test response based on provider format.
      */
-    _parseTestResponse(provider, result) {
+    _parseTestResponse(provider, result, schema) {
+        let contentStr = '';
         try {
-            let contentStr;
             if (provider === 'gemini') {
-                contentStr = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                contentStr = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
             } else {
-                contentStr = result.choices?.[0]?.message?.content || '';
+                contentStr = result?.choices?.[0]?.message?.content || '';
             }
 
             contentStr = contentStr.trim();
             const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
             if (match) contentStr = match[1];
 
+            if (!contentStr) {
+                throw new Error("Empty test response content");
+            }
+
             const parsed = JSON.parse(contentStr);
-            // Handle wrapped responses
+
+            if (parsed && schema) {
+                const { isValid, errors } = validate(parsed, schema);
+                if (!isValid) {
+                    // In a test context, we might not want to throw, but returning an empty array
+                    // will likely cause the test to fail, which is desired.
+                    console.error("Test response schema validation failed:", errors);
+                    return [];
+                }
+            }
+
+            // Handle wrapped responses (common in OpenAI schema-based responses)
             if (parsed.items && Array.isArray(parsed.items)) return parsed.items;
             return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
+            console.error("Failed to parse AI test response:", {
+                provider,
+                error: e.message,
+                stack: e.stack,
+                contentStr,
+                fullResult: result
+            });
             return [];
         }
     },
@@ -1542,5 +1667,42 @@ Return a JSON array with your classifications. Be concise.`;
             return result.candidates?.[0]?.content?.parts?.[0]?.text || '';
         }
         return result.choices?.[0]?.message?.content || '';
+    },
+
+    /**
+     * Classified error handling for different HTTP status codes.
+     * @param {number} status
+     * @param {string} text
+     * @returns {Error}
+     */
+    _getClassifiedError(status, text) {
+        let details = "";
+        try {
+            const json = JSON.parse(text);
+            details = json.error?.message || json.message || text;
+        } catch (e) {
+            details = text;
+        }
+
+        switch (status) {
+            case 401:
+                return new Error(`Authentication Error: Invalid API Key. ${details}`);
+            case 403:
+                return new Error(`Forbidden: You do not have permission or quota. ${details}`);
+            case 404:
+                return new Error(`Not Found: The requested model or endpoint was not found. ${details}`);
+            case 429:
+                return new Error(`Rate Limit Exceeded: Please wait before making more requests. ${details}`);
+            case 500:
+                return new Error(`Internal Server Error: The API provider encountered an error. ${details}`);
+            case 502:
+                return new Error(`Bad Gateway: The API provider is experiencing connection issues. ${details}`);
+            case 503:
+                return new Error(`Service Unavailable: The API provider is temporarily overloaded or down. ${details}`);
+            case 504:
+                return new Error(`Gateway Timeout: The API provider took too long to respond. ${details}`);
+            default:
+                return new Error(`API Error ${status}: ${details || 'Unknown error'}`);
+        }
     }
 };

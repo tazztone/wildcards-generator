@@ -242,4 +242,103 @@ test.describe('API Logic Tests', () => {
             }
         });
     });
+
+    // --- New Tests for Error Classification and Retries ---
+
+    test('should classify errors correctly via _getClassifiedError', async ({ page }) => {
+        await page.evaluate(() => {
+            const api = window.Api;
+            const err401 = api._getClassifiedError(401, '{"error":{"message":"Invalid key"}}');
+            if (!err401.message.includes('Authentication Error')) throw new Error('401 not classified');
+            if (!err401.message.includes('Invalid key')) throw new Error('401 details missing');
+
+            const err429 = api._getClassifiedError(429, 'Too many requests');
+            if (!err429.message.includes('Rate Limit Exceeded')) throw new Error('429 not classified');
+
+            const err503 = api._getClassifiedError(503, 'Overloaded');
+            if (!err503.message.includes('Service Unavailable')) throw new Error('503 not classified');
+        });
+    });
+
+    test('should retry on 429 and eventually succeed', async ({ page }) => {
+        // We use a shorter timeout for the test to avoid waiting too long
+        await page.evaluate(async () => {
+            const originalFetch = window.fetch;
+            let callCount = 0;
+
+            // Mocking setTimeout to speed up the test
+            const originalTimeout = window.setTimeout;
+            window.setTimeout = (fn, delay) => {
+                return originalTimeout(fn, 0);
+            };
+
+            window.fetch = async () => {
+                callCount++;
+                if (callCount < 3) {
+                    return {
+                        ok: false,
+                        status: 429,
+                        headers: new Map([['Retry-After', '1']]),
+                        text: async () => 'Rate Limited'
+                    };
+                }
+                return {
+                    ok: true,
+                    json: async () => ({ choices: [{ message: { content: '["success"]' } }] })
+                };
+            };
+
+            document.body.innerHTML = `
+                <select id="api-endpoint"><option value="openrouter" selected>OpenRouter</option></select>
+                <input id="openrouter-api-key" value="test">
+                <input id="openrouter-model-name" value="test">
+            `;
+
+            try {
+                const result = await window.Api._makeRequest('Sys', 'User');
+                if (callCount !== 3) throw new Error('Expected 3 calls, got ' + callCount);
+                if (result.result[0] !== 'success') throw new Error('Wrong result');
+            } finally {
+                window.fetch = originalFetch;
+                window.setTimeout = originalTimeout;
+            }
+        });
+    });
+
+    test('should retry on 503 and eventually fail after max retries', async ({ page }) => {
+        test.setTimeout(10000);
+        await page.evaluate(async () => {
+            const originalFetch = window.fetch;
+            let callCount = 0;
+            const originalTimeout = window.setTimeout;
+            window.setTimeout = (fn) => originalTimeout(fn, 0);
+
+            window.fetch = async () => {
+                callCount++;
+                return {
+                    ok: false,
+                    status: 503,
+                    headers: new Map(),
+                    text: async () => 'Service Unavailable'
+                };
+            };
+
+            document.body.innerHTML = `
+                <select id="api-endpoint"><option value="openrouter" selected>OpenRouter</option></select>
+                <input id="openrouter-api-key" value="test">
+                <input id="openrouter-model-name" value="test">
+            `;
+
+            try {
+                await window.Api._makeRequest('Sys', 'User');
+                throw new Error('Should have failed');
+            } catch (e) {
+                if (callCount !== 4) throw new Error('Expected 4 attempts (1 initial + 3 retries), got ' + callCount);
+                if (!e.message.includes('Service Unavailable')) throw new Error('Wrong error message: ' + e.message);
+            } finally {
+                window.fetch = originalFetch;
+                window.setTimeout = originalTimeout;
+            }
+        });
+    });
 });
