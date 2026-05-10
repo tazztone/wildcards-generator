@@ -105,6 +105,7 @@ export const UI = {
             // Guidance Dialog
             guidanceDialog: document.getElementById('guidance-dialog'),
             guidanceInput: document.getElementById('guidance-input'),
+            guidanceCount: document.getElementById('guidance-count'),
             guidanceConfirmBtn: document.getElementById('guidance-confirm-btn'),
             guidanceCancelBtn: document.getElementById('guidance-cancel-btn'),
             guidanceCloseBtn: document.getElementById('guidance-close-btn'),
@@ -2513,16 +2514,17 @@ export const UI = {
     /**
      * Show guidance dialog before API call
      * @param {string} title - Context title
-     * @param {function({confirmed: boolean, guidance: string}): void} onResult
+     * @param {function({confirmed: boolean, guidance: string, count: number}): void} onResult
      */
     showGuidanceDialog(title, onResult) {
         if (!this.elements.guidanceDialog) {
-            onResult({ confirmed: true, guidance: '' });
+            onResult({ confirmed: true, guidance: '', count: 20 });
             return;
         }
 
         const dialog = this.elements.guidanceDialog;
         const input = this.elements.guidanceInput;
+        const countInput = this.elements.guidanceCount;
         const confirmBtn = this.elements.guidanceConfirmBtn;
         const cancelBtn = this.elements.guidanceCancelBtn;
         const closeBtn = this.elements.guidanceCloseBtn;
@@ -2530,23 +2532,25 @@ export const UI = {
 
         // Reset state
         if (input) input.value = '';
+        if (countInput) countInput.value = '20';
         if (dontShowAgain) dontShowAgain.checked = false;
 
         const handleConfirm = () => {
             const guidance = input ? input.value.trim() : '';
+            const count = countInput ? parseInt(countInput.value) || 20 : 20;
             if (dontShowAgain && dontShowAgain.checked) {
                 Config.SHOW_GUIDANCE_STEP = false;
                 saveConfig();
             }
             cleanup();
             dialog.close();
-            onResult({ confirmed: true, guidance });
+            onResult({ confirmed: true, guidance, count });
         };
 
         const handleCancel = () => {
             cleanup();
             dialog.close();
-            onResult({ confirmed: false, guidance: '' });
+            onResult({ confirmed: false, guidance: '', count: 20 });
         };
 
         const cleanup = () => {
@@ -3242,7 +3246,11 @@ export const UI = {
         if (!duplicates || duplicates.length === 0) return;
 
         const paths = new Set();
-        duplicates.forEach(d => d.locations.forEach(loc => paths.add(loc.path)));
+        for (const d of duplicates) {
+            for (const loc of d.locations) {
+                paths.add(loc.path);
+            }
+        }
 
         // Check if we're in mindmap view
         import('./modules/mindmap.js').then(({ Mindmap }) => {
@@ -3314,7 +3322,11 @@ export const UI = {
         }).catch(() => {
             // Fallback if mindmap module not available - just filter list view
             const paths = new Set();
-            duplicates.forEach(d => d.locations.forEach(loc => paths.add(loc.path)));
+            for (const d of duplicates) {
+                for (const loc of d.locations) {
+                    paths.add(loc.path);
+                }
+            }
             this._filterListToDuplicates(paths, duplicates);
         });
 
