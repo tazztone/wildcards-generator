@@ -3187,7 +3187,11 @@ export const UI = {
         if (!duplicates || duplicates.length === 0) return;
 
         const paths = new Set();
-        duplicates.forEach(d => d.locations.forEach(loc => paths.add(loc.path)));
+        for (const d of duplicates) {
+            for (const loc of d.locations) {
+                paths.add(loc.path);
+            }
+        }
 
         // Check if we're in mindmap view
         import('./modules/mindmap.js').then(({ Mindmap }) => {
@@ -3259,7 +3263,11 @@ export const UI = {
         }).catch(() => {
             // Fallback if mindmap module not available - just filter list view
             const paths = new Set();
-            duplicates.forEach(d => d.locations.forEach(loc => paths.add(loc.path)));
+            for (const d of duplicates) {
+                for (const loc of d.locations) {
+                    paths.add(loc.path);
+                }
+            }
             this._filterListToDuplicates(paths, duplicates);
         });
 

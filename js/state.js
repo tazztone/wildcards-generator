@@ -463,7 +463,18 @@ const State = {
     // Helpers
     getObjectByPath(path) {
         if (!path) return this.state.wildcards;
-        return path.split('/').reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : undefined, this.state.wildcards);
+        let obj = this.state.wildcards;
+        let start = 0;
+        let pos = 0;
+        while (true) {
+            pos = path.indexOf('/', start);
+            const key = pos === -1 ? path.substring(start) : path.substring(start, pos);
+            if (obj === undefined || obj === null) return undefined;
+            obj = obj[key];
+            if (pos === -1) break;
+            start = pos + 1;
+        }
+        return obj;
     },
 
     getParentObjectByPath(path) {
@@ -515,7 +526,9 @@ const State = {
         const wildcardMap = new Map();
 
         const scanData = (data, path) => {
-            Object.keys(data).filter(k => !RESERVED_KEYS.has(k)).forEach(key => {
+            for (const key of Object.keys(data)) {
+                if (RESERVED_KEYS.has(key)) continue;
+
                 const item = data[key];
                 const currentPath = path ? `${path}/${key}` : key;
 
@@ -528,7 +541,7 @@ const State = {
                 } else if (typeof item === 'object' && item !== null) {
                     scanData(item, currentPath);
                 }
-            });
+            }
         };
 
         scanData(this.state.wildcards, '');
@@ -573,8 +586,14 @@ const State = {
                 // AI has decided which path to keep
                 const keepPath = aiDecisions.get(dupe.normalized);
                 if (keepPath) {
-                    toKeep = dupe.locations.find(loc => loc.path === keepPath);
-                    toRemove = dupe.locations.filter(loc => loc.path !== keepPath);
+                    toRemove = [];
+                    for (const loc of dupe.locations) {
+                        if (loc.path === keepPath) {
+                            toKeep = loc;
+                        } else {
+                            toRemove.push(loc);
+                        }
+                    }
                 } else {
                     // Fallback to first if AI didn't decide
                     toKeep = dupe.locations[0];
