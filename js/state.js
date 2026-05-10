@@ -526,7 +526,9 @@ const State = {
         const wildcardMap = new Map();
 
         const scanData = (data, path) => {
-            Object.keys(data).filter(k => !RESERVED_KEYS.has(k)).forEach(key => {
+            for (const key of Object.keys(data)) {
+                if (RESERVED_KEYS.has(key)) continue;
+
                 const item = data[key];
                 const currentPath = path ? `${path}/${key}` : key;
 
@@ -539,7 +541,7 @@ const State = {
                 } else if (typeof item === 'object' && item !== null) {
                     scanData(item, currentPath);
                 }
-            });
+            }
         };
 
         scanData(this.state.wildcards, '');
@@ -584,8 +586,14 @@ const State = {
                 // AI has decided which path to keep
                 const keepPath = aiDecisions.get(dupe.normalized);
                 if (keepPath) {
-                    toKeep = dupe.locations.find(loc => loc.path === keepPath);
-                    toRemove = dupe.locations.filter(loc => loc.path !== keepPath);
+                    toRemove = [];
+                    for (const loc of dupe.locations) {
+                        if (loc.path === keepPath) {
+                            toKeep = loc;
+                        } else {
+                            toRemove.push(loc);
+                        }
+                    }
                 } else {
                     // Fallback to first if AI didn't decide
                     toKeep = dupe.locations[0];
