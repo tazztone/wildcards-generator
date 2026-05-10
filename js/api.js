@@ -60,21 +60,62 @@ export const Api = {
         try {
             const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
             const makeRequest = async (currentPayload) => {
-                const logId = this.logRequest(url, currentPayload, headers);
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(currentPayload),
-                    signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)])
-                });
-                if (!res.ok) {
-                    const text = await res.text();
-                    this.logResponse(logId, text, `HTTP ${res.status}`);
-                    return { ok: false, status: res.status, text };
+                const maxRetries = 3;
+                let lastStatus = 0;
+                let lastText = "";
+
+                for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                    const logId = this.logRequest(url, currentPayload, headers);
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(currentPayload),
+                            signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(30000)])
+                        });
+
+                        if (res.ok) {
+                            const json = await res.json();
+                            this.logResponse(logId, json);
+                            return { ok: true, json };
+                        }
+
+                        lastStatus = res.status;
+                        lastText = await res.text();
+                        this.logResponse(logId, lastText, `HTTP ${res.status}`);
+
+                        // Only retry on 429 (Rate Limit) or 503 (Service Unavailable)
+                        if (attempt < maxRetries && (res.status === 429 || res.status === 503)) {
+                            let delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
+
+                            // Respect Retry-After header if present
+                            const retryAfter = res.headers.get('Retry-After');
+                            if (retryAfter) {
+                                const seconds = parseInt(retryAfter);
+                                if (!isNaN(seconds)) {
+                                    delay = seconds * 1000;
+                                } else {
+                                    const date = new Date(retryAfter);
+                                    if (!isNaN(date.getTime())) {
+                                        delay = Math.max(0, date.getTime() - Date.now());
+                                    }
+                                }
+                            }
+
+                            console.warn(`API request failed with ${res.status}. Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue;
+                        }
+
+                        return { ok: false, status: lastStatus, text: lastText };
+                    } catch (e) {
+                        if (e.name === 'AbortError') throw e;
+                        console.error(`Attempt ${attempt + 1} failed:`, e);
+                        if (attempt === maxRetries) throw e;
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                    }
                 }
-                const json = await res.json();
-                this.logResponse(logId, json);
-                return { ok: true, json };
+                return { ok: false, status: lastStatus, text: lastText };
             };
 
             let reqResult = await makeRequest(payload);
@@ -95,14 +136,12 @@ export const Api = {
             }
 
             if (!reqResult.ok) {
-                throw new Error(`API request failed: ${reqResult.status} - ${reqResult.text}`);
+                throw this._getClassifiedError(reqResult.status, reqResult.text);
             }
 
             const result = reqResult.json;
             return { result, request: { url, headers, payload } };
         } catch (error) {
-            // TODO: Implement more granular error classification (rate limit, auth, server error)
-            // TODO: Add automatic retry for 429 (rate limit) and 503 (service unavailable) errors
             if (error.name === 'AbortError') throw new Error("Request timed out or was aborted.");
             console.error("Error calling LLM API:", error);
             throw error;
@@ -125,19 +164,51 @@ export const Api = {
             payload.stream = true; // Enable streaming
 
             const makeStreamingRequest = async (currentPayload) => {
-                const logId = this.logRequest(url, currentPayload, headers);
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(currentPayload),
-                    signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(60000)])
-                });
-                if (!res.ok) {
-                    const text = await res.text();
-                    this.logResponse(logId, text, `HTTP ${res.status}`);
-                    return { ok: false, status: res.status, text };
+                const maxRetries = 3;
+                let lastStatus = 0;
+                let lastText = "";
+
+                for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                    const logId = this.logRequest(url, currentPayload, headers);
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(currentPayload),
+                            signal: AbortSignal.any([this.activeController.signal, AbortSignal.timeout(60000)])
+                        });
+
+                        if (res.ok) {
+                            return { ok: true, body: res.body, logId };
+                        }
+
+                        lastStatus = res.status;
+                        lastText = await res.text();
+                        this.logResponse(logId, lastText, `HTTP ${res.status}`);
+
+                        // Only retry on 429 (Rate Limit) or 503 (Service Unavailable)
+                        if (attempt < maxRetries && (res.status === 429 || res.status === 503)) {
+                            let delay = Math.pow(2, attempt) * 1000;
+                            const retryAfter = res.headers.get('Retry-After');
+                            if (retryAfter) {
+                                const seconds = parseInt(retryAfter);
+                                if (!isNaN(seconds)) delay = seconds * 1000;
+                            }
+
+                            console.warn(`Streaming request failed with ${res.status}. Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue;
+                        }
+
+                        return { ok: false, status: lastStatus, text: lastText };
+                    } catch (e) {
+                        if (e.name === 'AbortError') throw e;
+                        console.error(`Streaming attempt ${attempt + 1} failed:`, e);
+                        if (attempt === maxRetries) throw e;
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                    }
                 }
-                return { ok: true, body: res.body, logId };
+                return { ok: false, status: lastStatus, text: lastText };
             };
 
             let reqResult = await makeStreamingRequest(payload);
@@ -158,7 +229,7 @@ export const Api = {
             }
 
             if (!reqResult.ok) {
-                throw new Error(`API request failed: ${reqResult.status} - ${reqResult.text}`);
+                throw this._getClassifiedError(reqResult.status, reqResult.text);
             }
 
             // Parse SSE stream
@@ -1589,5 +1660,42 @@ Return a JSON array with your classifications. Be concise.`;
             return result.candidates?.[0]?.content?.parts?.[0]?.text || '';
         }
         return result.choices?.[0]?.message?.content || '';
+    },
+
+    /**
+     * Classified error handling for different HTTP status codes.
+     * @param {number} status
+     * @param {string} text
+     * @returns {Error}
+     */
+    _getClassifiedError(status, text) {
+        let details = "";
+        try {
+            const json = JSON.parse(text);
+            details = json.error?.message || json.message || text;
+        } catch (e) {
+            details = text;
+        }
+
+        switch (status) {
+            case 401:
+                return new Error(`Authentication Error: Invalid API Key. ${details}`);
+            case 403:
+                return new Error(`Forbidden: You do not have permission or quota. ${details}`);
+            case 404:
+                return new Error(`Not Found: The requested model or endpoint was not found. ${details}`);
+            case 429:
+                return new Error(`Rate Limit Exceeded: Please wait before making more requests. ${details}`);
+            case 500:
+                return new Error(`Internal Server Error: The API provider encountered an error. ${details}`);
+            case 502:
+                return new Error(`Bad Gateway: The API provider is experiencing connection issues. ${details}`);
+            case 503:
+                return new Error(`Service Unavailable: The API provider is temporarily overloaded or down. ${details}`);
+            case 504:
+                return new Error(`Gateway Timeout: The API provider took too long to respond. ${details}`);
+            default:
+                return new Error(`API Error ${status}: ${details || 'Unknown error'}`);
+        }
     }
 };
