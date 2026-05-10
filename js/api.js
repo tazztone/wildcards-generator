@@ -471,6 +471,10 @@ Return a JSON array with your classifications. Be concise.`;
             }
         };
 
+        // Pre-calculate lowercased versions for faster role validation inside the loop
+        const validRoles = ['Subject', 'Location', 'Style', 'Modifier', 'Wearable', 'Object', 'Action'];
+        const validRolesLower = validRoles.map(r => ({ original: r, lower: r.toLowerCase() }));
+
         // Process in batches
         for (let i = 0; i < unknownCategories.length; i += batchSize) {
             const batch = unknownCategories.slice(i, i + batchSize);
@@ -491,12 +495,12 @@ Return a JSON array with your classifications. Be concise.`;
                     for (const item of parsed) {
                         if (item.nodeId && item.role) {
                             // Validate role is one of the allowed values
-                            const validRoles = ['Subject', 'Location', 'Style', 'Modifier', 'Wearable', 'Object', 'Action'];
-                            const normalizedRole = validRoles.find(r => r.toLowerCase() === item.role.toLowerCase());
+                            const itemRoleLower = item.role.toLowerCase();
+                            const found = validRolesLower.find(v => v.lower === itemRoleLower);
 
-                            if (normalizedRole) {
+                            if (found) {
                                 results[item.nodeId] = {
-                                    role: normalizedRole,
+                                    role: found.original,
                                     type: item.type || 'General',
                                     confidence: 0.75 // LLM confidence
                                 };
