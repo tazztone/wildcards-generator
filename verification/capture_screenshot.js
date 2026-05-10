@@ -7,8 +7,6 @@ const path = require('path');
     const context = await browser.newContext();
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     const page = await context.newPage();
-    const browser = await chromium.launch();
-    const page = await browser.newPage();
 
     // Set viewport to a typical desktop size
     await page.setViewportSize({ width: 1280, height: 800 });
@@ -65,8 +63,9 @@ const path = require('path');
         await page.waitForTimeout(100); // Give it a moment to render the checkmark
 
         // Take Screenshot of the card
-        await card.screenshot({ path: 'verification/copy_feedback.png' });
-        console.log('Screenshot taken: verification/copy_feedback.png');
+        const screenshotPath = path.join(__dirname, 'copy_feedback.png');
+        await card.screenshot({ path: screenshotPath });
+        console.log('Screenshot taken: ' + screenshotPath);
 
     } catch (e) {
         console.error(e);

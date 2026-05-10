@@ -1,5 +1,5 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 /**
  * Mindmap Module E2E Tests
@@ -14,17 +14,6 @@ const { test, expect } = require('@playwright/test');
  */
 
 test.describe('Mindmap Module E2E Tests', () => {
-
-    test.beforeEach(async ({ page }) => {
-        // Disable first-run help dialog
-        await page.addInitScript(() => {
-            window.localStorage.setItem('wildcards-visited', 'true');
-        });
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-        // Wait for app initialization
-        await page.waitForFunction(() => typeof window.Mindmap !== 'undefined');
-    });
 
     // Helper: Wait for Mind Elixir to fully initialize
     async function waitForMindElixir(page, timeout = 3000) {

@@ -1,5 +1,5 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Search Logic', () => {
 
@@ -7,14 +7,7 @@ test.describe('Search Logic', () => {
         // Enable console log from browser to node
         page.on('console', msg => console.log('PAGE LOG:', msg.text()));
 
-        await page.addInitScript(() => {
-            window.localStorage.setItem('wildcards-visited', 'true');
-        });
-
-        await page.goto('/');
-        await page.waitForLoadState('domcontentloaded');
-        // Wait for UI to be initialized and search element to be cached
-        await page.waitForFunction(() => window.UI && window.UI.elements && window.UI.elements.search);
+        // Ensure some data exists
 
         // Ensure some data exists
         await page.evaluate(() => {

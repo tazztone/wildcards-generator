@@ -1,77 +1,80 @@
-# Wildcards Generator (AI-Powered)
+# Wildcards Generator
 
-A powerful, standalone **Single Page Application (SPA)** for organizing, managing, and generating dynamic "wildcards" for AI image generation prompts. Built with a modern **Glassmorphism UI**, smooth animations, and direct **LLM Integration**.
+[![Version](https://img.shields.io/badge/version-2.21-blue)](https://github.com/tazztone/wildcards-generator)
+[![JavaScript](https://img.shields.io/badge/vanilla-JS-f7df1e)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![PWA](https://img.shields.io/badge/PWA-ready-green)](#)
 
-![screenshot](assets/image.png)
+A powerful, standalone Single Page Application (SPA) for organizing, managing, and AI-generating dynamic wildcard prompt libraries for image generation tools. Built with vanilla JavaScript — no framework, no build step.
 
-> **What are Wildcards?**
-> Wildcards are dynamic lists of terms (e.g., `__colors__`, `__styles__`) used to randomize image prompts. This tool helps you organize thousands of terms into a clean hierarchy and uses AI to generate new ideas automatically.
+> **What are wildcards?** Wildcards are dynamic text lists (e.g., `__colors__`, `__styles__`) used to randomize prompts in Stable Diffusion, ComfyUI, and similar tools. This app lets you organize thousands of terms into a clean hierarchy and uses LLMs to generate new ideas automatically.
 
-## ✨ Key Features
+## Tech Stack
 
-- **🧠 AI-Powered Generation**: Connect to **OpenRouter**, **Google Gemini**, or any **OpenAI-compatible** API to generate new wildcards contextually.
-- **📂 Hierarchical Organization**: unlimited nested folders and drag-and-drop management.
-- **🗺️ Mindmap View**: Visualize and manage your collection as an interactive mindmap.
-- **⚡ Batch Operations**: Generate, move, or delete items across multiple folders at once.
-- **🎨 Hybrid Template Generation**: Semantic analysis engine identifies category roles (Subject, Location, etc.) to generate structured, natural prompts.
-- **🔍 Smart Search & Deduplication**: Instantly find terms and cleanup duplicate entries with AI assistance.
-- **📂 Stable Organization**: Every category has a persistent ID, ensuring your tags and metadata stay safe even when moving folders.
-- **📱 Responsive & Fast**: Runs entirely in the browser with no build step required for basic usage. PWA-ready.
+| Layer | Technology |
+|---|---|
+| Frontend | Vanilla JavaScript (ES Modules), no framework |
+| Styling | Custom CSS — glassmorphism + dark/light theme |
+| AI Integration | OpenRouter / Google Gemini / OpenAI-compatible APIs |
+| Visualization | Mind Elixir (mindmap view) |
+| Data | In-browser localStorage + YAML import/export + ZIP export |
+| Testing | Playwright |
+| Dev Server | Node.js (for ES Module serving) |
 
-## 🚀 Quick Start
+## Architecture
 
-### 1. Run Locally
-Since this app uses ES Modules, it must be served via a local web server (not opened directly as a file).
-
-**Using Node (Recommended)**:
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Open http://localhost:3000
+```
+/
+├── index.html              # Single entry point
+├── js/
+│   ├── app.js              # Core state manager and orchestrator
+│   ├── ui.js               # DOM rendering and event binding
+│   ├── llm.js              # LLM provider abstraction (OpenRouter/Gemini/OpenAI)
+│   ├── mindmap.js          # Mind Elixir integration
+│   ├── yaml.js             # YAML serialization / deserialization
+│   └── templates.js        # Hybrid prompt template engine
+├── docs/
+│   ├── AGENTS.md           # Architecture deep-dive and developer guidelines
+│   ├── TESTING.md          # Playwright test suite instructions
+│   └── LLM_API_docs.md     # OpenRouter API reference
+└── assets/
 ```
 
-### 2. Configure AI Provider
-To unlock AI generation features:
-1. Click **Global Settings** (bottom-left or top toolbar).
-2. Choose your provider:
-   - **OpenRouter**: Best for access to hundreds of models (Claude, GPT-4, Llama 3).
-   - **Google Gemini**: Great free tier and high speed.
-   - **Custom / Local**: Connect to LM Studio or Ollama running locally.
-3. Enter your API Key. (Keys are stored safely in your browser's session memory).
+Every category has a persistent `_id` so that metadata and tags survive drag-and-drop reorganization. The template engine performs a two-stage semantic analysis (heuristics + AI) to classify category roles (Subject, Location, Style, Modifier) and generate cohesive combinatorial prompts.
 
-## 📖 Usage Guide
+## Key Features
 
-### Managing Wildcards
-- **Create**: Use the `+` buttons to add categories (folders) or wildcard lists.
-- **Edit**: **Double-click** any name to rename it.
-- **Drag & Drop**: Move items anywhere in the hierarchy.
+- **Hierarchical organization** — unlimited nested folders with drag-and-drop reordering
+- **AI generation** — context-aware generation using the full folder path as prompt context; supports OpenRouter, Gemini, and local models (LM Studio / Ollama)
+- **3 view modes** — List, Mindmap (Mind Elixir), Dual Pane
+- **Hybrid template engine** — semantic category analysis generates structured, natural combinatorial prompts
+- **Batch operations** — bulk generate, bulk delete, select-all across the hierarchy
+- **Deduplication** — visual duplicate finder with "Keep Shortest / Keep Longest" cleanup
+- **Import / Export** — YAML per-category, full ZIP archive preserving folder structure, config backup
+- **Undo / Redo** — diff-based high-performance history (deepDiff)
+- **PWA** — offline capable, installable
 
-### Generating Content
-- **Single List**: Click the **Generate** button on any wildcard card.
-- **Contextual**: The AI sees the path (e.g., `Characters > Fantasy > Orcs`) and existing items to generate relevant additions.
-- **Templates**: Create a folder named `0_TEMPLATES`. Lists created here allow you to select other categories as "sources" to generate complex combinatorial prompts.
+## Quick Start
 
-### Views
-- **List View**: Classic vertical hierarchy.
-- **Mindmap View**: Visual node-based graph. Great for brainstorming structure.
-- **Focus Mode**: Hides everything except the active category for distraction-free work.
+```bash
+git clone https://github.com/tazztone/wildcards-generator.git
+cd wildcards-generator
+npm install
+npm run dev
+# → http://localhost:3000
+```
 
-## 📚 Documentation
+To enable AI generation, open **Global Settings** and configure an API provider (OpenRouter recommended — access to hundreds of models with a single key).
 
-- **[Features](docs/features.md)**: detailed breakdown of all capabilities (v2.0+).
-- **[Architecture](docs/architecture.md)**: how the code is structured (Vanilla JS + Proxies).
-- **[Testing](tests/testing.md)**: running the Playwright test suite.
-- **[API Reference](docs/openrouter_API_docs.md)**: OpenRouter integration details.
+## Ecosystem
 
-## 🤝 Contributing
+This app is the **expansion** half of the wildcard workflow. Use [wildcards-gen](https://github.com/tazztone/wildcards-gen) to generate structured skeleton YAML files, then import them here for AI-powered population.
 
-Contributions are welcome! converting to a framework is NOT a goal; we aim to keep this vanilla and lightweight.
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for guidelines.
+## Documentation
 
-## 🤖 For AI Agents
+- **[Architecture & Developer Guide](docs/AGENTS.md)**
+- **[Testing](docs/TESTING.md)**
+- **[LLM API Reference](docs/LLM_API_docs.md)**
 
-See **[AGENTS.md](AGENTS.md)** for strict architectural rules and workflow instructions.
+## Contributing
+
+Contributions are welcome. Converting to a framework is not a goal — the project intentionally stays vanilla and lightweight. See [AGENTS.md](docs/AGENTS.md) for strict architectural rules.

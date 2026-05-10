@@ -1,11 +1,6 @@
-import { test, expect } from '@playwright/test';
+const { test, expect } = require('./fixtures');
 
 test.describe('LMStudio Compatibility Tests', () => {
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await page.waitForFunction(() => typeof window.Api !== 'undefined');
-    });
 
     test('should retry with json_schema when json_object is rejected by LMStudio', async ({ page }) => {
         await page.evaluate(async () => {

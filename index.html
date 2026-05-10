@@ -6,21 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Powered Wildcard Generator (v2.16)</title>
     <!-- SEO & Meta -->
-    <meta name="description" content="A powerful, standalone Single Page Application (SPA) for organizing, managing, and generating dynamic wildcards for AI image generation prompts.">
+    <meta name="description"
+        content="A powerful, standalone Single Page Application (SPA) for organizing, managing, and generating dynamic wildcards for AI image generation prompts.">
     <link rel="canonical" href="YOUR_WEBSITE_URL" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="YOUR_WEBSITE_URL">
     <meta property="og:title" content="AI-Powered Wildcard Generator (v2.16)">
-    <meta property="og:description" content="A powerful, standalone Single Page Application (SPA) for organizing, managing, and generating dynamic wildcards for AI image generation prompts.">
+    <meta property="og:description"
+        content="A powerful, standalone Single Page Application (SPA) for organizing, managing, and generating dynamic wildcards for AI image generation prompts.">
     <meta property="og:image" content="YOUR_WEBSITE_URL/assets/image.png">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="YOUR_WEBSITE_URL">
     <meta name="twitter:title" content="AI-Powered Wildcard Generator (v2.16)">
-    <meta name="twitter:description" content="A powerful, standalone Single Page Application (SPA) for organizing, managing, and generating dynamic wildcards for AI image generation prompts.">
+    <meta name="twitter:description"
+        content="A powerful, standalone Single Page Application (SPA) for organizing, managing, and generating dynamic wildcards for AI image generation prompts.">
     <meta name="twitter:image" content="YOUR_WEBSITE_URL/assets/image.png">
     <!-- TODO: Preload critical CSS/JS for faster First Contentful Paint -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,8 +32,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="css/wildcards.css">
-    <!-- Mind Elixir Mindmap CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-elixir/dist/style.css">
+    <!-- Mind Elixir Mindmap (Local Vendor) -->
+    <link rel="stylesheet" href="vendor/mind-elixir/style.css">
     <link rel="manifest" href="assets/manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <script>
@@ -50,6 +53,15 @@
 
     <div id="aria-live-region" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <div id="loading-overlay"
+        class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center transition-opacity duration-300">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4">
+            </div>
+            <h2 class="text-xl font-semibold text-white">Loading Wildcards...</h2>
+        </div>
+    </div>
 
     <dialog id="notification-dialog">
         <div class="bg-gray-800 rounded-lg shadow-xl p-4 w-full max-w-lg text-center">
@@ -173,7 +185,7 @@
 
         <dialog id="settings-dialog" class="settings-modal">
             <div
-                class="bg-gray-800/95 backdrop-blur-xl rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-gray-700/50">
+                class="bg-gray-800/95 backdrop-blur-xl rounded-xl shadow-2xl w-[90vw] md:w-[56rem] h-[80vh] flex flex-col border border-gray-700/50">
                 <!-- Modal Header -->
                 <div class="flex justify-between items-center p-4 border-b border-gray-700/50 flex-shrink-0">
                     <h2
@@ -248,15 +260,14 @@
                         <span>Data</span>
                     </button>
                     <button class="settings-tab" data-tab="logs">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span>Logs</span>
+                        Debug Logs
+                        <span id="logs-count-badge"
+                            class="ml-1 text-[10px] bg-indigo-500/50 text-indigo-100 px-1.5 rounded-full hidden">0</span>
                     </button>
+
                 </div>
                 <!-- Modal Body - Tab Content -->
-                <div class="p-5 space-y-6 overflow-y-auto custom-scrollbar text-left">
+                <div class="flex-1 p-5 space-y-6 overflow-y-auto custom-scrollbar text-left">
                     <!-- Tab: API Configuration -->
                     <div id="settings-tab-api" class="settings-tab-content">
                         <!-- API Provider Selection -->
@@ -267,6 +278,7 @@
                                 class="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-base focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
                                 <option value="openrouter" selected>OpenRouter (Recommended)</option>
                                 <option value="gemini">Google Gemini</option>
+                                <option value="groq">Groq</option>
                                 <option value="custom">Custom (OpenAI-Compatible)</option>
                             </select>
                             <p class="text-sm text-gray-400 mt-2">Select the AI service you want to use for generating
@@ -665,6 +677,20 @@
                             </div>
                         </div>
 
+                        <!-- Logging & Privacy -->
+                        <div class="grid grid-cols-1 gap-6 mt-6">
+                            <div class="setting-group bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+                                <label for="config-log-auto-delete"
+                                    class="block text-sm font-medium text-gray-300 mb-2">Auto-Delete Logs Older Than
+                                    (Days)</label>
+                                <input type="number" id="config-log-auto-delete"
+                                    class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="0 = disabled">
+                                <p class="text-xs text-gray-400 mt-1">0 = disabled. Logs older than this will be
+                                    automatically removed.</p>
+                            </div>
+                        </div>
+
                         <!-- AI Cleanup Settings -->
                         <div class="mt-6">
                             <h3 class="text-lg font-semibold text-indigo-300 mb-3">AI Cleanup Settings</h3>
@@ -687,16 +713,20 @@
                                         value="1" min="1">
                                     <p class="text-xs text-gray-400 mt-1">Concurrent API calls</p>
                                 </div>
-                                <div class="setting-group bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
-                                    <label for="config-ai-cooldown"
-                                        class="block text-sm font-medium text-gray-300 mb-1">Cooldown (ms)</label>
-                                    <input type="number" id="config-ai-cooldown"
-                                        class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-1.5 text-sm"
-                                        value="0" min="0">
-                                    <p class="text-xs text-gray-400 mt-1">Delay between batches</p>
-                                </div>
+                            </div>
+                            <div class="setting-group bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" id="config-show-guidance-step"
+                                        class="rounded bg-gray-700 border-gray-600 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900 w-5 h-5">
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-300">Show Guidance Step</span>
+                                        <p class="text-xs text-gray-400 mt-1">Ask for extra instructions before AI calls
+                                        </p>
+                                    </div>
+                                </label>
                             </div>
                         </div>
+
 
                         <!-- Hybrid Template Generation -->
                         <div class="mt-6">
@@ -739,10 +769,12 @@
                                         <option value="wildcard" title="Outputs category paths in ~~ ~~ brackets.">
                                             Wildcard (~~path~~)</option>
                                         <option value="strict"
-                                            title="Outputs final prompt text by selecting random items.">Strict (literal
+                                            title="Outputs final prompt text by selecting random items.">
+                                            Strict (literal
                                             text)</option>
                                         <option value="hybrid"
-                                            title="EXPERIMENTAL: A balanced mix of wildcards and text.">Hybrid (mixed)
+                                            title="EXPERIMENTAL: A balanced mix of wildcards and text.">
+                                            Hybrid (mixed)
                                         </option>
                                     </select>
                                     <p class="text-xs text-gray-400 mt-2">How slots are filled in generated templates.
@@ -887,22 +919,58 @@
 
                     <!-- Tab: Debug Logs -->
                     <div id="settings-tab-logs" class="settings-tab-content hidden">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-indigo-300">API Request Logs</h3>
-                            <div class="flex gap-2">
-                                <button id="refresh-logs-btn"
-                                    class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors">Refresh</button>
-                                <button id="clear-logs-btn"
-                                    class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors">Clear</button>
+                        <div class="flex flex-col gap-4 mb-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-semibold text-indigo-300">API Request Logs</h3>
+                                <div class="flex gap-2">
+                                    <button id="export-logs-btn"
+                                        class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors flex items-center gap-1">
+                                        ⬇️ Export
+                                    </button>
+                                    <button id="import-logs-btn"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors flex items-center gap-1">
+                                        ⬆️ Import
+                                    </button>
+                                    <button id="refresh-logs-btn"
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors">Refresh</button>
+                                    <button id="clear-logs-btn"
+                                        class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-md transition-colors">Clear</button>
+                                </div>
+                            </div>
+
+                            <!-- Filters -->
+                            <div
+                                class="flex flex-wrap gap-2 items-center bg-gray-900/50 p-2 rounded-lg border border-gray-700">
+                                <span class="text-xs text-gray-400 font-bold uppercase">Filter:</span>
+                                <select id="logs-filter-status"
+                                    class="bg-gray-800 text-xs text-white border border-gray-600 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none">
+                                    <option value="all">All Status</option>
+                                    <option value="error">Errors Only</option>
+                                    <option value="success">Success Only</option>
+                                </select>
+
+                                <span class="text-xs text-gray-500 ml-1">Date:</span>
+                                <input type="date" id="logs-filter-date-start"
+                                    class="bg-gray-800 text-xs text-white border border-gray-600 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    placeholder="Start">
+                                <span class="text-xs text-gray-400">-</span>
+                                <input type="date" id="logs-filter-date-end"
+                                    class="bg-gray-800 text-xs text-white border border-gray-600 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    placeholder="End">
+
+                                <input type="text" id="logs-filter-search"
+                                    class="bg-gray-800 text-xs text-white border border-gray-600 rounded px-2 py-1 flex-grow focus:ring-1 focus:ring-indigo-500 outline-none min-w-[150px]"
+                                    placeholder="Search URL or Payload...">
                             </div>
                         </div>
-                        <p class="text-xs text-gray-400 mb-4 italic">Logs are kept in memory only and cleared on page
-                            reload.</p>
+
+                        <p class="text-xs text-gray-400 mb-4 italic">Logs are stored locally in your browser's IndexedDB
+                            and persist across reloads.</p>
+
                         <div id="api-logs-container"
                             class="space-y-4 custom-scrollbar overflow-y-auto max-h-[55vh] pr-2">
                             <p class="text-sm text-gray-500 text-center py-8">No logs captured yet. Perform an API
-                                action
-                                to see logs here.</p>
+                                action to see logs here.</p>
                         </div>
                     </div>
                 </div>
@@ -1119,6 +1187,44 @@
                 <span>❌ Failed</span>
             </div>
             <p class="text-gray-600">Tests run sequentially using configured prompts</p>
+        </div>
+    </dialog>
+
+    <!-- API Guidance Step Dialog -->
+    <dialog id="guidance-dialog"
+        class="bg-gray-800 text-gray-200 p-6 rounded-xl shadow-2xl backdrop:bg-gray-900/80 max-w-lg w-full border border-gray-700 hidden open:flex flex-col">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span>🪄</span> Additional Guidance
+            </h3>
+            <button id="guidance-close-btn"
+                class="p-1.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <p class="text-sm text-gray-400">Add specific instructions for this generation (optional):</p>
+            <textarea id="guidance-input"
+                class="w-full h-32 bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none custom-scrollbar"
+                placeholder="Ex: 'make them spooky', 'focused on sci-fi', 'use vivid adjectives'..."></textarea>
+
+            <div class="flex items-center justify-between pt-2">
+                <label class="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" id="guidance-dont-show-again"
+                        class="rounded bg-gray-700 border-gray-600 text-indigo-500 focus:ring-indigo-500">
+                    <span class="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">Don't show this
+                        again</span>
+                </label>
+                <div class="flex gap-2">
+                    <button id="guidance-cancel-btn"
+                        class="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">Cancel</button>
+                    <button id="guidance-confirm-btn"
+                        class="px-6 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-indigo-900/20">Continue</button>
+                </div>
+            </div>
         </div>
     </dialog>
 

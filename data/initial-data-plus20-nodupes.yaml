@@ -1,0 +1,3091 @@
+0_TEMPLATES:
+  1girl:
+    - null
+1_SUBJECT_and_CONTENT: # instruction: The main focus of the image. What the picture is of.
+  PEOPLE: # instruction: Human subjects, their characteristics, roles, and attire.
+    Demographics: # instruction: Human diversity characteristics
+      - Afro-Caribbean
+      - albinism
+      - androgynous
+      - Ashkenazi Jewish
+      - Brazilian
+      - differently-abled
+      - dwarfism
+      - elderly
+      - feminine
+      - genderfluid
+      - gigantism
+      - Han Chinese
+      - Indigenous Australian
+      - infant
+      - intersex
+      - Korean
+      - masculine
+      - middle-aged
+      - mixed-race
+      - Nigerian
+      - non-binary
+      - Pashtun
+      - Quechua
+      - Roma
+      - Sámi
+      - teenager
+      - toddler
+      - transgender
+      - two-spirit
+      - Vietnamese
+      - young adult
+    Archetypes: # instruction: Character roles and personality types
+      - caregiver
+      - catalyst
+      - celebrant
+      - creator
+      - destroyer
+      - everyman
+      - explorer
+      - fool
+      - guardian
+      - hero
+      - innocent
+      - jester
+      - lover
+      - lover (tragic)
+      - magician
+      - martyr
+      - mentor
+      - mystic
+      - outlaw
+      - performer
+      - prophet
+      - rebel
+      - recluse
+      - revolutionary
+      - ruler
+      - sage
+      - seeker
+      - tempter
+      - trickster
+      - tyrant
+      - wanderer
+      - warrior
+    Occupations: # instruction: Categorization of jobs and professions by time period.
+      Modern: # instruction: Contemporary professions
+        - AI prompt engineer
+        - artist
+        - astronaut
+        - barista
+        - CEO
+        - chef
+        - content creator
+        - cryptocurrency trader
+        - cybersecurity analyst
+        - data scientist
+        - digital marketer
+        - DJ
+        - doctor
+        - drone operator
+        - e-sports athlete
+        - engineer
+        - firefighter
+        - freelance journalist
+        - genetic counselor
+        - influencer
+        - logistics coordinator
+        - mobile app developer
+        - podcaster
+        - programmer
+        - remote worker
+        - renewable energy technician
+        - scientist
+        - social media manager
+        - supply chain manager
+        - teacher
+        - urban explorer
+        - urban farmer
+        - UX designer
+        - video game streamer
+        - virtual reality developer
+      Historical_Fantasy: # instruction: Period and fantasy roles
+        - alchemist
+        - astrologer
+        - bard
+        - blacksmith
+        - court jester
+        - dragoon
+        - gladiator
+        - grenadier
+        - harlequin
+        - hedge witch
+        - illuminator
+        - imperial guard
+        - jesuit
+        - kabuki actor
+        - knight
+        - lancer
+        - magister
+        - mercenary captain
+        - minstrel
+        - monk
+        - musketeer
+        - paladin
+        - pharaoh
+        - pioneer
+        - pirate
+        - privateer
+        - ranger
+        - royal astronomer
+        - samurai
+        - scribe
+        - town crier
+        - viking
+        - warrior poet
+    Physical_Attributes: # instruction: Physical appearance characteristics
+      - almond eyes
+      - amber eyes
+      - arched eyebrows
+      - athletic
+      - baby fat
+      - birthmark
+      - braids
+      - bushy eyebrows
+      - calloused hands
+      - chiseled features
+      - crimson hair
+      - curvaceous
+      - cyber-implants
+      - dimples
+      - dreadlocks
+      - ebony skin
+      - elfin ears
+      - freckles
+      - full lips
+      - gap tooth
+      - high cheekbones
+      - long eyelashes
+      - mohawk
+      - muscular
+      - olive skin
+      - ombre hair
+      - pale skin
+      - petite
+      - piercings
+      - pointed ears
+      - rosy cheeks
+      - round eyes
+      - scars
+      - silver hair
+      - slender
+      - soft features
+      - steel gray eyes
+      - strong jawline
+      - sun-kissed skin
+      - tanned skin
+      - tattoos
+      - thick eyelashes
+      - thin lips
+      - towering
+      - undercut
+      - violet eyes
+      - wrinkles
+    Clothing_Fashion: # instruction: Attire and fashion styles
+      - armor
+      - athleisure
+      - avant-garde
+      - beanie
+      - boho
+      - boots
+      - casual
+      - cloak
+      - corset
+      - fedora
+      - flapper
+      - formal
+      - gloves
+      - goggles
+      - haute couture
+      - hood
+      - hoodie
+      - jeans
+      - jewelry
+      - mod
+      - nomad
+      - preppy
+      - punk
+      - regencycore
+      - safari
+      - sandals
+      - scarf
+      - skirt
+      - sneakers
+      - streetwear
+      - techwear
+      - trousers
+      - vintage
+  CREATURES_and_BEINGS: # instruction: Non-human subjects, including real animals, mythical beasts, and artificial life.
+    Animals_by_Class: # instruction: Biological classification groups
+      - amphibians
+      - annelids
+      - arachnids
+      - birds
+      - bivalves
+      - bryozoa
+      - cephalopods
+      - chordates
+      - ciliates
+      - cnidarians
+      - crustaceans
+      - dinoflagellates
+      - echinoderms
+      - fish
+      - foraminifera
+      - gastropods
+      - insects
+      - invertebrates
+      - mammals
+      - mollusks
+      - myriapods
+      - nematodes
+      - ostracods
+      - platyhelminthes
+      - porifera
+      - radiolarians
+      - reptiles
+      - rotifers
+      - trilobites
+      - vertebrates
+    Animals_by_Biome: # instruction: Environment-specific animals
+      - alpine ibex
+      - arctic fox
+      - bear
+      - boreal owl
+      - camel
+      - canyon bighorn sheep
+      - cave salamander
+      - coral reef fish
+      - deep sea anglerfish
+      - deer
+      - desert scorpion
+      - elephant
+      - estuary horseshoe crab
+      - fennec fox
+      - grassland bison
+      - kelp forest sea otter
+      - lion
+      - mangrove crab
+      - monkey
+      - octopus
+      - penguin
+      - polar bear
+      - prairie prairie dog
+      - rainforest macaw
+      - savanna giraffe
+      - scrubland meerkat
+      - shark
+      - swamp alligator
+      - taiga lynx
+      - temperate forest badger
+      - tiger
+      - tundra muskox
+      - volcanic lava lizard
+      - whale
+    Mythical_Fantasy: # instruction: Legendary and fantasy creatures
+      - banshee
+      - basilisk
+      - centaur
+      - chimera
+      - cyclops
+      - djinn
+      - dryad
+      - fairy
+      - gargoyle
+      - goblin
+      - golem
+      - griffin
+      - harpy
+      - hydra
+      - incubus
+      - jackalope
+      - kelpie
+      - kirin
+      - kitsune
+      - lamia
+      - leprechaun
+      - manticore
+      - minotaur
+      - naga
+      - pegasus
+      - roc
+      - sasquatch
+      - satyr
+      - siren
+      - sphinx
+      - succubus
+      - tengu
+      - thunderbird
+      - troll
+      - unicorn
+      - wendigo
+      - yeti
+    Robots_Cyborgs: # instruction: Artificial and hybrid beings
+      - AI construct
+      - android
+      - artificial golem
+      - augmented human
+      - bio-integrated circuitry
+      - biomechanical
+      - clockwork android
+      - cybernetic beast
+      - cyborg
+      - data ghost in machine
+      - digital consciousness vessel
+      - energy being in robotic shell
+      - gynoid
+      - holographic projection robot
+      - mech
+      - modular robot
+      - neural network avatar
+      - post-human entity
+      - programmable matter construct
+      - robotic familiar
+      - self-replicating automaton
+      - steampunk automaton
+      - synthetic lifeform
+      - synthetic organism
+      - viral machine
+    Mounts_Companions: # instruction: Rideable creatures and animal companions
+      - armored rhinoceros companion
+      - bioluminescent jellyfish mount
+      - cloud serpent mount
+      - coral crab mount
+      - crystal golem mount
+      - cyber-horse
+      - dire wolf steed
+      - dragon mount
+      - floating manta ray mount
+      - frost wolf steed
+      - giant beetle steed
+      - giant eagle
+      - giant sloth companion
+      - glowing stag mount
+      - griffin mount
+      - hover-bike creature
+      - living vine mount
+      - mechanical boar companion
+      - mechanical spider
+      - miniature mammoth companion
+      - phoenix mount
+      - plasma snail steed
+      - sandworm rider
+      - shadow horse companion
+      - six-legged feline companion
+      - spectral panther steed
+      - stone turtle mount
+      - war elephant
+  OBJECTS_and_ITEMS: # instruction: Inanimate objects, from everyday items to fantastical artifacts.
+    Technology: # instruction: Modern and futuristic devices
+      - advanced prosthetic limb
+      - atmospheric processor
+      - automated fabrication unit
+      - bio-integrated circuit
+      - cloaking device
+      - data storage crystal
+      - digital consciousness matrix
+      - energy shield generator
+      - FTL drive
+      - fusion reactor
+      - gravity manipulator
+      - holocron
+      - holographic projector
+      - hoverboard
+      - kinetic energy weapon
+      - magnetic levitation train
+      - modular robotics kit
+      - neural interface
+      - orbital satellite network
+      - personal force field
+      - plasma cutter
+      - quantum computer
+      - ray gun
+      - robotic exoskeleton
+      - smartphone
+      - sonic disruptor
+      - teleporter
+      - VR headset
+    Weapons_Armor: # instruction: Combat equipment and protection
+      - axe
+      - ballistic vest
+      - body armor
+      - bow
+      - breastplate
+      - buckler
+      - chainmail
+      - crossbow
+      - cuirass
+      - dagger
+      - energy sword
+      - flail
+      - force field
+      - full plate
+      - gauntlets
+      - greaves
+      - halberd
+      - katana
+      - kite shield
+      - longsword
+      - mace
+      - magical amulet
+      - morning star
+      - ninja garb
+      - pauldrons
+      - pistol
+      - plasma cannon
+      - rifle
+      - riot shield
+      - rune-etched bracers
+      - samurai armor
+      - scythe
+      - spear
+      - tower shield
+      - war hammer
+    Vehicles_Transportation: # instruction: Modes of transport across different environments.
+      Terrestrial: # instruction: Land-based vehicles
+        - armored vehicle
+        - ATV (all-terrain vehicle)
+        - autonomous delivery bot (wheeled)
+        - bulldozer
+        - camper van
+        - cybertruck
+        - dune buggy
+        - fire truck
+        - garbage truck
+        - horse-drawn carriage
+        - hot air balloon car
+        - ice cream truck
+        - limousine
+        - mech walker
+        - military jeep
+        - monster truck
+        - motorcycle
+        - police interceptor
+        - rickshaw
+        - snowmobile
+        - sports car
+        - stagecoach
+        - steam locomotive
+        - tank
+        - tractor
+        - vintage bicycle
+        - vintage pickup truck
+      Aerial: # instruction: Flying vehicles
+        - aerial tram
+        - airship
+        - autogiro
+        - balloon racer
+        - biplane
+        - blimp
+        - crop duster
+        - dirigible
+        - experimental aircraft
+        - fighter jet
+        - flying car
+        - flying platform
+        - flying saucer
+        - flying wing
+        - glider
+        - gyroplane
+        - hang glider
+        - helicopter
+        - hot air balloon
+        - jetpack
+        - ornithopter
+        - paramotor
+        - rocket plane
+        - space shuttle
+        - weather balloon
+        - winged motorcycle
+        - zepplin
+      Nautical: # instruction: Water vehicles
+        - aircraft carrier
+        - catamaran
+        - clipper ship
+        - dinghy
+        - ferryboat
+        - hydrofoil
+        - icebreaker
+        - jet ski
+        - kayak
+        - longboat
+        - motorboat
+        - outrigger canoe
+        - paddle steamer
+        - pirate ship
+        - pontoon boat
+        - rowboat
+        - sailboat
+        - sea bus
+        - speed boat
+        - submarine
+        - tugboat
+        - venetian gondola
+        - warship
+        - wave runner
+        - windsurfer
+        - yacht
+      Space: # instruction: Spacecraft and space vehicles
+        - ancient alien artifact ship
+        - asteroid mining ship
+        - atmospheric shuttle
+        - automated repair bot swarm
+        - bio-luminescent space whale
+        - cryosleep transport
+        - dimensional rift skimmer
+        - escape pod
+        - galactic patrol vessel
+        - generation ship
+        - gravity tractor
+        - interstellar cruiser
+        - long-range scanner array
+        - magnetic accelerator cannon platform
+        - moon base
+        - nebula explorer
+        - orbital platform
+        - planetary lander
+        - quantum drive freighter
+        - research probe
+        - rogue drone carrier
+        - solar sail ship
+        - space station
+        - starfighter
+        - terraforming rig
+        - void runner
+        - warp gate
+    Buildings_Structures: # instruction: Architectural subjects and landmarks
+      - art deco hotel
+      - barn
+      - bungalow
+      - castle ruins
+      - colosseum
+      - floating castle
+      - fortress
+      - futuristic dome
+      - gothic mansion
+      - lighthouse
+      - monument
+      - mosque
+      - opera house
+      - palace
+      - pyramid
+      - roman bath
+      - skyscraper
+      - space elevator
+      - temple
+      - tenement building
+      - underwater habitat
+      - water tower
+      - windmill
+      - ziggurat
+    Containers_Vessels: # instruction: Storage and containment objects
+      - ammunition box
+      - ancient vase
+      - aquarium
+      - backpack
+      - birdcage
+      - briefcase
+      - canopic jar
+      - cookie jar
+      - crystal vial
+      - diving bell
+      - filing cabinet
+      - flowerpot
+      - gas tank
+      - grain silo
+      - jewelry box
+      - lunchbox
+      - magical tome
+      - mailbox
+      - ornate chest
+      - potion bottle
+      - satchel
+      - scroll case
+      - shipping container
+      - spice rack
+      - strongbox
+      - terrarium
+      - tool chest
+      - treasure chest
+      - water cooler
+      - wine cellar
+    Tools_Instruments: # instruction: Implements and equipment
+      - abacus
+      - adding machine
+      - astrolabe
+      - barometer
+      - callipers
+      - camera obscura
+      - chronometer
+      - crystal ball
+      - gramophone
+      - loom
+      - lute
+      - magic lantern
+      - magnifying glass
+      - mortar and pestle
+      - odometer
+      - orrey
+      - phonograph
+      - planisphere
+      - pocket watch
+      - printing press
+      - quill and inkwell
+      - semaphore flags
+      - sextant
+      - slide rule
+      - theodolite
+      - thermometer
+      - typesetter
+      - violin
+    Food_Drink: # instruction: Consumables and beverages
+      - artisanal cheese
+      - bubble tea
+      - chocolate truffles
+      - crystallized ginger
+      - dragonfruit smoothie
+      - elixir
+      - enchanted wine
+      - energy drink
+      - exotic fruit
+      - fermented pickles
+      - freshly baked bread
+      - fruit tart
+      - glowing mushroom
+      - gourmet coffee
+      - healing herb
+      - herbal infusion
+      - iced boba
+      - intricate cake
+      - lavender lemonade
+      - magical potion
+      - maple syrup
+      - mystical tea
+      - rainbow sherbet
+      - roasted nuts
+      - savory pie
+      - smoked salmon platter
+      - spiced honey
+      - spicy kimchi
+      - steaming stew
+      - vintage soda pop
+  ABSTRACT_and_CONCEPTS: # instruction: Non-physical subjects, ideas, and emotions.
+    Geometric: # instruction: Mathematical and geometric forms
+      - algorithmic pattern
+      - asymptotic curves
+      - complex plane visualization
+      - crystal lattice
+      - delaunay triangulation
+      - fibonacci spiral
+      - fractal
+      - geometric progression
+      - hyperbolic paraboloid
+      - impossible geometry
+      - klein bottle
+      - knot theory
+      - mandala
+      - minimal surface
+      - mobius strip
+      - non-euclidean space
+      - optical illusion geometry
+      - parametric equation
+      - penrose tiling
+      - platonic solid
+      - polyhedron
+      - sacred geometry
+      - space-filling curve
+      - spherical geometry
+      - stereographic projection
+      - tessellation
+      - tesseract
+      - torus
+      - voronoi diagram
+    Ethereal: # instruction: Intangible and spiritual concepts
+      - afterglow
+      - anamnesis
+      - atman
+      - aura
+      - consciousness
+      - dream
+      - energy
+      - ephemerality
+      - essence
+      - ethos
+      - halcyon
+      - harmony
+      - ineffable
+      - infinity
+      - liminality
+      - memory
+      - nirvana
+      - numen
+      - penumbra
+      - quintessence
+      - resonance
+      - reverie
+      - serendipity
+      - soul
+      - spirit
+      - sublimity
+      - susurrus
+      - time
+      - transcendence
+      - velleity
+      - void
+    Emotions_Personified: # instruction: Emotions as visual entities
+      - anger as volcanic eruption
+      - anxiety as tangled wires
+      - apathy as a blank canvas
+      - boredom as shifting sands
+      - contentment as a warm hearth
+      - creation
+      - destruction
+      - envy as thorny vines
+      - euphoria as bursting bubbles
+      - excitement as fireworks
+      - grief as falling rain
+      - guilt as heavy chains
+      - hatred
+      - jealousy as a green mist
+      - joy
+      - longing as distant stars
+      - melancholy as a grey fog
+      - nostalgia as faded photographs
+      - pride as a towering statue
+      - resentment as a coiled serpent
+      - serenity as a still lake
+      - shame as a cracked mirror
+      - sorrow
+      - trust as interwoven roots
+      - wonder as bioluminescent flora
+  HISTORICAL_ERAS_and_CULTURES: # instruction: Themes related to specific time periods and societies.
+    Time_Periods: # instruction: Historical time periods and eras
+      - 1920s
+      - 1950s
+      - 1960s psychedelia
+      - 1980s neon
+      - 1990s grunge
+      - age of exploration
+      - aztec civilization
+      - belle époque
+      - bronze age
+      - byzantine era
+      - classical antiquity
+      - cold war era
+      - cyberpunk future
+      - dark ages
+      - disco era
+      - edwardian
+      - futuristic retro
+      - gothic period
+      - inca empire
+      - iron age
+      - mayan civilization
+      - medieval
+      - prehistoric
+      - progressive era
+      - regency era
+      - roaring 30s
+      - roaring twenties
+      - space age
+      - steam punk
+      - stone age
+      - swinging sixties
+    Civilizations_Regions: # instruction: Cultural and geographical origins
+      - Aboriginal Australian
+      - ancient Greece
+      - Aztec
+      - Chimu
+      - Edo Japan
+      - Ghana Empire
+      - Great Zimbabwe
+      - Hohokam
+      - Ilkhanate
+      - Inca
+      - Indian Subcontinent
+      - Khmer Empire
+      - Mali Empire
+      - Mayan
+      - Mesopotamian
+      - Minoan
+      - Mississippian Culture
+      - Moche
+      - Mycenaean
+      - Native American
+      - Nazca
+      - Ottoman Empire
+      - Persian
+      - Phoenician
+      - Polynesian
+      - Shang Dynasty
+      - Songhai Empire
+      - Srivijaya
+      - Sumerian
+      - Swahili Coast
+      - Tang Dynasty
+      - Timurid Empire
+      - Zhou Dynasty
+2_ACTION_POSE_and_EMOTION: # instruction: Describes what the subject is doing, feeling, or how they are positioned.
+  Dynamic_Actions: # instruction: Actions involving significant movement or interaction.
+    Locomotion: # instruction: Movement and travel actions
+      - ascending
+      - backpedaling
+      - bounding
+      - careening
+      - climbing
+      - crawling
+      - crouching
+      - descending
+      - diving
+      - drifting
+      - flying
+      - galloping
+      - hurdling
+      - leaping
+      - meandering
+      - pacing
+      - phasing
+      - rolling
+      - shuffling
+      - skipping
+      - sliding
+      - sneaking
+      - soaring
+      - sprinting
+      - striding
+      - swimming
+      - teleporting
+      - tiptoeing
+      - vaulting
+      - wheeling
+      - zig-zagging
+    Combat: # instruction: Fighting and battle actions
+      - aiming
+      - blocking
+      - casting spell
+      - charging
+      - combo attacking
+      - counterattacking
+      - defending
+      - disarming
+      - disengaging
+      - dodging
+      - dueling
+      - feinting
+      - finishing move
+      - flanking
+      - grappling
+      - ground fighting
+      - guard breaking
+      - headbutting
+      - intercepting
+      - kicking
+      - leap attacking
+      - parrying
+      - pivoting
+      - power stance
+      - retreating
+      - shield bashing
+      - striking
+      - sweeping
+      - tripping
+      - uppercutting
+      - weapon spinning
+    Interaction: # instruction: Social and environmental interactions
+      - beckoning
+      - building
+      - challenging
+      - collaborating
+      - comforting
+      - commanding
+      - competing
+      - conspiring
+      - contemplating
+      - crafting
+      - demonstrating
+      - discovering
+      - exploring
+      - guarding
+      - harvesting
+      - healing
+      - intervening
+      - negotiating
+      - observing
+      - offering
+      - performing
+      - pollinating
+      - protesting
+      - reaching out
+      - reclaiming
+      - repairing
+      - rescuing
+      - restoring
+      - sharing
+      - teaching
+      - witnessing
+  Static_Poses: # instruction: Stationary positions for a subject.
+    Standing: # instruction: Upright stationary positions
+      - akimbo
+      - arms crossed
+      - arms slightly away from body
+      - at attention
+      - back straight, dignified
+      - balanced and centered
+      - casual stance
+      - feet shoulder-width apart
+      - formal posture
+      - grounded and stable
+      - guard position
+      - hands gently holding an object
+      - hands in pockets
+      - hands on hips
+      - heroic pose
+      - leaning against wall
+      - looking directly at viewer
+      - looking over shoulder
+      - neutral expression
+      - observant gaze
+      - one hand on chest
+      - presentation pose
+      - relaxed shoulders
+      - slightly tilted head
+      - stoic expression
+      - weight shifted to one leg
+    Sitting: # instruction: Seated positions
+      - casual sitting
+      - contemplative sitting
+      - cross-legged
+      - crossed ankles
+      - edge sitting
+      - folded legs
+      - formal sitting
+      - kneeling (seated)
+      - leaning back
+      - lotus position
+      - lounging
+      - meditation pose
+      - on throne
+      - pensive pose
+      - perched
+      - relaxed posture
+      - seated in a circle
+      - seated in a rocking chair
+      - seated in profile
+      - seated observing
+      - seated on cushions
+      - seated on the floor
+      - seated with a book
+      - seated with arms crossed
+      - seated with feet up
+      - seated with hands clasped
+      - slouching
+      - sphinx pose
+      - tailoring pose
+    Reclining: # instruction: Lying down positions
+      - back arched in comfort
+      - collapsed in exhaustion
+      - dreaming pose
+      - fetal position
+      - floating
+      - lounging dramatically
+      - lying amongst flowers
+      - lying face down in sand
+      - lying in a field of grass
+      - lying in a hammock
+      - lying in a luxurious bath
+      - lying in repose
+      - lying on a chaise lounge
+      - lying on back
+      - lying with a book
+      - lying with a pet
+      - lying with eyes closed in meditation
+      - lying with legs crossed
+      - prostrate in grief
+      - reclining on cushions
+      - resting
+      - semi-reclined, propped on elbow
+      - side-lying
+      - sleeping
+      - splayed elegantly
+      - sprawled out
+      - stretched languidly
+      - sunbathing
+      - supine with arms overhead
+    Hand_Gestures: # instruction: Hand and arm positions
+      - arm outstretched
+      - arm raised in triumph
+      - beckoning gesture
+      - blessing gesture
+      - clenched fist
+      - counting on fingers
+      - covering face with hands
+      - crossed arms
+      - drumming fingers
+      - extended index finger
+      - finger guns
+      - flexing bicep
+      - folded arms across chest
+      - hand on hip
+      - hand reaching out
+      - hand resting on chest
+      - hand shielding eyes
+      - hands intertwined
+      - holding object
+      - magical gestures
+      - open palm
+      - palms facing each other
+      - peace sign
+      - pointing
+      - prayer hands
+      - scratching head
+      - shrugging shoulders
+      - thumbs up
+      - waving goodbye
+  Facial_Expressions: # instruction: Emotional expressions and facial features
+    - amazed
+    - awestruck
+    - bashful
+    - bored
+    - confident
+    - contemptuous
+    - determined
+    - disappointed
+    - ecstatic
+    - enraged
+    - exasperated
+    - frowning
+    - gleeful
+    - horrified
+    - incredulous
+    - intense
+    - mocking
+    - optimistic
+    - panicked
+    - pensive
+    - playful
+    - quizzical
+    - resigned
+    - sarcastic
+    - smirking
+    - stern
+    - suspicious
+    - thoughtful
+    - tormented
+    - unsettled
+    - vulnerable
+    - zealous
+  Group_Interactions: # instruction: Multi-person social dynamics
+    - battle formation
+    - boisterous feast
+    - celebration
+    - chaotic scramble
+    - collaborative building
+    - collective mourning
+    - comforting vigil
+    - competitive game
+    - council meeting
+    - dance formation
+    - divided opinions
+    - duelling
+    - friendly competition
+    - group meditation
+    - harmonious collaboration
+    - heated debate
+    - intense negotiation
+    - mourning
+    - mutual support
+    - performance ensemble
+    - playful teasing
+    - protective circle
+    - protest march
+    - rallying crowd
+    - ritual ceremony
+    - secret conspiracy
+    - shared discovery
+    - shared storytelling
+    - silent agreement
+    - synchronized movement
+    - teaching circle
+  Micro_Gestures: # instruction: Subtle body language and small movements
+    - blink rate (fast/slow)
+    - brief eye dart
+    - cheek flush
+    - collar adjustment
+    - confident smirk
+    - corner of mouth twitch
+    - ear twitch
+    - eye roll
+    - eyebrow raise
+    - finger drumming
+    - finger tap
+    - foot tap
+    - hair flip
+    - hand wring
+    - head tilt
+    - knowing glance
+    - knuckle crack
+    - lip bite
+    - lip gloss reapplication
+    - lip purse
+    - nervous fidget
+    - nostril flare
+    - palms sweat
+    - pupil dilation
+    - shallow breath
+    - shoulder shrug
+    - slight jaw clench
+    - subtle hand to neck
+    - throat clear
+    - weight shift
+    - wink
+3_ENVIRONMENT_and_SETTING: # instruction: The background and world where the subject exists.
+  Location: # instruction: Specific types of indoor and outdoor settings.
+    Interior: # instruction: Indoor environments and spaces
+      - abandoned asylum
+      - Abandoned movie theater
+      - alchemists laboratory
+      - Ancient Roman bathhouse
+      - Antique bookstore
+      - Art Deco nightclub
+      - Ballroom blitzed with confetti
+      - Barbershop with vintage chairs
+      - Blacksmith's forge
+      - Board game cafe
+      - Botanical conservatory
+      - Bubble tea shop
+      - Cabin fever living room
+      - Circus tent interior
+      - control room
+      - courtroom
+      - cozy hobbit hole
+      - data center
+      - Desert oasis tent interior
+      - Dollhouse interior
+      - Drive-in movie theater interior
+      - dungeon
+      - Enchanted forest cottage
+      - Futuristic apartment
+      - Gothic cathedral crypt
+      - Gourmet kitchen
+      - grand ballroom
+      - Haunted mansion attic
+      - hospital
+      - Hot air balloon basket
+      - Ice cave dwelling
+      - Japanese Ryokan
+      - Jazz club smokeroom
+      - laboratory
+      - Laundromat at night
+      - library
+      - Luxury hotel suite
+      - magical academy
+      - Medieval tavern
+      - Museum exhibit hall
+      - necromancers lair
+      - Pirate ship cabin
+      - Pottery studio
+      - Record store listening booth
+      - Retro diner booth
+      - Secret speakeasy
+      - space station interior
+      - starship bridge
+      - Steampunk workshop
+      - Submarine galley
+      - Tea room with floral wallpaper
+      - throne room
+      - Train car dining room
+      - underground bunker
+      - Undersea research facility
+      - workshop
+      - Zen garden teahouse
+    Exterior_Man_Made: # instruction: Outdoor constructed environments
+      - abandoned theme park
+      - airport
+      - amusement park boardwalk
+      - ancient ruins
+      - botanical garden (outdoor)
+      - bustling marketplace
+      - canal lock system
+      - castle courtyard
+      - cellular tower farm
+      - city plaza fountain
+      - coliseum ruins
+      - construction site
+      - country club golf course
+      - drive-in movie theater
+      - dry dock
+      - dystopian megalopolis
+      - exterior movie set
+      - farmhouse and fields
+      - fishing pier
+      - floating city
+      - fortified trading post
+      - fortress walls
+      - geothermal plant
+      - graffiti alley
+      - harbor
+      - highway overpass
+      - historical battlefield
+      - hot air balloon launch field
+      - hydroponic farm
+      - industrial complex
+      - lighthouse and coastline
+      - logging camp
+      - marina and yacht club
+      - medieval town square
+      - military base exterior
+      - mining facility
+      - monument plaza
+      - observation deck
+      - oil refinery
+      - open-air museum
+      - outdoor concert venue
+      - outdoor sculpture park
+      - parking garage exterior
+      - public swimming pool (exterior)
+      - quarry
+      - race track
+      - railway yard
+      - rooftop garden
+      - ski resort
+      - solar panel array
+      - space colony
+      - suburban neighborhood
+      - transmission tower network
+      - university campus quad
+      - urban sprawl
+      - water park
+      - wind turbine field
+    Exterior_Natural: # instruction: Natural outdoor environments
+      - alpine meadow
+      - arctic tundra
+      - aurora borealis vista
+      - badlands terrain
+      - bamboo grove
+      - bioluminescent cave
+      - boreal forest
+      - butte formation
+      - canyon
+      - chalk cliffs
+      - cloud forest
+      - coastal dunes
+      - coniferous woodland
+      - coral reef
+      - crystal forest
+      - cypress swamp
+      - deciduous forest floor
+      - desert dunes
+      - desert oasis
+      - dry riverbed
+      - eucalyptus grove
+      - fern gully
+      - fjord coastline
+      - flower field
+      - geyser field
+      - giant mushroom forest
+      - glacial fjord
+      - granite boulders
+      - grassland plains
+      - hidden valley
+      - hot springs
+      - lava fields
+      - limestone canyon
+      - limestone karst
+      - loess hills
+      - mangrove swamp
+      - meadow
+      - mesa landscape
+      - monsoon forest
+      - mountain peak
+      - oasis
+      - petrified forest
+      - pine barrens
+      - redwood forest
+      - river delta
+      - rocky coastline
+      - rolling hills
+      - sagebrush steppe
+      - salt flats
+      - sandstone arches
+      - sea cliffs
+      - subtropical rainforest
+      - swamp
+      - temperate rainforest
+      - tropical beach
+      - vineyard landscape
+      - volcanic caldera
+      - volcanic plateau
+      - waterfall
+  Time_Weather: # instruction: Atmospheric conditions and time of day.
+    Time_of_Day: # instruction: Temporal lighting conditions
+      - amber afterglow
+      - backlit morning
+      - bleak winter day
+      - blinding snowstorm
+      - blue hour
+      - brilliant spring morning
+      - candlelit ambiance
+      - chilling frost light
+      - crimson sunset
+      - dawn
+      - dead of night
+      - deep shadow play
+      - diffuse evening light
+      - dimly lit cavern
+      - dreamlike luminescence
+      - dusk
+      - early morning
+      - eclipsed sunlight
+      - eerie glow
+      - eternal twilight
+      - ethereal moonbeams
+      - firelight glow
+      - flickering gaslight
+      - foggy sunrise
+      - frost-kissed dawn
+      - gloaming radiance
+      - golden hour
+      - harsh midday sun
+      - hazy afternoon
+      - high noon
+      - late afternoon
+      - lavender dusk
+      - long shadows
+      - melancholy rain
+      - midnight
+      - moonlit night
+      - murky pre-dawn haze
+      - opaline twilight
+      - overcast day
+      - pale winter sun
+      - phantom sunlight
+      - pre-dawn
+      - rainy gloom
+      - soft daylight
+      - starry expanse
+      - stormy evening
+      - sunrise
+      - sunshower
+      - twilight
+      - vernal equinox light
+      - witching hour
+    Weather_Conditions: # instruction: Atmospheric and weather phenomena
+      - acid rain
+      - altostratus clouds
+      - atmospheric river
+      - ball lightning
+      - black ice
+      - blinding blizzard
+      - blood rain
+      - blue moon haze
+      - brinicle
+      - calm
+      - catabatic wind
+      - cirrus clouds
+      - clear skies
+      - cloudy
+      - derecho
+      - diamond dust
+      - drizzle
+      - dust storm wall
+      - eerie fog
+      - electric fog
+      - fallstreak hole
+      - firestorm
+      - frost flowers
+      - gentle snowfall
+      - glory (optical phenomenon)
+      - haboob
+      - hail
+      - humid
+      - hurricane
+      - ice needles
+      - ice storm
+      - mammatus clouds
+      - pileus cloud
+      - radiation fog
+      - red sprite
+      - sandstorm
+      - sea smoke
+      - shelf cloud
+      - smog
+      - steam devils
+      - sun shower
+      - supercell
+      - thunderstorm
+      - tornado
+      - torrential rain
+      - virga
+      - windy
+    Celestial_Events: # instruction: Astronomical and sky phenomena
+      - airglow
+      - alien sky
+      - anticrepuscular rays
+      - astral convergence
+      - binary star system
+      - blood moon
+      - celestial bloom
+      - circumhorizontal arc
+      - circumzenithal arc
+      - comet
+      - constellation
+      - cosmic dust lanes
+      - cosmic storm
+      - dyson swarm
+      - eclipsed sun with solar prominences
+      - ecliptic alignment
+      - galactic core view
+      - geocorona
+      - ghostly aurora
+      - halo effect
+      - heliospheric current sheet
+      - interstellar cloud
+      - ionospheric anomaly
+      - Jupiter's Great Red Spot visible
+      - light pillars
+      - lunar corona
+      - magnetospheric substorm
+      - meteor shower
+      - milky way
+      - moonbow
+      - multiple suns
+      - nebula in sky
+      - phantom galaxy
+      - planetary rings visible
+      - radio galaxy
+      - rogue planet transit
+      - saturnalia (ring shadow)
+      - shooting star
+      - solar eclipse
+      - star trails
+      - stellar nursery
+      - sun dogs
+      - supernova
+      - transient luminous event
+      - two moons
+      - variable star outburst
+      - void star
+      - zodiacal light
+    Seasonal_Changes: # instruction: Season-specific environmental elements
+      - arctic blizzard
+      - autumn colors
+      - autumn crisp air
+      - autumn fog
+      - autumn harvest
+      - autumn leaf piles
+      - autumn mist rolling hills
+      - autumn pumpkin patch
+      - autumn woodland creatures
+      - bare winter branches
+      - blazing summer sun
+      - blooming flowers
+      - cherry blossom spring
+      - chilling winter winds
+      - crisp spring morning dew
+      - damp spring earth
+      - desert mirage
+      - dry season
+      - dusty summer fields
+      - early spring buds
+      - frosty winter meadows
+      - golden hour autumn
+      - ice formation
+      - late autumn golden light
+      - lush summer greenery
+      - melting snowdrifts
+      - midsummer lightning storm
+      - monsoon flooding
+      - new spring growth
+      - overcast winter skies
+      - scorching summer sand
+      - snow-covered landscape
+      - snowy winter owl
+      - spring bird migration
+      - spring pollen bloom
+      - spring showers
+      - spring thaw
+      - spring wildflower meadow
+      - summer cicada chorus
+      - summer drought cracks
+      - summer heat
+      - summer heat shimmer
+      - summer solstice
+      - summer wildfire haze
+      - thunderous summer rain
+      - tropical rainforest downpour
+      - vernal equinox sunrise
+      - winter aurora borealis
+      - winter freeze
+      - winter frosted branches
+      - winter icicles
+      - winter stillness
+  Architecture: # instruction: Building styles, materials, and types.
+    Architectural_Styles: # instruction: Building design and architectural movements
+      - ancient greek
+      - aztec architecture
+      - balinese architecture
+      - beaux-arts
+      - bedouin architecture
+      - belgian surrealist architecture
+      - biomimicry architecture
+      - brutalism inspired
+      - capitol hill architecture
+      - carmelite architecture
+      - chinoiserie
+      - classical
+      - colonial
+      - cubist architecture
+      - cyclopean architecture
+      - deconstructivist
+      - desert modernism
+      - dutch colonial revival
+      - egyptian revival
+      - expressionist architecture
+      - fachwerk
+      - farmhouse style
+      - flatiron architecture
+      - geodesic dome
+      - high-tech architecture
+      - indus valley architecture
+      - industrial architecture
+      - international style
+      - japanese pagoda
+      - kitsch architecture
+      - log cabin architecture
+      - mayan architecture
+      - megastructure
+      - mid-century modern
+      - modern
+      - moorish
+      - neoclassical
+      - organic architecture
+      - palladian
+      - parametricism
+      - postmodern
+      - prairie school
+      - romanesque
+      - second empire
+      - soviet
+      - streamline moderne
+      - sustainable architecture
+      - tudor
+      - vernacular architecture
+    Building_Materials: # instruction: Construction materials and textures
+      - adobe
+      - aluminized fabric
+      - bamboo
+      - basalt
+      - bio-organic
+      - brick
+      - burlap
+      - carbon fiber
+      - ceramic tiles
+      - cinder blocks
+      - clay tiles
+      - cob
+      - composite decking
+      - concrete
+      - corrugated iron
+      - corten steel
+      - crystal
+      - diamond plate
+      - energy constructs
+      - epoxy resin
+      - fiberglass
+      - flagstone
+      - formwork plywood
+      - galvanized steel
+      - geodesic dome (material)
+      - glass
+      - granite
+      - gypsum board
+      - hempcrete
+      - holographic
+      - ice blocks
+      - insulated concrete form
+      - limestone
+      - linen
+      - living wood
+      - magnesium oxide
+      - marble
+      - mosaic glass
+      - obsidian
+      - pargeting
+      - plasma
+      - polished chrome
+      - pressed tin
+      - pumice
+      - rammed earth
+      - recycled plastic
+      - rusted metal
+      - sandstone
+      - shingles
+      - slate
+      - steel
+      - stone
+      - stucco
+      - synthetic leather
+      - terracotta
+      - wicker
+      - wood
+      - woven reeds
+    Vernacular_Styles: # instruction: Regional and traditional architectural forms
+      - bahay kubo
+      - bandi
+      - black house (Scotland)
+      - broch (Scotland)
+      - casita
+      - chalet
+      - champa house (Vietnam)
+      - cliff dwelling
+      - cob house
+      - cordwood construction
+      - corrugated iron house
+      - crystal palace
+      - cyclopean masonry
+      - dacha (Russia)
+      - dolmen
+      - earthbag construction
+      - earthship
+      - fachwerkhaus
+      - floating home
+      - gassho-zukuri (Japan)
+      - gingerbread house
+      - half-timbered
+      - hanok
+      - hay house (Korea)
+      - hórreo (Spain)
+      - ice castle
+      - kamptal house (Austria)
+      - kibbutz house (Israel)
+      - kolkhozy house (Soviet Union)
+      - koshk
+      - longhouse
+      - machiya
+      - maloca (Amazon)
+      - masseria
+      - menhir
+      - nipa hut (Philippines)
+      - palafito (Chile)
+      - panya (Thailand)
+      - pueblo adobe
+      - qalat
+      - ranchos (California)
+      - riads
+      - ryokan
+      - stilt house
+      - sukkah (Jewish)
+      - taos pueblo
+      - toraja house
+      - tree house
+      - trullo
+      - tulou
+      - underground dwelling
+      - vernacular stone cottage
+      - wattle and daub
+      - yurt
+  Flora_Fauna_Details: # instruction: Environmental life and natural elements
+    - alien plants
+    - alpine meadow grasses
+    - ancient trees
+    - arctic tundra mosses
+    - aurora borealis reflecting in a lake
+    - bamboo forest thicket
+    - bioluminescent organisms
+    - bristling pine needles after a snowfall
+    - butterfly migration
+    - carnivorous plants
+    - cascading waterfall with ferns
+    - circling vultures above a canyon
+    - coastal cliffs dotted with seabird nests
+    - coral reef formations
+    - cracked earth revealing root systems
+    - crystalline plants
+    - dense fog rolling through a swamp
+    - desert succulents
+    - distant herd
+    - driftwood sculptures on a beach
+    - eerie silence of a snow-covered forest
+    - exposed tree roots clinging to a hillside
+    - fields of lavender swaying in the breeze
+    - floating island ecosystems
+    - flock of birds
+    - flowering vines
+    - frost patterns on winter leaves
+    - fungal networks
+    - geothermal hot spring bacteria
+    - geyser erupting amidst wildflowers
+    - giant flora
+    - glacial ice caves with hidden pools
+    - glowing moss
+    - gravel riverbed with smooth stones
+    - hidden grotto with lush vegetation
+    - iridescent beetle shells scattered on the forest floor
+    - kelp forest canopy
+    - lichen covered rocks
+    - luminous fungi illuminating a dark cave
+    - mangrove roots
+    - microscopic ecosystem
+    - monarch butterfly resting on a thistle
+    - nocturnal creatures
+    - overgrown ivy
+    - parasitic plants
+    - petrified wood formations
+    - phosphorescent plankton
+    - rainforest epiphytes
+    - sand dune vegetation
+    - school of fish
+    - seasonal bloom of wildflowers
+    - subterranean cave fauna
+    - sun-dappled forest floor with fallen leaves
+    - swarm of insects
+    - symbiotic life
+    - tidal pool invertebrates
+    - volcanic vents teeming with life
+    - weeping willows
+    - windswept reeds
+  Natural_Phenomena: # instruction: Natural events and environmental effects
+    - acid rain corrosion
+    - atmospheric anomaly
+    - aurora borealis display
+    - avalanche
+    - ball lightning phenomenon
+    - bioluminescent tide
+    - blizzard conditions
+    - brinicle forming under ice
+    - catastrophic bloom of algae
+    - cave-in
+    - coastal erosion cliffs
+    - coral bleaching event
+    - crevasse opening in glacier
+    - cryovolcano eruption
+    - desert bloom after rain
+    - dimensional rift
+    - earth pillar formation
+    - earthquake
+    - energy vortex
+    - extreme low tide exposure
+    - flash flood
+    - flooding rainforest canopy
+    - fog rolling over mountains
+    - frost heave damage
+    - geyser eruption
+    - glacial calving event
+    - gravity distortion
+    - green flash at sunset
+    - haboob approaching city
+    - hydrothermal vent field
+    - ice age formation
+    - ice cave meltwater flow
+    - landslide
+    - landspout tornado
+    - lightning storm over ocean
+    - limestone karst topography
+    - magnetic storm
+    - mammoth bone lode exposure
+    - meteor shower streaks
+    - mirage effect over desert
+    - monsoon rainfall
+    - monsoonal mudslide
+    - mud pot bubbling
+    - permafrost thaw landscape
+    - polar vortex descent
+    - red tide bloom
+    - river delta shifting
+    - sandstorm engulfing landscape
+    - sinkhole formation
+    - solar flare effects
+    - subterranean fungal bloom
+    - subterranean river system
+    - super-cell tornado
+    - tidal wave
+    - time dilation zone
+    - volcanic eruption
+    - wildfire
+4_COMPOSITION_and_CINEMATOGRAPHY: # instruction: How the scene is framed, shot, and composed, as if by a camera.
+  Shot_Framing: # instruction: Camera position and subject framing
+    - ankle shot
+    - asymmetrical composition
+    - bird's-eye view
+    - bokeh shot
+    - chest shot
+    - circular composition
+    - contre-jour shot
+    - cowboy shot
+    - cutaway
+    - detail shot
+    - diagonal composition
+    - dutch angle shot
+    - extreme wide shot
+    - eye-level shot
+    - full body shot
+    - full shot
+    - group shot
+    - head and shoulders shot
+    - high angle shot
+    - insert shot
+    - knee shot
+    - leading lines composition
+    - low angle shot
+    - master shot
+    - medium close-up
+    - negative space composition
+    - over-the-shoulder
+    - panoramic shot
+    - POV shot
+    - profile shot
+    - rule of thirds framing
+    - shallow focus shot
+    - shoulder shot
+    - silhouette shot
+    - split diopter shot
+    - symmetry framing
+    - three-quarter shot
+    - tilt-shift shot
+    - two-shot
+    - waist shot
+    - wide shot
+    - worm's-eye view
+  Angle_Perspective: # instruction: Camera angle and viewpoint
+    - aerial view
+    - birds-eye view
+    - canted framing
+    - canting
+    - converging lines
+    - crane shot
+    - cross-shooting
+    - decentered composition
+    - deep focus perspective
+    - extreme long shot
+    - eye level
+    - fish-eye perspective
+    - head-on shot
+    - high angle
+    - hypnotic perspective
+    - isometric
+    - leading lines
+    - low angle
+    - negative space emphasis
+    - oblique
+    - one-point perspective
+    - orthographic
+    - over-the-shoulder shot
+    - panoramic view
+    - point-of-view shot (POV)
+    - reverse angle
+    - rule of thirds
+    - shallow focus perspective
+    - slow motion reveal
+    - three-point perspective
+    - tilt-shift perspective
+    - top-down view
+    - tracking shot
+    - two-point perspective
+    - vertigo effect
+    - worms-eye view
+  Focus_Depth: # instruction: Focus techniques and depth effects
+    - anamorphic focus
+    - aperture gradient
+    - caustic focus
+    - chromatic aberration focus
+    - cinematic focus
+    - circle of confusion
+    - close-up focus
+    - complex bokeh shapes
+    - crisp focus
+    - deep focus
+    - depth map focus
+    - diffused focus
+    - dramatic focus shift
+    - dreamy focus
+    - dynamic focus
+    - edge focus
+    - focal plane isolation
+    - focus bloom
+    - focus pulling
+    - focus stacking
+    - golden hour focus
+    - gradual focus transition
+    - high-speed focus
+    - hyperfocal distance
+    - infinite focus
+    - intentional defocus
+    - layered focus
+    - light field focus
+    - long focus lens
+    - macro focus
+    - microscopic focus
+    - monochromatic focus
+    - negative space focus
+    - optical flow focus
+    - out-of-focus background
+    - out-of-focus foreground
+    - perspective focus
+    - pointillistic focus
+    - rack focus
+    - radial blur
+    - shallow depth of field
+    - sharp central focus
+    - short focus lens
+    - split focus
+    - subsurface scattering focus
+    - virtual reality focus
+    - volumetric lighting focus
+    - zone focusing
+  Aspect_Canvas: # instruction: Image format and canvas arrangements
+    - 16:9 widescreen
+    - 2.39:1 cinemascope
+    - 21:9 ultrawide
+    - 3:2 classic
+    - 4:5 portrait
+    - accordion fold
+    - billboard aspect ratio
+    - blueprint layout
+    - broken glass shards
+    - cinemagraph frame
+    - circular frame
+    - circular panorama
+    - collaged layout
+    - comic book panel
+    - cross-stitch pattern
+    - diptych
+    - double exposure frame
+    - film sprocket holes
+    - fisheye lens
+    - floppy disk screen
+    - fractured screen
+    - grid overlay
+    - heart-shaped frame
+    - horizontal panorama
+    - infinity mirror effect
+    - irregular polygon
+    - isometric view
+    - kaleidoscope view
+    - keyhole view
+    - layered paper cutouts
+    - letterbox effect
+    - lightbox display
+    - long scroll
+    - mobile phone screen
+    - mosaic tiles
+    - multiple panels
+    - nested frames
+    - origami fold
+    - oval frame
+    - parallax scrolling effect
+    - pillarbox effect
+    - polaroid snapshot
+    - projection mapping
+    - roll of parchment
+    - square
+    - stained glass window
+    - star-shaped frame
+    - television static
+    - triptych
+    - vertical panorama
+    - vintage film strip
+  Movement_Techniques: # instruction: Motion capture and dynamic effects
+    - action lines emphasizing speed
+    - afterimage trails
+    - atmospheric distortion from velocity
+    - bloom with motion
+    - bullet time reveal
+    - bullet-time freeze
+    - camera collision impact
+    - camera orbit
+    - camera shake (intentional)
+    - celestial tracking (stars, planets)
+    - chromatic aberration with motion
+    - cloth simulation reacting to movement
+    - deformed perspective with rapid motion
+    - directional light streaks
+    - dynamic depth of field shift
+    - echoing motion blur
+    - energy tendrils following motion
+    - fluid dynamics ripple effect
+    - fluid simulation trails
+    - fluidized object deformation
+    - forced perspective movement
+    - freeze frame
+    - gravity defiance trails
+    - impact frame freeze
+    - inertia-based distortion
+    - kinetic blur
+    - kinetic energy discharge
+    - lens flare with movement
+    - light painting
+    - long-exposure trails
+    - morphing motion
+    - motion ghosting
+    - motion vectors
+    - motion-activated volumetric lighting
+    - panning
+    - particle system trails
+    - phantom limb effect during movement
+    - reactive dust and debris fields
+    - rolling shutter effect
+    - rotoscoping
+    - shockwave propagation
+    - slow motion
+    - speed lines converging on focal point
+    - stop motion
+    - stroboscopic effect
+    - subframe interpolation for smoothness
+    - tilting
+    - time-lapse
+    - tracking
+    - velocity-mapped texture distortion
+    - virtual camera flythrough
+    - whip pan
+5_STYLE_and_AESTHETICS: # instruction: The overall visual style, art movement, and mood of the image.
+  Art_Movements: # instruction: Historical and contemporary art styles
+    - abstract expressionism
+    - conceptual art
+    - contemporary realism
+    - cyberpunk art
+    - dadaism
+    - digital art
+    - fluxus
+    - futurism
+    - hyperrealism
+    - kinetic art
+    - land art
+    - lowbrow art
+    - maximalism
+    - neo-expressionism
+    - neoclassicism
+    - new realism
+    - performance art
+    - photorealism
+    - post-impressionism
+    - pre-raphaelitism
+    - situationism
+    - street art
+    - vaporwave aesthetics
+  Medium_Technique: # instruction: The artistic medium used, both digital and traditional.
+    Digital: # instruction: Digital art creation methods
+      - AI-assisted
+      - algorithmic art
+      - anaglyph 3D
+      - ASCII art
+      - cyberpunk aesthetic
+      - digital collage
+      - digital embroidery
+      - digital painting
+      - digital sculpting
+      - fractal art
+      - generative art
+      - glitch art
+      - high-poly
+      - holographic display
+      - isometric illustration
+      - kinetic typography
+      - low-poly
+      - matte painting
+      - motion graphics
+      - photomanipulation
+      - pointillism (digital)
+      - procedural art
+      - retro digital
+      - screen capture art
+      - synthwave aesthetic
+      - vaporwave aesthetic
+      - voxel art
+      - wireframe
+    Traditional: # instruction: Classic art mediums and techniques
+      - acrylic
+      - bronze sculpture
+      - calligraphy
+      - ceramics
+      - charcoal
+      - collage
+      - conte crayon
+      - crayola
+      - encaustic
+      - engraving
+      - fresco
+      - gouache
+      - grisaille
+      - illumination
+      - ink wash
+      - intaglio
+      - lithograph
+      - macrame
+      - mixed media
+      - monotype
+      - mosaic
+      - oil painting
+      - pencil sketch
+      - pottery
+      - relief carving
+      - sanguine
+      - scratchboard
+      - screen print
+      - sculpture
+      - sepia
+      - silverpoint
+      - sumi-e
+      - tapestry
+      - tempera
+      - terra cotta
+      - watercolor
+      - woodcut
+  Aesthetic_Genres: # instruction: Visual style genres and movements
+    - afrofuturism
+    - atompunk
+    - biopunk
+    - clockpunk
+    - de stijl
+    - dieselpunk
+    - kawaii
+    - neo-impressionism
+    - psychedelic
+    - retrofuturism
+    - synthwave
+    - vaporwave
+  Color_Schemes: # instruction: Color theory and palette arrangements
+    - achromatic
+    - analogous
+    - color blocking
+    - color harmony
+    - complementary
+    - cool palette
+    - cyberpunk palette
+    - desaturated
+    - discordant colors
+    - duotone
+    - earthy
+    - fauvist colors
+    - gradient palette
+    - grayscale
+    - high contrast
+    - impressionistic hues
+    - jewel tones
+    - limited palette
+    - low contrast
+    - monochromatic
+    - muted
+    - neon
+    - neutral palette
+    - ombré effect
+    - pointillist palette
+    - polychromatic
+    - pop art colors
+    - retro color scheme
+    - sepia tone
+    - spectral colors
+    - split-complementary
+    - synthwave palette
+    - tetradic
+    - triadic
+    - vaporwave colors
+    - warm palette
+  Textures_Patterns: # instruction: Surface qualities and decorative elements
+    - abstract patterns
+    - art deco patterns
+    - aztec motifs
+    - bamboo texture
+    - bubble wrap
+    - calligraphy strokes
+    - celtic knots
+    - ceramic glaze
+    - circuit board
+    - cracked paint
+    - embroidered
+    - fabric weave
+    - fish scales
+    - floral patterns
+    - frosted
+    - glossy
+    - graffiti art
+    - honeycomb structure
+    - islamic patterns
+    - marble veining
+    - matte
+    - peacock feathers
+    - quilted
+    - rust patina
+    - sandblasted
+    - stone texture
+    - tie-dye
+    - tribal designs
+    - velvet
+    - watercolor wash
+    - wood grain
+    - woven rattan
+  Mood_Atmosphere: # instruction: Emotional and atmospheric qualities
+    - bittersweet
+    - brooding
+    - chaotic
+    - desolate
+    - dramatic
+    - energetic
+    - ethereal
+    - euphoric
+    - exuberant
+    - foreboding
+    - harmonious
+    - haunting
+    - introspective
+    - isolated
+    - majestic
+    - ominous
+    - passionate
+    - phantasmal
+    - radiant
+    - restless
+    - reverent
+    - somber
+    - stoic
+    - sublime
+    - suffocating
+    - tense
+    - tranquil
+    - transcendent
+    - turbulent
+    - uplifting
+    - whimsical
+  Film_Techniques: # instruction: Photography and film processing effects
+    -  Orton effect
+    - autochrome
+    - bleach bypass
+    - bloom effect
+    - color separation
+    - cross-processing
+    - depth of field (deep)
+    - depth of field (shallow)
+    - double exposure
+    - fisheye lens distortion
+    - high key
+    - infrared
+    - kinemacolor
+    - low key
+    - photogram
+    - posterization
+    - pull processing
+    - push processing
+    - sabattier effect
+    - scanogram
+    - schlieren photography
+    - solarization
+    - split toning
+    - tilt-shift effect
+    - time-slice photography
+    - ultraviolet
+  Post_Processing: # instruction: Digital enhancement and effects
+    - anamorphic lens effect
+    - ASCII art overlay
+    - color cycling
+    - color grading
+    - contrast boost
+    - desaturation
+    - digital painting effect
+    - dust
+    - film scratches
+    - fractal patterns
+    - geometric distortions
+    - glitch effects
+    - HDR
+    - infrared photography
+    - kaleidoscope effect
+    - lens distortion
+    - light leaks
+    - liquid distortion
+    - moire patterns
+    - oversaturation
+    - pixel sorting
+    - plasma effect
+    - pointillism effect
+    - retro scanlines
+    - spectral highlights
+    - thermal vision
+    - tone mapping
+    - vectorization
+    - VHS artifacts
+  Cultural_Motifs: # instruction: Traditional and cultural design elements
+    - African geometric patterns
+    - Australian Aboriginal dot painting
+    - Aztec calendar
+    - Balinese shadow puppets (Wayang Kulit)
+    - Bolivian weavings
+    - Byzantine iconography
+    - Cambodian Apsara dance poses
+    - Celtic knotwork
+    - Chinese dragons
+    - Egyptian hieroglyphs
+    - Ethiopian Habesha patterns
+    - Filipino Okir/Okil carvings
+    - Ghanaian kente cloth
+    - Gothic tracery
+    - Greek key patterns
+    - Hungarian folk embroidery
+    - Inca textiles
+    - Indian mandala
+    - Islamic arabesque
+    - Japanese cherry blossoms
+    - Korean bojagi patchwork
+    - Maori kowhaiwhai
+    - Mayan glyphs
+    - Mongolian deel patterns
+    - Moroccan zellij tilework
+    - Native American totems
+    - Norse runes
+    - Persian miniature painting motifs
+    - Peruvian Nazca Lines
+    - Roman mosaics
+    - Russian Khokhloma painting
+    - Sami duodji crafts
+    - Tibetan thangka painting details
+    - Ukrainian pysanka egg designs
+    - Vietnamese lacquerware patterns
+6_TECHNICAL_ATTRIBUTES_and_RENDERING: # instruction: Technical details about the virtual camera, lens, and rendering process.
+  Lighting: # instruction: All aspects of how the scene is illuminated.
+    Lighting_Types: # instruction: Different lighting techniques and sources
+      - ambient lighting
+      - area lighting
+      - artificial light
+      - blacklight lighting
+      - bottom lighting
+      - candlelight
+      - fill lighting
+      - firelight lighting
+      - flood lighting
+      - fluorescent lighting
+      - gobo lighting
+      - halogen lighting
+      - incandescent lighting
+      - key lighting
+      - LED lighting
+      - mood lighting
+      - natural light
+      - neon lighting
+      - plasma lighting
+      - point lighting
+      - spot lighting
+    Lighting_Quality: # instruction: Characteristics of light appearance
+      - brilliant light
+      - cinematic lighting
+      - colored lighting
+      - cool light
+      - diffused light
+      - dim light
+      - dreamy lighting
+      - ethereal lighting
+      - faint light
+      - flickering light
+      - ghostly lighting
+      - glowing light
+      - gradient lighting
+      - hard light
+      - harsh shadows
+      - intense light
+      - muted light
+      - neutral light
+      - no shadows
+      - noir lighting
+      - pulsing light
+      - radiant light
+      - romantic lighting
+      - shimmering light
+      - sizzling light
+      - soft light
+      - sparkling light
+      - steady light
+      - strobing light
+      - subdued light
+      - subtle shadows
+      - twinkling light
+      - vibrant light
+      - warm light
+    Named_Lighting: # instruction: Specific lighting styles and techniques
+      - blue hour lighting
+      - broad lighting
+      - contre-jour
+      - fresnel lighting
+      - golden hour lighting
+      - high key lighting
+      - loop lighting
+      - low key lighting
+      - magic hour
+      - motivated lighting
+      - short lighting
+      - spectral irradiance
+      - spectral lighting
+      - three-point lighting
+      - twilight lighting
+  Detail_Quality: # instruction: Level of detail and rendering quality
+    - abstract
+    - blurred
+    - bold
+    - complex
+    - concept art style
+    - crisp lines
+    - delicate
+    - exaggerated detail
+    - finished
+    - fuzzy
+    - grainy
+    - highly detailed
+    - hyperrealistic
+    - intricate
+    - layered details
+    - macro detail
+    - muted details
+    - ornate
+    - painterly
+    - photorealistic
+    - pixelated
+    - polished
+    - production ready
+    - raw
+    - refined
+    - sculptural
+    - simplified
+    - sketch-like
+    - stylized
+    - ultra-detailed
+  Camera_Film: # instruction: Specifics about the virtual camera, lens, and film type.
+    Camera_Types: # instruction: Different camera systems and formats
+      - 360 camera
+      - action camera
+      - aerial camera
+      - aerial survey camera
+      - bellows camera
+      - box camera
+      - bullet camera
+      - candid camera
+      - cine camera
+      - compact camera
+      - crop sensor camera
+      - digital back
+      - digital camera
+      - disposable camera
+      - drone camera
+      - DSLR
+      - field camera
+      - film camera
+      - folding camera
+      - full frame camera
+      - high-speed camera
+      - infrared camera
+      - instant camera
+      - kirlian camera
+      - large format
+      - large sensor camera
+      - lipstick camera
+      - long exposure camera
+      - medium format
+      - miniature camera
+      - mirrorless
+      - motion picture camera
+      - night vision
+      - oscilloscope camera
+      - panoramic camera
+      - pinhole camera
+      - point-and-shoot camera
+      - press camera
+      - professional camera
+      - rangefinder camera
+      - scientific camera
+      - scientific imaging camera
+      - security camera
+      - single-lens reflex camera
+      - SLR camera
+      - spy camera
+      - stereo camera
+      - street photography camera
+      - studio camera
+      - surveillance camera
+      - thermal camera
+      - TLR camera
+      - toy camera
+      - twin-lens reflex camera
+      - underwater camera
+      - view camera
+      - vintage camera
+      - webcam
+    Lens_Effects: # instruction: Optical effects and lens characteristics
+      - anamorphic streaks
+      - aspherical lens
+      - astigmatism (lens)
+      - barrel distortion
+      - coma aberration
+      - depth of field
+      - diffraction spikes
+      - diffusion filter
+      - digital zoom artifacts
+      - double Gauss lens
+      - field curvature
+      - fisheye distortion
+      - fringing
+      - ghosting
+      - image stabilization
+      - iris diaphragm
+      - lens breathing
+      - lens flare
+      - macro
+      - optical zoom
+      - orthoscopic lens
+      - Petzval field curvature
+      - pincushion distortion
+      - planar lens
+      - spherical aberration
+      - starburst
+      - stereoscopic lens
+      - telephoto compression
+      - Tessar lens
+      - waterhouse stop
+      - wide-angle distortion
+    Film_Stocks: # instruction: Film types and photographic mediums
+      - 120 film
+      - 35mm film
+      - 4x5 film
+      - 8x10 film
+      - Adox Silvermax
+      - Agfa
+      - Bergger Pancro
+      - black and white film
+      - Cine film
+      - Cinestill 800T
+      - color film
+      - cross-processed
+      - Delta 100
+      - digital sensor
+      - Ektachrome
+      - expired film
+      - Fomapan
+      - FP4 Plus
+      - Fujifilm
+      - high ISO
+      - HP5 Plus
+      - Ilford
+      - infrared film
+      - Instant film
+      - Kodachrome
+      - Large format film
+      - Lomography Color Negative
+      - low ISO
+      - Medium format film
+      - Motion picture film
+      - negative film
+      - Panatomic-X
+      - Polaroid
+      - Portra 400
+      - Rollei RPX
+      - slide film
+      - T-Max 100
+      - Tri-X 400
+      - Velvia 50
+    Technical_Specs: # instruction: Camera settings and technical parameters
+      - -2 EV underexposed
+      - +2 EV overexposed
+      - 1/1000 freeze
+      - 1/15 motion
+      - 1/2 slow pan
+      - 1/4000 action shot
+      - 1/60 handheld
+      - 135mm medium tele
+      - 14mm ultra-wide
+      - 200mm telephoto
+      - 24mm wide
+      - 30s long exposure
+      - 35mm standard
+      - 400mm super tele
+      - 50mm portrait
+      - 85mm short tele
+      - Aperture priority mode
+      - Bulb mode
+      - Center-weighted metering
+      - Evaluative metering
+      - f/1.2 shallow
+      - f/1.4 portrait
+      - f/11 deep
+      - f/16 maximum
+      - f/2.8 standard
+      - f/5.6 landscape
+      - f/8 sharp
+      - Focus peaking enabled
+      - ISO 100 fine grain
+      - ISO 1600 high sensitivity
+      - ISO 400 versatile
+      - ISO 50 low noise
+      - ISO 6400 extreme low light
+      - Manual focus assist
+      - Program mode
+      - Shutter priority mode
+      - Spot metering
+      - sRGB color profile
+  Rendering_Engines: # instruction: 3D rendering software and techniques
+    - 3ds Max
+    - ambient occlusion
+    - Arnold
+    - Blender
+    - Cinema 4D
+    - Clarisse iFX
+    - Cycles
+    - Daz 3D
+    - Godot
+    - Houdini
+    - KeyShot
+    - LightWave 3D
+    - Mari
+    - Marmoset
+    - Maya
+    - Monte Carlo rendering
+    - non-photorealistic rendering
+    - normal mapping
+    - Octane Render
+    - particle rendering
+    - path tracing
+    - PBR texturing
+    - photorealistic rendering
+    - rasterization
+    - real-time rendering
+    - Redshift
+    - scanline rendering
+    - screen space reflections
+    - Substance
+    - texture baking
+    - Unity
+    - Unreal Engine
+    - V-Ray
+    - volumetric rendering
+    - ZBrush
+  File_Aesthetics: # instruction: Digital file formats and presentation styles
+    - AI vector
+    - Black and white conversion
+    - Clay render
+    - Color graded
+    - Dithering pattern
+    - DNG standard
+    - Duotone effect
+    - GIF animated
+    - Grayscale image
+    - H.264 standard
+    - Halftone print
+    - HEIF efficient
+    - JPEG compression
+    - Metadata enriched
+    - mobile format
+    - MP4 video
+    - Night photography
+    - PNG transparency
+    - print ready
+    - ProRes codec
+    - PSD layered
+    - screen capture
+    - Sepia toned
+    - SVG scalable
+    - Thumbnail preview
+    - TIFF lossless
+    - Time-lapse sequence
+    - Vector illustration
+    - Watermarked image
+    - web optimized
+    - WebP modern
+    - Wireframe model
+7_SPECIAL_FX_and_PARTICLES: # instruction: Visual effects like smoke, fire, magic, and debris.
+  Elements: # instruction: Basic particle and environmental effects
+    - ash
+    - bubbles
+    - confetti
+    - crystal fragments
+    - dandelion seeds
+    - debris
+    - dust particles
+    - embers
+    - energy orbs
+    - falling feathers
+    - fire sparks
+    - fireflies
+    - fog
+    - frost crystals
+    - glitter
+    - glowing motes
+    - ice crystals
+    - leaves
+    - luminescent plankton
+    - paper scraps
+    - petals
+    - phosphorescence
+    - pollen
+    - rain drops
+    - sand grains
+    - sea spray
+    - smoke wisps
+    - snow flakes
+    - soap foam
+    - sparks
+    - spiderwebs
+    - stardust
+    - steam
+    - vapor
+    - volcanic ash plume
+    - water droplets
+  Fluid_Energy: # instruction: Liquid and energy-based effects
+    - bioluminescent fluids
+    - blood splatter
+    - chromatic slime
+    - cosmic rays
+    - cryovolcanic eruption
+    - dimensional rift energy
+    - electricity arcs
+    - energy beams
+    - etherial vapor waves
+    - fire tongues
+    - flame jets
+    - force fields
+    - gas clouds
+    - gravitational distortion
+    - hyperdimensional currents
+    - ink drops
+    - laser rays
+    - lava flow
+    - liquid light cascade
+    - liquid mercury
+    - magical energy
+    - magnetic flux lines
+    - molten metal
+    - nebula gas currents
+    - paint drips
+    - phosphorescent mist
+    - plasma rain
+    - plasma streams
+    - quicksilver vortex
+    - radioactive fallout
+    - smoke plumes
+    - solar winds
+    - static electricity bloom
+    - subatomic particle trails
+    - superheated steam
+    - void energy tendrils
+    - water splash
+  Destruction: # instruction: Breaking and destruction effects
+    - battle damage
+    - bent metal
+    - broken concrete
+    - broken pottery
+    - bullet holes
+    - burn marks
+    - collapsed cardboard
+    - collapsed scaffolding
+    - corrosion
+    - cracked earth
+    - crumbling stone
+    - crushed vehicles
+    - decay
+    - deformed plastic
+    - demolished walls
+    - dust clouds
+    - erosion
+    - explosion fragments
+    - fractured crystals
+    - fractured gemstones
+    - fractured mirrors
+    - fractured porcelain
+    - impact craters
+    - impacted sand
+    - pulverized brick
+    - ripped canvas
+    - rubble pile
+    - rust
+    - scattered debris
+    - shattered glass
+    - shattered holograms
+    - shattered ice
+    - shredded paper
+    - slash marks
+    - splintered bone
+    - splintered wood
+    - stressed asphalt
+    - torn fabric
+    - twisted rebar
+    - weathering
+  Atmospheric: # instruction: Environmental and atmospheric effects
+    - air currents (visible)
+    - atmospheric haze
+    - cloud iridescence
+    - corona (optical phenomenon)
+    - diffraction
+    - distortion
+    - dust motes
+    - energy waves
+    - fog banks
+    - glittering dust
+    - heat shimmer
+    - iridescence
+    - light streaks
+    - mirage
+    - moonbeams
+    - particle beams
+    - polar lights
+    - prism effects
+    - reflection
+    - refraction
+    - scattering
+    - shadows
+    - shock waves
+    - silhouettes
+    - starlight
+    - sun beams
+  Magical_Supernatural: # instruction: Fantasy and supernatural effects
+    - angelic descent
+    - arcane glyphs
+    - astral projection
+    - aurora borealis magic
+    - blessed glow
+    - celestial constellations
+    - crystalline shards of power
+    - cursed aura
+    - dark energy
+    - demon's sigil
+    - dimensional rifts
+    - divine rays
+    - dragon's breath aura
+    - ectoplasm
+    - elemental forces
+    - ethereal blossoms
+    - fairy dust
+    - ghostly wisps
+    - glowing runes
+    - holy light
+    - illusionary duplicates
+    - luminescent moss
+    - magical sparkles
+    - mana streams
+    - necromantic mist
+    - phantom echoes
+    - phantom flames
+    - poltergeist activity
+    - portals
+    - psychic waves
+    - reality distortion
+    - shadow tendrils
+    - shifting mirages
+    - soul fragments
+    - spectral chains
+    - spell circles
+    - spirit orbs
+    - time-bending ripples
+    - void energy
+    - witching hour haze
+8_NARRATIVE_and_THEME: # instruction: The underlying story, message, or theme of the image.
+  Story_Genres: # instruction: Narrative categories and story types
+    - adventure
+    - alternate history
+    - biographical
+    - comedy
+    - coming-of-age
+    - crime
+    - documentary
+    - drama
+    - dystopian
+    - epic
+    - experimental
+    - fantasy
+    - folkloric
+    - historical
+    - horror
+    - magical realism
+    - mystery
+    - mythological
+    - noir
+    - parody
+    - philosophical
+    - political
+    - psychological
+    - romance
+    - satire
+    - science fiction
+    - slice of life
+    - social
+    - space opera
+    - supernatural
+    - surreal
+    - thriller
+    - tragedy
+    - utopian
+  Narrative_Arcs: # instruction: Story structure and character development
+    - awakening
+    - character regression
+    - circular narrative
+    - coming of age
+    - conquest
+    - deal with the devil
+    - discovery
+    - doppelganger
+    - escape
+    - fall from grace
+    - false friend
+    - fish out of water
+    - forbidden knowledge
+    - found family
+    - heros journey
+    - imposter syndrome
+    - initiation rite
+    - inner demon
+    - lost heir
+    - mentor's guidance
+    - moral dilemma
+    - prophecy
+    - pursuit
+    - quest
+    - rebellion
+    - restoration
+    - return
+    - rise to power
+    - rivals to allies
+    - role reversal
+    - secret identity
+    - star-crossed lovers
+    - survival
+    - tragic flaw
+    - transformation
+    - unlikely alliance
+    - unrequited love
+  Emotional_Themes: # instruction: Core emotional and thematic elements
+    - acceptance
+    - anxiety
+    - betrayal
+    - bitterness
+    - compassion
+    - contentment
+    - deception
+    - defeat
+    - empowerment
+    - envy
+    - euphoria
+    - forgiveness
+    - freedom
+    - gratitude
+    - grief
+    - guilt
+    - injustice
+    - isolation
+    - justice
+    - loss
+    - loyalty
+    - melancholy
+    - nostalgia
+    - oppression
+    - regret
+    - remorse
+    - resentment
+    - serenity
+    - triumph
+    - truth
+    - vulnerability
+  Moral_Philosophical: # instruction: Ethical and philosophical perspectives
+    - authenticity vs conformity
+    - authority vs freedom
+    - civilization vs wilderness
+    - collectivism vs individualism
+    - compassion vs justice
+    - courage vs prudence
+    - determinism vs indeterminism
+    - duty vs desire
+    - fate vs free will
+    - good vs evil
+    - hedonism vs stoicism
+    - hope vs despair
+    - idealism vs realism
+    - individual vs society
+    - knowledge vs ignorance
+    - legacy vs present moment
+    - materialism vs spiritualism
+    - nature vs nurture
+    - nihilism vs existentialism
+    - order vs chaos
+    - pessimism vs optimism
+    - power vs vulnerability
+    - reason vs emotion
+    - right vs wrong
+    - sacred vs profane
+    - self-interest vs altruism
+    - skepticism vs dogmatism
+    - subjectivity vs objectivity
+    - technology vs humanity
+    - tradition vs progress
+    - transcendence vs immanence
+    - truth vs belief
+    - utilitarianism vs deontology
+    - virtue ethics vs consequentialism
+  Cultural_Social: # instruction: Social and cultural commentary themes
+    - ageism
+    - body image and beauty standards
+    - cancel culture
+    - censorship and free speech
+    - class struggle
+    - colonialism
+    - connected vs isolated
+    - consumerism and materialism
+    - cultural appropriation
+    - cultural clash
+    - digital divide
+    - echo chambers
+    - environmental
+    - evolution
+    - false narratives
+    - gender identity
+    - generational conflict
+    - gentrification
+    - global vs local
+    - groupthink
+    - historical revisionism
+    - immigration
+    - imperialism
+    - modern vs traditional
+    - political polarization
+    - powerful vs powerless
+    - racial equality
+    - religious
+    - revolution
+    - rich vs poor
+    - secular
+    - social credit systems
+    - social justice movements
+    - social mobility
+    - technological
+    - the bystander effect
+    - the male gaze
+    - toxic masculinity
+    - urban vs rural
+  Symbolic_Metaphorical: # instruction: Symbolic meanings and metaphorical elements
+    - air
+    - broken chains
+    - desert
+    - door
+    - earth
+    - empty throne
+    - fire
+    - forest
+    - journey
+    - key
+    - labyrinth
+    - light and darkness
+    - mask
+    - maze
+    - mirror
+    - mountain
+    - ocean
+    - open book
+    - quill and ink
+    - ring
+    - rising sun
+    - scales of justice
+    - seasons
+    - seed and blossom
+    - serpent
+    - shadow puppet
+    - shipwreck
+    - statue
+    - storm clouds
+    - sword
+    - veil
+    - water

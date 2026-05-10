@@ -8,10 +8,10 @@ const CACHE_NAME = 'wildcards-v1';
 const STATIC_ASSETS = [
     './',
     './index.html',
-    './wildcards.js',
     './css/wildcards.css',
-    './config/config.json',
     './data/initial-data.yaml',
+    './vendor/mind-elixir/MindElixir.js',
+    './vendor/mind-elixir/style.css',
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',

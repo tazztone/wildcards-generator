@@ -1,16 +1,7 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Import/Export Flows', () => {
-
-    test.beforeEach(async ({ page }) => {
-        // Disable first-run help dialog
-        await page.addInitScript(() => {
-            window.localStorage.setItem('wildcards-visited', 'true');
-        });
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-    });
 
     test.describe('YAML Import Options', () => {
         test('import YAML with merge option preserves existing data', async ({ page }) => {

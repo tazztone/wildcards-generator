@@ -1,18 +1,7 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Settings Persistence', () => {
-
-    test.beforeEach(async ({ page }) => {
-        // Clear localStorage before each test
-        await page.goto('/');
-        await page.evaluate(() => {
-            localStorage.clear();
-            localStorage.setItem('wildcards-visited', 'true');
-        });
-        await page.reload();
-        await page.waitForLoadState('networkidle');
-    });
 
     test.describe('Model Name Persistence', () => {
         test('model name persists after page reload', async ({ page }) => {

@@ -52,6 +52,11 @@ export const App = {
                 if (helpBtn) helpBtn.click();
             }, 1500);
         }
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => loadingOverlay.remove(), 300);
+        }
     },
 
     bindEvents() {
@@ -1402,7 +1407,23 @@ export const App = {
         }
     },
 
-    async handleGenerate(path) {
+    /**
+     * Helper to get guidance from user if enabled
+     * @param {string} title
+     * @returns {Promise<{confirmed: boolean, guidance: string}>}
+     */
+    async getGuidance(title) {
+        if (!Config.SHOW_GUIDANCE_STEP) {
+            return { confirmed: true, guidance: '' };
+        }
+        return new Promise((resolve) => {
+            UI.showGuidanceDialog(title, (result) => {
+                resolve(result);
+            });
+        });
+    },
+
+    async handleGenerate(path, rethrow = false) {
         const obj = State.getObjectByPath(path);
 
         // Template generation flow - detect if inside 0_TEMPLATES
@@ -1410,19 +1431,28 @@ export const App = {
             const wildcardPaths = State.getAllWildcardPaths();
             if (wildcardPaths.length < 2) {
                 UI.showToast('Need at least 2 wildcard lists to generate templates', 'warning');
-                return;
+                return false;
             }
 
-            UI.showTemplateSourcesDialog(wildcardPaths, async (selectedPaths, useAllTagged) => {
-                if (!useAllTagged && selectedPaths.length < 2) {
-                    UI.showToast('Select at least 2 categories', 'warning');
-                    return;
-                }
-                UI.elements.dialog.close();
-                await this.executeTemplateGeneration(path, obj, selectedPaths, useAllTagged);
+            return new Promise((resolve) => {
+                UI.showTemplateSourcesDialog(wildcardPaths, async (selectedPaths, useAllTagged) => {
+                    if (!useAllTagged && selectedPaths.length < 2) {
+                        UI.showToast('Select at least 2 categories', 'warning');
+                        resolve(false);
+                        return;
+                    }
+                    UI.elements.dialog.close();
+                    await this.executeTemplateGeneration(path, obj, selectedPaths, useAllTagged);
+                    resolve(true);
+                });
             });
-            return;
         }
+
+        const guidanceResult = await this.getGuidance(`Generate Wildcards: ${path.replace(/\//g, ' > ')}`);
+        if (!guidanceResult.confirmed) return false;
+
+        // Clear previous newly-added highlights for this path
+        UI.clearNewlyAdded(path);
 
         UI.toggleLoader(path, true);
 
@@ -1437,7 +1467,9 @@ export const App = {
                 State.state.systemPrompt,
                 path,
                 obj.wildcards,
-                obj.instruction
+                obj.instruction,
+                null,
+                guidanceResult.guidance
             );
             if (newItems && newItems.length) {
                 // Show modal to confirm addition (Legacy behavior)
@@ -1445,12 +1477,20 @@ export const App = {
                 State.saveStateToHistory();
                 // Ensure we only push strings
                 const safeItems = newItems.map(item => (typeof item === 'object' && item !== null) ? (item.wildcard || item.text || item.value || JSON.stringify(item)) : String(item));
+
+                // Mark for UI highlighting
+                UI.setNewlyAdded(path, safeItems);
+
                 obj.wildcards.push(...safeItems);
                 // Sort logic is now handled in the state proxy trap.
                 UI.showToast(`Generated ${newItems.length} items`, 'success');
+                return true;
             }
+            return true;
         } catch (e) {
+            if (rethrow) throw e; // Allow batch mode to handle it
             UI.showNotification(e.message);
+            return false;
         } finally {
             UI.toggleLoader(path, false);
             // Restore original button text
@@ -1465,6 +1505,12 @@ export const App = {
      * @param {string[]} selectedPaths - Selected category paths for template generation
      */
     async executeTemplateGeneration(path, obj, selectedPaths, useAllTagged = false) {
+        const guidanceResult = await this.getGuidance(`Generate Templates: ${path.replace(/\//g, ' > ')}`);
+        if (!guidanceResult.confirmed) return;
+
+        // Clear previous newly-added highlights for this path
+        UI.clearNewlyAdded(path);
+
         UI.toggleLoader(path, true);
 
         // Check if using Hybrid Engine
@@ -1493,6 +1539,10 @@ export const App = {
 
                 if (templates.length > 0) {
                     State.saveStateToHistory();
+
+                    // Mark for UI highlighting
+                    UI.setNewlyAdded(path, templates);
+
                     obj.wildcards.push(...templates);
                     UI.showToast(`Generated ${templates.length} templates (Hybrid)`, 'success');
                 } else {
@@ -1520,10 +1570,14 @@ export const App = {
             const templatePrompt = getEffectivePrompt('template');
             const instructions = obj.instruction || 'Generate creative scene templates combining the selected categories';
 
-            const templates = await Api.generateTemplates(pathMap, instructions, templatePrompt);
+            const templates = await Api.generateTemplates(pathMap, instructions, templatePrompt, guidanceResult.guidance);
 
             if (templates && templates.length > 0) {
                 State.saveStateToHistory();
+
+                // Mark for UI highlighting
+                UI.setNewlyAdded(path, templates);
+
                 obj.wildcards.push(...templates);
                 UI.showToast(`Generated ${templates.length} templates`, 'success');
             } else {
@@ -1569,11 +1623,15 @@ export const App = {
         UI.showToast('Generating suggestions...', 'info');
 
         try {
+            const guidanceResult = await this.getGuidance(`Suggest Items: ${parentPath ? parentPath.replace(/\//g, ' > ') : 'Top-Level'}`);
+            if (!guidanceResult.confirmed) return;
+
             const { suggestions, request } = await Api.suggestItems(
                 parentPath,
                 existingStructure,
                 State.state.suggestItemPrompt || Config.DEFAULT_SUGGEST_ITEM_PROMPT,
-                (parent && parent.instruction) || ''
+                (parent && parent.instruction) || '',
+                guidanceResult.guidance
             );
 
             if (!suggestions || suggestions.length === 0) {
@@ -1663,10 +1721,16 @@ export const App = {
 
     async handleBatchGenerate(categories) {
         const tasks = [];
+        const collectedPaths = new Set(); // Track already-collected paths to avoid duplicates
+
         // Find all wildcard lists recursively
         const collectLists = (obj, currentPath) => {
             if (obj.wildcards && Array.isArray(obj.wildcards)) {
-                tasks.push({ path: currentPath, count: obj.wildcards.length });
+                // Only add if we haven't already collected this path
+                if (!collectedPaths.has(currentPath)) {
+                    collectedPaths.add(currentPath);
+                    tasks.push({ path: currentPath, count: obj.wildcards.length });
+                }
             } else {
                 Object.keys(obj).forEach(key => {
                     if (key !== 'instruction' && typeof obj[key] === 'object') {
@@ -1698,18 +1762,48 @@ export const App = {
             for (let i = 0; i < tasks.length; i++) {
                 const task = tasks[i];
                 const cleanName = task.path.split('/').pop().replace(/_/g, ' ');
-                UI.showToast(`Generating for "${cleanName}" (${i + 1}/${tasks.length})...`, 'info');
 
-                // Scroll to item
-                const card = document.querySelector(`.wildcard-card[data-path="${task.path}"]`);
-                if (card) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Expand parents if hidden? ensure visibility
+                let retry = true;
+                while (retry) {
+                    UI.showToast(`Generating for "${cleanName}" (${i + 1}/${tasks.length})...`, 'info');
+
+                    // Scroll to item
+                    const card = document.querySelector(`.wildcard-card[data-path="${task.path}"]`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Expand parents if hidden? ensure visibility
+                    }
+
+                    try {
+                        // Pass true for rethrow so we can handle errors here
+                        await this.handleGenerate(task.path, true);
+                        retry = false; // Success, exit retry loop and continue to next task
+                    } catch (e) {
+                        console.error('Batch generation error:', e);
+
+                        // Ask user what to do
+                        const shouldRetry = await UI.showConfirmDialog(
+                            'Batch Generation Error',
+                            `Error generating for "${cleanName}":\n${e.message}\n\nDo you want to try again?`,
+                            {
+                                confirmText: 'Try Again',
+                                cancelText: 'Stop Batch',
+                                danger: true
+                            }
+                        );
+
+                        if (shouldRetry) {
+                            retry = true;
+                            UI.showToast('Retrying...', 'info');
+                            await new Promise(r => setTimeout(r, 1000)); // Wait a bit before retry
+                        } else {
+                            UI.showToast('Batch generation stopped by user', 'info');
+                            return; // Exit the entire generation function (stops the batch)
+                        }
+                    }
                 }
 
-                await this.handleGenerate(task.path);
-
-                // Small delay between requests
+                // Small delay between requests (only if we didn't return/cancel above)
                 await new Promise(r => setTimeout(r, 500));
             }
             UI.showToast('Batch generation complete!', 'success');

@@ -1,13 +1,7 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('UI Logic Tests', () => {
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-        await page.waitForFunction(() => window.State && window.UI && window.State.state);
-    });
 
     test('Category Sorting: Pinned first, then Alphabetical', async ({ page }) => {
         await page.evaluate(() => {

@@ -1,16 +1,7 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Suggest Dialog', () => {
-
-    test.beforeEach(async ({ page }) => {
-        // Disable first-run help dialog
-        await page.addInitScript(() => {
-            window.localStorage.setItem('wildcards-visited', 'true');
-        });
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-    });
 
     test.describe('Suggest Popup Structure', () => {
         test('suggestPopup dialog exists in DOM', async ({ page }) => {
@@ -32,8 +23,8 @@ test.describe('Suggest Dialog', () => {
     test.describe('Suggest Button Placement', () => {
         test('suggest top-level button exists in add category placeholder', async ({ page }) => {
             // The suggest button is in the placeholder area
-            const suggestBtn = page.locator('#suggest-toplevel-btn');
-            await expect(suggestBtn).toBeAttached();
+            const suggestBtn = page.getByRole('button', { name: 'Suggest', exact: true }).first();
+            await expect(suggestBtn).toBeVisible();
         });
 
         test('suggest wildcard list button appears in category content', async ({ page }) => {

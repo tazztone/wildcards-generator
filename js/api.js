@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { Config } from './config.js';
+import { Logger } from './logger.js';
 import { validate } from './schema-validator.js';
 
 // TODO: Add request caching layer for identical prompts to reduce API costs
@@ -9,11 +10,12 @@ import { validate } from './schema-validator.js';
 
 export const Api = {
     activeController: null,
-    requestLogs: [],
+    // requestLogs: [], // Removed in favor of persistent Logger
 
     logRequest(url, payload, headers) {
         const logEntry = {
             id: Date.now() + Math.random().toString(36).substr(2, 5),
+            createdAt: Date.now(),
             timestamp: new Date().toLocaleTimeString(),
             url,
             payload: JSON.parse(JSON.stringify(payload)), // Deep copy to avoid mutations
@@ -31,27 +33,24 @@ export const Api = {
         // Obfuscate key in URL for Gemini
         logEntry.url = logEntry.url.replace(/key=[^&]+/, 'key=****');
 
-        this.requestLogs.unshift(logEntry);
-        if (this.requestLogs.length > 50) this.requestLogs.pop(); // Keep last 50
+        // Fire and forget - don't await persistence
+        Logger.logRequest(logEntry).catch(e => console.error("Failed to persist log:", e));
+
         return logEntry.id;
     },
 
     logResponse(id, response, error = null) {
-        const entry = this.requestLogs.find(l => l.id === id);
-        if (entry) {
-            entry.duration = Math.round(performance.now() - entry.startTime);
-            entry.status = error ? 'error' : 'success';
-            entry.response = response;
-            entry.error = error;
-        }
+        // Fire and forget
+        Logger.logResponse(id, response, error).catch(e => console.error("Failed to update log:", e));
     },
 
     getLogs() {
-        return this.requestLogs;
+        // specific view logic should use Logger.getRecent() directly
+        return [];
     },
 
     clearLogs() {
-        this.requestLogs = [];
+        Logger.clear().catch(e => console.error("Failed to clear logs:", e));
     },
 
     async _makeRequest(globalPrompt, userPrompt, generationConfig) {
@@ -196,7 +195,9 @@ export const Api = {
                                 }
                             }
                         } catch (e) {
-                            // Ignore parse errors for malformed chunks
+                            // Only log real parse errors, not just potentially incomplete chunks
+                            // though SSE should usually give us full JSON strings per 'data: ' line.
+                            console.debug("Failed to parse SSE chunk:", data, e);
                         }
                     }
                 }
@@ -218,20 +219,25 @@ export const Api = {
         }
     },
 
-    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt) {
+    async generateWildcards(globalPrompt, categoryPath, existingWords, customInstructions, systemPrompt, guidance = '') {
         // TODO: Add option to specify desired output count (e.g., "generate 20 items")
         // TODO: Implement streaming response display for better UX during generation
         // TODO: Consider batching multiple small generation requests into one
         const readablePath = categoryPath.replace(/\//g, ' > ').replace(/_/g, ' ');
         const sysPrompt = globalPrompt.replace('{category}', readablePath);
-        const userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+        let userPrompt = `Category Path: '${readablePath}'\nExisting Wildcards: ${existingWords.slice(0, 50).join(', ')}\nCustom Instructions: "${customInstructions.trim()}"`;
+
+        if (guidance) {
+            userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;
+        }
+
         const generationConfig = { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } };
 
         const { result } = await this._makeRequest(sysPrompt, userPrompt, generationConfig);
         return this._parseResponse(result, generationConfig.responseSchema);
     },
 
-    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '') {
+    async suggestItems(parentPath, structure, suggestItemPrompt, parentInstruction = '', guidance = '') {
         const readablePath = parentPath ? parentPath.replace(/\//g, ' > ').replace(/_/g, ' ') : 'Top-Level';
         const globalPrompt = suggestItemPrompt.replace('{parentPath}', readablePath);
 
@@ -240,7 +246,11 @@ export const Api = {
             contextInfo = `Parent Category: "${readablePath}"\nInstructions: "${parentInstruction}"\n\n${contextInfo}`;
         }
 
-        const userPrompt = `${contextInfo}\n\nPlease provide new suggestions for the '${readablePath}' category.`;
+        let userPrompt = `${contextInfo}\n\nPlease provide new suggestions for the '${readablePath}' category.`;
+
+        if (guidance) {
+            userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;
+        }
         const generationConfig = {
             responseMimeType: "application/json",
             responseSchema: {
@@ -274,18 +284,34 @@ export const Api = {
      * @param {string} templatePrompt - The system prompt for template generation
      * @returns {Promise<string[]>} Array of generated template strings with full paths
      */
-    async generateTemplates(pathMap, instructions, templatePrompt) {
+    async generateTemplates(pathMap, instructions, templatePrompt, guidance = '') {
         // Build list of leaf names for LLM (semantic context without full path clutter)
         const leafNames = Object.keys(pathMap);
         const leafList = leafNames.map(name => `~~${name}~~`).join(', ');
 
-        const userPrompt = `AVAILABLE WILDCARD CATEGORIES:\n${leafList}\n\nINSTRUCTIONS: ${instructions}`;
+        // Create multipart prompt structure for caching
+        // Part 1: System Prompt (Template instructions) - Cached
+        // Part 2: Large Category List - Cached
+        // Part 3: User instructions - Not cached (handled in _makeRequest logic by appending userPrompt)
+
+        // We pass the "System" parts as the globalPrompt
+        const globalPromptParts = [
+            { text: templatePrompt, cache: true }, // Cache the base instruction
+            { text: `AVAILABLE WILDCARD CATEGORIES:\n${leafList}`, cache: true } // Cache the heavy list
+        ];
+
+        // The userPrompt will be appended as the final non-cached part
+        let userPrompt = `INSTRUCTIONS: ${instructions}`;
+        if (guidance) {
+            userPrompt += `\n\nAd-hoc Guidance: "${guidance.trim()}"`;
+        }
+
         const generationConfig = {
             responseMimeType: "application/json",
             responseSchema: { type: "ARRAY", items: { type: "STRING" } }
         };
 
-        const { result } = await this._makeRequest(templatePrompt, userPrompt, generationConfig);
+        const { result } = await this._makeRequest(globalPromptParts, userPrompt, generationConfig);
         let templates = this._parseResponse(result, generationConfig.responseSchema);
 
         // Validation BEFORE expansion (leaf names are used directly)
@@ -550,6 +576,11 @@ Return a JSON array with your classifications. Be concise.`;
                 url = `https://openrouter.ai/api/v1/models`;
                 requestOptions.headers['Authorization'] = `Bearer ${apiKey}`;
 
+            } else if (provider === 'groq') {
+                const apiKey = getKey('groq-api-key');
+                if (!apiKey) throw new Error("Groq API key not provided.");
+                url = 'https://api.groq.com/openai/v1/models';
+                requestOptions.headers['Authorization'] = `Bearer ${apiKey}`;
             } else if (provider === 'custom') {
                 const customUrl = getVal('custom-api-url');
                 if (!customUrl) throw new Error("Custom API URL is not provided.");
@@ -581,6 +612,10 @@ Return a JSON array with your classifications. Be concise.`;
                 if (!list.length && !Array.isArray(list)) throw new Error('Invalid response from OpenRouter API.');
 
                 successMessage = `OpenRouter key verified! Found ${list.length} models.`;
+                models = list;
+            } else if (provider === 'groq') {
+                const list = Array.isArray(data) ? data : (data.data || []);
+                successMessage = `Groq connection successful! Found ${list.length} models.`;
                 models = list;
             } else if (provider === 'custom') {
                 const list = Array.isArray(data) ? data : (data.data || []);
@@ -638,28 +673,56 @@ Return a JSON array with your classifications. Be concise.`;
                 ],
                 generationConfig: geminiGenConfig
             };
-        } else if (endpoint === 'openrouter' || endpoint === 'custom') {
+        } else if (endpoint === 'openrouter' || endpoint === 'groq' || endpoint === 'custom') {
             const isCustom = endpoint === 'custom';
-            apiKey = getKey(isCustom ? 'custom-api-key' : 'openrouter-api-key');
-            const model = getVal(isCustom ? 'custom-model-name' : 'openrouter-model-name') || (isCustom ? "" : ":free");
+            const isGroq = endpoint === 'groq';
 
-            if (!isCustom && !apiKey) throw new Error("OpenRouter API key is not provided.");
+            if (isCustom) {
+                apiKey = getKey('custom-api-key');
+            } else if (isGroq) {
+                apiKey = getKey('groq-api-key');
+            } else {
+                apiKey = getKey('openrouter-api-key');
+            }
+
+            const model = getVal(isCustom ? 'custom-model-name' : (isGroq ? 'groq-model-name' : 'openrouter-model-name'))
+                || (isCustom ? "" : (isGroq ? "llama3-70b-8192" : ":free"));
+
+            if (!isCustom && !apiKey) throw new Error(`${isGroq ? 'Groq' : 'OpenRouter'} API key is not provided.`);
 
             if (isCustom) {
                 const customUrl = getVal('custom-api-url');
                 if (!customUrl) throw new Error("Custom API URL is not provided.");
                 url = `${customUrl.replace(/\/$/, '')}/chat/completions`;
+            } else if (isGroq) {
+                url = 'https://api.groq.com/openai/v1/chat/completions';
             } else {
                 url = `https://openrouter.ai/api/v1/chat/completions`;
             }
 
             if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 
+            // Handle multipart content for caching vs simple string
+            let messages;
+            if (Config.ENABLE_PROMPT_CACHING && Config.API_ENDPOINT === 'openrouter') {
+                const content = this._constructMultipartContent(globalPrompt, userPrompt, model);
+                messages = [{ role: "user", content }];
+            } else {
+                // Fallback / Standard handling (OpenAI/Grok don't need explicit multipart for simple caching usually, but consistent structure helps)
+                // However, for compatibility with non-vision/non-advanced endpoints, we keep simple string if not caching explicitly
+                // Actually, let's stick to simple string concatenation if caching is disabled or not OpenRouter to reduce risk
+                messages = [
+                    {
+                        role: "user", content: Array.isArray(globalPrompt)
+                            ? globalPrompt.map(p => p.text).join('\n\n') + '\n\n' + userPrompt
+                            : `${globalPrompt}\n\n${userPrompt}`
+                    }
+                ];
+            }
+
             payload = {
                 model,
-                messages: [
-                    { role: "user", content: `${globalPrompt}\n\n${userPrompt}` }
-                ]
+                messages
             };
 
             // Only include parameters if they differ from defaults
@@ -703,20 +766,69 @@ Return a JSON array with your classifications. Be concise.`;
         return { url, payload, headers };
     },
 
+    /**
+     * Helper to construct multipart content for OpenRouter caching
+     * @param {string|Array} globalPrompt 
+     * @param {string} userPrompt 
+     * @param {string} model 
+     * @returns {Array} content array for messages
+     */
+    _constructMultipartContent(globalPrompt, userPrompt, model) {
+        // Only apply caching if enabled and using OpenRouter
+        const useCaching = Config.ENABLE_PROMPT_CACHING && Config.API_ENDPOINT === 'openrouter';
+        const isAnthropic = model.includes('claude');
+        const content = [];
+
+        // Handle globalPrompt (can be string or array of parts)
+        if (Array.isArray(globalPrompt)) {
+            globalPrompt.forEach((part, index) => {
+                const item = { type: "text", text: part.text };
+                // Apply cache control if requested and enabled
+                // For Anthropic, we can have up to 4 breakpoints.
+                // We typically cache the system prompt/large context.
+                if (useCaching && part.cache) {
+                    item.cache_control = { type: "ephemeral" };
+                    // For Anthropic models, explicit TTL is supported to extend cache lifetime
+                    if (isAnthropic && Config.CACHE_TTL) {
+                        item.cache_control.ttl = Config.CACHE_TTL;
+                    }
+                }
+                content.push(item);
+            });
+        } else {
+            // Standard string system prompt
+            const item = { type: "text", text: globalPrompt };
+            if (useCaching) {
+                item.cache_control = { type: "ephemeral" };
+            }
+            content.push(item);
+        }
+
+        // Add user prompt (never cached usually, as it changes)
+        content.push({ type: "text", text: userPrompt });
+
+        return content;
+    },
+
     _parseResponse(result, schema) {
         // TODO: Implement graceful extraction of partial data from malformed responses
-        // TODO: Log parsing failures with full context for debugging
         const endpoint = document.getElementById('api-endpoint').value;
+        let contentStr = '';
+
         try {
-            let content;
             if (endpoint === 'gemini') {
-                content = JSON.parse(result.candidates[0].content.parts[0].text);
-            } else if (endpoint === 'openrouter' || endpoint === 'custom') {
-                let contentStr = result.choices[0].message.content.trim();
+                contentStr = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            } else if (endpoint === 'openrouter' || endpoint === 'custom' || endpoint === 'groq') {
+                contentStr = result?.choices?.[0]?.message?.content?.trim() || '';
                 const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
                 if (match) contentStr = match[1];
-                content = JSON.parse(contentStr);
             }
+
+            if (!contentStr) {
+                throw new Error("Empty response content");
+            }
+
+            const content = JSON.parse(contentStr);
 
             if (content && schema) {
                 const { isValid, errors } = validate(content, schema);
@@ -730,10 +842,15 @@ Return a JSON array with your classifications. Be concise.`;
             if (typeof content === 'object' && content !== null) {
                 return content.wildcards || content.categories || content.items || content;
             }
-
             return [];
         } catch (e) {
-            console.error("Failed to parse AI response:", result, e);
+            console.error("Failed to parse AI response:", {
+                endpoint,
+                error: e.message,
+                stack: e.stack,
+                contentStr,
+                fullResult: result
+            });
             throw new Error(`The AI returned a malformed response. Error: ${e.message}`);
         }
     },
@@ -1421,17 +1538,21 @@ Return a JSON array with your classifications. Be concise.`;
      * Helper to parse test response based on provider format.
      */
     _parseTestResponse(provider, result, schema) {
+        let contentStr = '';
         try {
-            let contentStr;
             if (provider === 'gemini') {
-                contentStr = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                contentStr = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
             } else {
-                contentStr = result.choices?.[0]?.message?.content || '';
+                contentStr = result?.choices?.[0]?.message?.content || '';
             }
 
             contentStr = contentStr.trim();
             const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(contentStr);
             if (match) contentStr = match[1];
+
+            if (!contentStr) {
+                throw new Error("Empty test response content");
+            }
 
             const parsed = JSON.parse(contentStr);
 
@@ -1449,6 +1570,13 @@ Return a JSON array with your classifications. Be concise.`;
             if (parsed.items && Array.isArray(parsed.items)) return parsed.items;
             return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
+            console.error("Failed to parse AI test response:", {
+                provider,
+                error: e.message,
+                stack: e.stack,
+                contentStr,
+                fullResult: result
+            });
             return [];
         }
     },
