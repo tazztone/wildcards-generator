@@ -484,59 +484,7 @@ export const App = {
             }
             // Help Button
             if (target.matches('#help-btn')) {
-                UI.showNotification(`
-<div class="text-left space-y-4 max-w-lg custom-scrollbar max-h-[70vh] overflow-y-auto pr-2">
-    <section>
-        <h3 class="text-xl font-bold text-indigo-300 flex items-center gap-2 mb-2">🚀 Getting Started</h3>
-        <p class="text-xs text-gray-400 mb-3">Welcome to Wildcards Generator! This tool helps you manage and expand complex prompt libraries for AI image and text generation.</p>
-        <ul class="list-none space-y-2 text-sm">
-            <li class="flex items-start gap-2">
-                <span class="text-indigo-400 mt-0.5">⚙️</span>
-                <span><strong>API Setup:</strong> Click the gear icon to configure your AI provider (OpenRouter, Gemini, or Custom). You'll need an API key to use generation features.</span>
-            </li>
-            <li class="flex items-start gap-2">
-                <span class="text-green-400 mt-0.5">📁</span>
-                <span><strong>Organize:</strong> Click categories to expand them. You can drag and drop to reorder, nest categories, or move wildcards between lists.</span>
-            </li>
-            <li class="flex items-start gap-2">
-                <span class="text-purple-400 mt-0.5">✨</span>
-                <span><strong>AI Generation:</strong> Click the "Sparkle" button on any list to have the AI suggest new terms based on the existing ones.</span>
-            </li>
-        </ul>
-    </section>
-
-    <section class="border-t border-indigo-500/20 pt-3">
-        <h3 class="text-lg font-bold text-indigo-300 flex items-center gap-2 mb-2">🧩 Templates & Automation</h3>
-        <p class="text-xs text-gray-400 mb-2">The <code class="text-indigo-400">0_TEMPLATES</code> category is special. It powers the <strong>Hybrid Template System</strong>:</p>
-        <ul class="text-sm text-gray-300 list-disc list-inside space-y-1">
-            <li>Items here can use <code class="text-indigo-400">~~wildcard_name~~</code> syntax to reference other lists.</li>
-            <li>Use the <strong>Analyze Categories</strong> button in settings to let AI tag your lists (e.g., "Subject", "Location").</li>
-            <li>The system can then generate complex prompts by intelligently picking items from matching categories.</li>
-        </ul>
-    </section>
-
-    <section class="border-t border-indigo-500/20 pt-3">
-        <h3 class="text-lg font-bold text-indigo-300 mb-2">⌨️ Keyboard Shortcuts</h3>
-        <div class="grid grid-cols-2 gap-2 text-sm bg-gray-900/40 rounded-lg p-3 border border-gray-800">
-            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+S</kbd> <span class="text-gray-500 ml-1">Save info</span></div>
-            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+Z</kbd> <span class="text-gray-500 ml-1">Undo</span></div>
-            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+Y</kbd> <span class="text-gray-500 ml-1">Redo</span></div>
-            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">Escape</kbd> <span class="text-gray-500 ml-1">Collapse All</span></div>
-            <div><kbd class="px-2 py-1 bg-gray-700 rounded text-xs">↑ / ↓</kbd> <span class="text-gray-500 ml-1">Navigate</span></div>
-        </div>
-    </section>
-
-    <section class="border-t border-indigo-500/20 pt-3">
-        <h3 class="text-lg font-bold text-indigo-300 mb-2">💡 Pro Tips</h3>
-        <ul class="text-sm text-gray-300 list-disc list-inside space-y-1">
-            <li><strong>Double-click</strong> any title or item to rename it instantly.</li>
-            <li>Use <strong>Dupe Finder</strong> (toolbar) to find and merge repeated entries across your collection.</li>
-            <li><strong>Pin</strong> categories via their header to keep your most-used lists at the top.</li>
-            <li>Export your collection as <strong>ZIP</strong> to get a portable structure ready for use in Stable Diffusion.</li>
-        </ul>
-    </section>
-</div>
-`);
+                UI.showHelp();
             }
             // Dupe Finder Mode
             if (target.closest('#dupe-finder-btn')) {
@@ -652,15 +600,7 @@ export const App = {
             }
             // Add Category Placeholder
             if (target.matches('#add-category-placeholder-btn')) {
-                UI.showNotification('Enter new top-level category name:', true, (name) => {
-                    if (name && name.trim()) {
-                        const key = name.trim().replace(/\s+/g, '_');
-                        if (State.state.wildcards[key]) { UI.showToast('Category already exists', 'error'); return; }
-                        State.saveStateToHistory();
-                        State.state.wildcards[key] = { _id: crypto.randomUUID().slice(0, 8), instruction: '' };
-                        UI.showToast(`Created "${name.trim()}"`, 'success');
-                    }
-                }, true);
+                this.addNewCategory();
             }
             // Suggest Top-Level
             if (target.matches('#suggest-toplevel-btn')) {
@@ -769,17 +709,33 @@ export const App = {
     },
 
     handleKeyboardShortcuts(e) {
-        // TODO: Add more keyboard shortcuts (Ctrl+F for search, Ctrl+N for new category)
-
-        // TODO: Add keyboard shortcut help overlay (show on '?')
         if (e.ctrlKey || e.metaKey) {
             switch (e.key.toLowerCase()) {
                 case 's': e.preventDefault(); UI.showToast('All changes are saved automatically.', 'info'); break;
                 case 'z': e.preventDefault(); State.undo(); break;
                 case 'y': e.preventDefault(); State.redo(); break;
+                case 'f':
+                    e.preventDefault();
+                    const searchInput = document.getElementById('search-wildcards');
+                    if (searchInput) {
+                        searchInput.focus();
+                        /** @type {HTMLInputElement} */ (searchInput).select();
+                    }
+                    break;
+                case 'n':
+                    e.preventDefault();
+                    this.addNewCategory();
+                    break;
             }
             return;
         }
+
+        // Show help on '?' (Shift + /)
+        if (e.key === '?' && !/** @type {HTMLElement} */(e.target).matches('input, textarea')) {
+            UI.showHelp();
+            return;
+        }
+
         // Arrow key navigation
         // Arrow key navigation - Ignore if inside input/textarea unless it's Escape
         if (/** @type {HTMLElement} */(e.target).matches('input, textarea') && e.key !== 'Escape') return;
@@ -1591,6 +1547,18 @@ export const App = {
             UI.toggleLoader(path, false);
             if (generateBtn) generateBtn.textContent = 'Generate Templates';
         }
+    },
+
+    addNewCategory() {
+        UI.showNotification('Enter new top-level category name:', true, (name) => {
+            if (name && name.trim()) {
+                const key = name.trim().replace(/\s+/g, '_');
+                if (State.state.wildcards[key]) { UI.showToast('Category already exists', 'error'); return; }
+                State.saveStateToHistory();
+                State.state.wildcards[key] = { _id: crypto.randomUUID().slice(0, 8), instruction: '' };
+                UI.showToast(`Created "${name.trim()}"`, 'success');
+            }
+        }, true);
     },
 
     createItem(parentPath, type) {
