@@ -1587,7 +1587,7 @@ export const App = {
         }
 
         // Get existing sibling names for context
-        const existingStructure = Object.keys(parent).filter(k => k !== 'instruction' && k !== 'wildcards');
+        const existingStructure = Object.keys(parent).filter(k => k !== 'instruction' && k !== 'wildcards' && k !== '_id');
 
         UI.showToast('Generating suggestions...', 'info');
 
@@ -1801,7 +1801,7 @@ export const App = {
                 if (!parent) return null;
 
                 const cleanName = path.split('/').pop().replace(/_/g, ' ');
-                const existingStructure = Object.keys(parent).filter(k => k !== 'instruction' && k !== 'wildcards');
+                const existingStructure = Object.keys(parent).filter(k => k !== 'instruction' && k !== 'wildcards' && k !== '_id');
 
                 try {
                     const { suggestions, request } = await Api.suggestItems(

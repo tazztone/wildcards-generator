@@ -341,7 +341,6 @@ const State = {
             this._rawData.systemPrompt = "";
             this._saveToLocalStorage();
             this._initProxy();
-            this._initProxy();
             this.events.dispatchEvent(new CustomEvent('state-reset'));
         } finally {
             if (this._resolveReady) this._resolveReady(true);

@@ -116,7 +116,6 @@ export const Api = {
                         await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
                     }
                 }
-                }
                 return { ok: false, status: lastStatus, text: lastText };
             };
 
@@ -210,7 +209,6 @@ export const Api = {
                         if (attempt === maxRetries) throw e;
                         await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
                     }
-                }
                 }
                 return { ok: false, status: lastStatus, text: lastText };
             };
