@@ -115,16 +115,27 @@ export const ImportExport = {
                 addToZip(data, key);
             }
 
-            const blob = await zip.generateAsync({ type: 'blob' });
-            // TODO: Add progress callback for large archives
-            // TODO: Support custom folder structure templates for different SD flavors
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'wildcard_collection.zip';
-            a.click();
-            URL.revokeObjectURL(url);
-            UI.showToast('ZIP exported successfully', 'success');
+            const progressToast = UI.showToast('Generating ZIP: 0%', 'info', 0);
+            const messageEl = progressToast.querySelector('.toast-message');
+
+            try {
+                const blob = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+                    if (messageEl) {
+                        messageEl.textContent = `Generating ZIP: ${metadata.percent.toFixed(0)}%`;
+                    }
+                });
+
+                // TODO: Support custom folder structure templates for different SD flavors
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'wildcard_collection.zip';
+                a.click();
+                URL.revokeObjectURL(url);
+                UI.showToast('ZIP exported successfully', 'success');
+            } finally {
+                progressToast.remove();
+            }
         } catch (e) {
             console.error('Export ZIP failed:', e);
             UI.showToast('Export failed', 'error');

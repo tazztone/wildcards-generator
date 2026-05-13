@@ -2771,10 +2771,28 @@ export const UI = {
         UI.showToast('Settings saved', 'success');
     },
 
-    showToast(message, type = 'info') {
+    /**
+     * Shows a toast notification.
+     * @param {string} message - Message to display
+     * @param {string} type - Toast type ('success', 'error', 'info', 'warning')
+     * @param {number} duration - Duration in ms (0 for persistent)
+     * @returns {HTMLElement} The toast element
+     */
+    showToast(message, type = 'info', duration = 3000) {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
-        toast.textContent = message;
+
+        // Structured content for toast
+        if (type === 'info' && duration === 0) {
+            const loader = document.createElement('div');
+            loader.className = 'loader-small';
+            toast.appendChild(loader);
+        }
+
+        const msgSpan = document.createElement('span');
+        msgSpan.className = 'toast-message';
+        msgSpan.textContent = message;
+        toast.appendChild(msgSpan);
 
         // Check if a dialog is open - if so, render toast inside it for visibility
         const openDialog = document.querySelector('dialog[open]');
@@ -2791,7 +2809,14 @@ export const UI = {
             this.elements.toastContainer.appendChild(toast);
         }
 
-        setTimeout(() => toast.remove(), 3000);
+        if (duration > 0) {
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        return toast;
     },
 
     showConfirmDialog(title, message, options = {}) {
