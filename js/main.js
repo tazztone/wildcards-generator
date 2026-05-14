@@ -2,7 +2,7 @@ import { App } from './app.js';
 import { State } from './state.js';
 import { UI } from './ui.js';
 import { Api } from './api.js';
-import { loadConfig, Config } from './config.js';
+import { loadConfig, saveConfig, Config } from './config.js';
 import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.UI = UI;
         window.Api = Api;
         window.Config = Config;
+        window.loadConfig = loadConfig;
+        window.saveConfig = saveConfig;
         window.DragDrop = DragDrop;
         window.ImportExport = ImportExport;
         window.Settings = Settings;
