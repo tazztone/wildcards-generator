@@ -16,11 +16,10 @@ export const Settings = {
      * Silently tests each provider's key and updates the UI accordingly.
      */
     async verifyStoredApiKeys() {
-        const providers = ['openrouter', 'gemini', 'custom'];
+        const panels = document.querySelectorAll('.api-settings-panel');
 
-        for (const provider of providers) {
-            const panel = document.getElementById(`settings-${provider}`);
-            if (!panel) continue;
+        for (const panel of panels) {
+            const provider = panel.id.replace('settings-', '');
 
             const input = /** @type {HTMLInputElement} */ (panel.querySelector('.api-key-input'));
             if (!input) continue;
