@@ -1395,6 +1395,11 @@
             box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
         }
 
+        .input-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+
         /* Light mode overrides handled by variables where possible */
         html.light .input-primary {
             background-color: #fff;
