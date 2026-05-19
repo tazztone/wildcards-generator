@@ -1578,14 +1578,24 @@ export const UI = {
             }
 
             // Bind API Key Saving
-            const handleSaveKey = () => {
+            const handleSaveKey = (showToast = false) => {
                 const key = apiKeyInput.value.trim();
                 const persist = rememberCheckbox.checked;
-                saveApiKey(p.id, key, persist);
+                saveApiKey(p.id, key, persist).then(validation => {
+                    if (!validation.isValid) {
+                        apiKeyInput.classList.add('input-error');
+                        if (showToast) this.showToast(validation.error, 'warning');
+                    } else {
+                        apiKeyInput.classList.remove('input-error');
+                    }
+                });
             };
 
-            apiKeyInput.addEventListener('input', handleSaveKey);
-            apiKeyInput.addEventListener('change', handleSaveKey);
+            apiKeyInput.addEventListener('input', () => {
+                apiKeyInput.classList.remove('input-error');
+                handleSaveKey(false);
+            });
+            apiKeyInput.addEventListener('change', () => handleSaveKey(true));
             rememberCheckbox.addEventListener('change', handleSaveKey);
 
             // Model Name Input Wrapper

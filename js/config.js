@@ -249,8 +249,39 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
+/**
+ * Validate API key format for supported providers
+ * @param {string} provider - The provider ID (openrouter, gemini, groq)
+ * @param {string} key - The API key string
+ * @returns {{isValid: boolean, error: string|null}}
+ */
+export function isValidApiKeyFormat(provider, key) {
+    if (!key) return { isValid: true, error: null }; // Allow empty keys (resetting)
+
+    const k = key.trim();
+    switch (provider.toLowerCase()) {
+        case 'openrouter':
+            if (!k.startsWith('sk-or-')) {
+                return { isValid: false, error: 'OpenRouter keys typically start with "sk-or-"' };
+            }
+            break;
+        case 'gemini':
+            if (!k.startsWith('AIzaSy')) {
+                return { isValid: false, error: 'Gemini keys typically start with "AIzaSy"' };
+            }
+            break;
+        case 'groq':
+            if (!k.startsWith('gsk_')) {
+                return { isValid: false, error: 'Groq keys typically start with "gsk_"' };
+            }
+            break;
+    }
+    return { isValid: true, error: null };
+}
+
 export async function saveApiKey(provider, key, persist) {
-    // TODO: Add key format validation (e.g., OpenRouter keys start with 'sk-or-')
+    const validation = isValidApiKeyFormat(provider, key);
+
     const configKey = `${provider.toUpperCase()}_API_KEY`;
     Config[configKey] = key;
 
@@ -268,6 +299,8 @@ export async function saveApiKey(provider, key, persist) {
     } else {
         localStorage.removeItem(storageKey);
     }
+
+    return validation;
 }
 
 /**

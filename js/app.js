@@ -147,6 +147,13 @@ export const App = {
         document.getElementById('redo-btn')?.addEventListener('click', () => State.redo());
 
         // Settings / API Keys
+        document.addEventListener('input', (e) => {
+            const target = /** @type {HTMLElement} */ (e.target);
+            if (target.matches('.api-key-input')) {
+                target.classList.remove('input-error');
+            }
+        });
+
         document.getElementById('api-endpoint')?.addEventListener('change', (e) => {
             const provider = /** @type {HTMLSelectElement} */ (e.target).value;
             Config.API_ENDPOINT = provider;
@@ -167,7 +174,14 @@ export const App = {
                 const provider = keyInput.id.replace('-api-key', '');
                 const persist = rememberCheck ? rememberCheck.checked : false;
 
-                saveApiKey(provider, /** @type {HTMLInputElement} */(keyInput).value.trim(), persist);
+                saveApiKey(provider, /** @type {HTMLInputElement} */(keyInput).value.trim(), persist).then(validation => {
+                    if (!validation.isValid) {
+                        keyInput.classList.add('input-error');
+                        UI.showToast(validation.error, 'warning');
+                    } else {
+                        keyInput.classList.remove('input-error');
+                    }
+                });
             }
 
             // OpenRouter Filter Checkboxes
