@@ -2,7 +2,7 @@ const { test, expect } = require('./fixtures');
 
 test.describe('ZIP Export Progress', () => {
     test('ZIP export shows and updates progress toast', async ({ page }) => {
-        // Setup data
+        // Setup data and mock JSZip generateAsync for deterministic progress toast visibility
         await page.evaluate(() => {
             window.State.state.wildcards = {
                 'LargeCategory': {
@@ -10,6 +10,18 @@ test.describe('ZIP Export Progress', () => {
                 }
             };
             window.UI.renderAll();
+
+            // Mock generateAsync to simulate slow compression
+            const originalGenerateAsync = window.JSZip.prototype.generateAsync;
+            window.JSZip.prototype.generateAsync = async function(options, onUpdate) {
+                if (onUpdate) {
+                    onUpdate({ percent: 25 });
+                    await new Promise(r => setTimeout(r, 150));
+                    onUpdate({ percent: 75 });
+                    await new Promise(r => setTimeout(r, 150));
+                }
+                return originalGenerateAsync.call(this, options, onUpdate);
+            };
         });
 
         // Click export
