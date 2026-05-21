@@ -3308,6 +3308,10 @@ export const UI = {
      * @param {Array} duplicates - The duplicates array
      */
     _filterListToDuplicates(paths, duplicates) {
+        // Pre-compute map for O(1) details lookup to avoid DOM query in loop
+        const detailsMap = new Map();
+        document.querySelectorAll('details[data-path]').forEach(el => detailsMap.set(el.dataset.path, el));
+
         // Hide all cards first
         document.querySelectorAll('.wildcard-card').forEach(card => {
             const path = /** @type {HTMLElement} */ (card).dataset.path;
@@ -3320,7 +3324,7 @@ export const UI = {
                 let currentPath = '';
                 parts.forEach((part, i) => {
                     currentPath += (i > 0 ? '/' : '') + part;
-                    const details = document.querySelector(`details[data-path="${currentPath}"]`);
+                    const details = detailsMap.get(currentPath);
                     if (details) /** @type {HTMLDetailsElement} */ (details).open = true;
                 });
             } else {
