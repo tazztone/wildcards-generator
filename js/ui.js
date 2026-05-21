@@ -1939,18 +1939,14 @@ export const UI = {
 
         const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
 
-        // Highlight in category names (only visible ones)
-        document.querySelectorAll('.category-item:not(.hidden) .category-name').forEach(el => {
-            this.highlightTextInElement(el, regex);
-        });
+        // Combined DOM query to reduce layout thrashing and object creation
+        const selectors = [
+            '.category-item:not(.hidden) .category-name',
+            '.wildcard-card:not(.hidden) .wildcard-name',
+            '.wildcard-card:not(.hidden) .chip .editable-name'
+        ].join(', ');
 
-        // Highlight in wildcard names (only visible ones)
-        document.querySelectorAll('.wildcard-card:not(.hidden) .wildcard-name').forEach(el => {
-            this.highlightTextInElement(el, regex);
-        });
-
-        // Highlight in wildcard chips (only visible ones)
-        document.querySelectorAll('.wildcard-card:not(.hidden) .chip .editable-name').forEach(el => {
+        document.querySelectorAll(selectors).forEach(el => {
             this.highlightTextInElement(el, regex);
         });
     },
