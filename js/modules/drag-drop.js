@@ -13,6 +13,13 @@ import { UI } from '../ui.js';
 
 export const DragDrop = {
     /**
+     * Reference to the currently active drop target element.
+     * Used for performance optimization to avoid DOM querying during dragover.
+     * @type {HTMLElement|null}
+     */
+    activeDropTarget: null,
+
+    /**
      * Reference to the currently dragged item's path.
      * Managed by the App module.
      */
@@ -58,12 +65,11 @@ export const DragDrop = {
         const target = /** @type {HTMLElement} */ (e.target).closest('[data-path]');
         if (!target || target.dataset.path === this.draggedPath) return;
 
-        // Clean up any existing classes on other elements
-        document.querySelectorAll('.drop-target-active, .drop-line-before, .drop-line-after, .drop-inside').forEach(el => {
-            if (el !== target) {
-                el.classList.remove('drop-target-active', 'drop-line-before', 'drop-line-after', 'drop-inside');
-            }
-        });
+        // Clean up any existing classes on previously active target
+        if (this.activeDropTarget && this.activeDropTarget !== target) {
+            this.activeDropTarget.classList.remove('drop-target-active', 'drop-line-before', 'drop-line-after', 'drop-inside');
+        }
+        this.activeDropTarget = target;
 
         const rect = target.getBoundingClientRect();
         const relY = e.clientY - rect.top;
@@ -100,6 +106,9 @@ export const DragDrop = {
         const target = /** @type {HTMLElement} */ (e.target).closest('[data-path]');
         if (target) {
             target.classList.remove('drop-target-active', 'drop-line-before', 'drop-line-after', 'drop-inside');
+            if (target === this.activeDropTarget) {
+                this.activeDropTarget = null;
+            }
         }
     },
 
@@ -218,6 +227,7 @@ export const DragDrop = {
      */
     handleDragEnd(e) {
         this.draggedPath = null;
+        this.activeDropTarget = null;
         document.body.classList.remove('dragging-active');
         document.querySelectorAll('.dragging, .drop-target-active, .drop-line-before, .drop-line-after, .drop-inside')
             .forEach(el => el.classList.remove('dragging', 'drop-target-active', 'drop-line-before', 'drop-line-after', 'drop-inside'));
