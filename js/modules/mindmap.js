@@ -1358,13 +1358,17 @@ const Mindmap = {
         this._currentDuplicates = null;
         this._isFilterMode = false;
 
-        // Remove duplicate styling from mindmap nodes
-        document.querySelectorAll('.mindmap-node-duplicate').forEach(el => {
-            el.classList.remove('mindmap-node-duplicate');
-        });
-
-        // Remove filter mode indicator
-        document.querySelectorAll('.filter-mode-indicator').forEach(el => el.remove());
+        // Optimize: Single query selector bounded by container where possible
+        const root = document.getElementById('mindmap-container') || document;
+        const elements = root.querySelectorAll('.mindmap-node-duplicate, .filter-mode-indicator');
+        for (let i = 0; i < elements.length; i++) {
+            const el = elements[i];
+            if (el.classList.contains('filter-mode-indicator')) {
+                el.remove();
+            } else {
+                el.classList.remove('mindmap-node-duplicate');
+            }
+        }
 
         // Hide the filter exit button
         this.hideFilterModeExitButton();
