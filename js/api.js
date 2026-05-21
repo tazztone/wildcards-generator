@@ -419,14 +419,11 @@ export const Api = {
 
         // NOW expand valid templates: ~~LeafName~~ -> ~~FullPath~~ (and normalize to ~~)
         return templates.map(t => {
-            let expanded = t;
-            for (const [leafName, fullPath] of Object.entries(pathMap)) {
-                // Replace leaf name with full path, handling both delimiter styles
-                // We normalize to ~~ syntax for the final output
-                const regex = new RegExp(`(?:~~|__)${leafName}(?:~~|__)`, 'g');
-                expanded = expanded.replace(regex, `~~${fullPath}~~`);
-            }
-            return expanded;
+            return t.replace(/(?:~~(.+?)~~|__(.+?)__)/g, (match, p1, p2) => {
+                const leafName = p1 || p2;
+                const fullPath = pathMap[leafName];
+                return fullPath ? `~~${fullPath}~~` : match;
+            });
         });
     },
 
