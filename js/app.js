@@ -2,7 +2,7 @@ import { State } from './state.js';
 import { UI } from './ui.js';
 import { Api } from './api.js';
 import { Config, saveApiKey, saveConfig } from './config.js';
-import { debounce } from './utils.js';
+import { debounce, sanitize } from './utils.js';
 import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
@@ -280,7 +280,7 @@ export const App = {
                         if (result.stats.parsedContent && Array.isArray(result.stats.parsedContent)) {
                             previewSection.classList.remove('hidden');
                             previewEl.innerHTML = result.stats.parsedContent.map(item =>
-                                `<span class="px-2 py-1 bg-indigo-900/50 text-indigo-200 border border-indigo-700/50 rounded text-xs">${item}</span>`
+                                `<span class="px-2 py-1 bg-indigo-900/50 text-indigo-200 border border-indigo-700/50 rounded text-xs">${sanitize(item)}</span>`
                             ).join('');
                         } else if (typeof result.stats.parsedContent === 'object') {
                             previewSection.classList.remove('hidden');
