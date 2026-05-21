@@ -87,13 +87,6 @@ NullKey: null
 
         expect(result.NumberKey.wildcards[0]).toBe('123'); // Converted to string
         expect(result.BoolKey.wildcards[0]).toBe('true');
-        // Null usually becomes empty object or skipped?
-        // Implementation:
-        // if (YAML.isScalar(node)) return node.value;
-        // else return {}
-        // Then:
-        // result[key] = { wildcards: [String(processedValue)] }
-        // null value is null. String(null) is "null".
         expect(result.NullKey.wildcards[0]).toBe('null');
     });
 
