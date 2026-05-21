@@ -2842,24 +2842,53 @@ export const UI = {
             const dialog = document.createElement('dialog');
             dialog.className = 'confirm-dialog bg-gray-800 rounded-lg p-0 shadow-xl border border-gray-700 max-w-sm w-full backdrop:bg-black/50 backdrop:backdrop-blur-sm';
 
-            dialog.innerHTML = `
-                <div class="p-4 border-b border-gray-700/50">
-                    <h3 class="text-lg font-bold text-gray-100">${sanitize(title)}</h3>
-                </div>
-                <div class="p-4 text-gray-300 text-sm">
-                    <p class="whitespace-pre-wrap">${sanitize(message)}</p>
-                    ${rememberKey ? `
-                    <label class="flex items-center gap-2 mt-4 cursor-pointer text-gray-400 hover:text-gray-300 select-none">
-                        <input type="checkbox" id="confirm-remember-choice" class="w-3.5 h-3.5 bg-gray-700 border-gray-600 rounded text-indigo-500 focus:ring-indigo-500">
-                        <span>Don't ask again</span>
-                    </label>
-                    ` : ''}
-                </div>
-                <div class="p-3 bg-gray-900/50 flex justify-end gap-2 rounded-b-lg">
-                    <button class="px-3 py-1.5 rounded text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" id="btn-cancel">${sanitize(cancelText)}</button>
-                    <button class="px-3 py-1.5 rounded text-sm font-medium text-white ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700'} transition-colors" id="btn-confirm">${sanitize(confirmText)}</button>
-                </div>
-            `;
+            // Build header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'p-4 border-b border-gray-700/50';
+            const h3 = document.createElement('h3');
+            h3.className = 'text-lg font-bold text-gray-100';
+            h3.textContent = title;
+            headerDiv.appendChild(h3);
+
+            // Build body
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'p-4 text-gray-300 text-sm';
+            const p = document.createElement('p');
+            p.className = 'whitespace-pre-wrap';
+            p.textContent = message;
+            bodyDiv.appendChild(p);
+
+            if (rememberKey) {
+                const label = document.createElement('label');
+                label.className = 'flex items-center gap-2 mt-4 cursor-pointer text-gray-400 hover:text-gray-300 select-none';
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = 'confirm-remember-choice';
+                input.className = 'w-3.5 h-3.5 bg-gray-700 border-gray-600 rounded text-indigo-500 focus:ring-indigo-500';
+                const span = document.createElement('span');
+                span.textContent = "Don't ask again";
+                label.appendChild(input);
+                label.appendChild(span);
+                bodyDiv.appendChild(label);
+            }
+
+            // Build footer
+            const footerDiv = document.createElement('div');
+            footerDiv.className = 'p-3 bg-gray-900/50 flex justify-end gap-2 rounded-b-lg';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'px-3 py-1.5 rounded text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors';
+            cancelBtn.id = 'btn-cancel';
+            cancelBtn.textContent = cancelText;
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = `px-3 py-1.5 rounded text-sm font-medium text-white ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700'} transition-colors`;
+            confirmBtn.id = 'btn-confirm';
+            confirmBtn.textContent = confirmText;
+            footerDiv.appendChild(cancelBtn);
+            footerDiv.appendChild(confirmBtn);
+
+            dialog.appendChild(headerDiv);
+            dialog.appendChild(bodyDiv);
+            dialog.appendChild(footerDiv);
 
             document.body.appendChild(dialog);
             dialog.showModal();
