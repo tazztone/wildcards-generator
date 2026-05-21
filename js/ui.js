@@ -3308,9 +3308,20 @@ export const UI = {
      * @param {Array} duplicates - The duplicates array
      */
     _filterListToDuplicates(paths, duplicates) {
+        // Pre-calculate details map to avoid DOM querying inside loop
+        /** @type {Map<string, HTMLDetailsElement>} */
+        const detailsMap = new Map();
+        document.querySelectorAll('details[data-path]').forEach(details => {
+            if (details instanceof HTMLDetailsElement && details.dataset.path) {
+                detailsMap.set(details.dataset.path, details);
+            }
+        });
+
         // Hide all cards first
         document.querySelectorAll('.wildcard-card').forEach(card => {
             const path = /** @type {HTMLElement} */ (card).dataset.path;
+            if (!path) return;
+
             if (paths.has(path)) {
                 card.classList.remove('hidden');
                 card.classList.add('duplicate-focus');
@@ -3320,8 +3331,8 @@ export const UI = {
                 let currentPath = '';
                 parts.forEach((part, i) => {
                     currentPath += (i > 0 ? '/' : '') + part;
-                    const details = document.querySelector(`details[data-path="${currentPath}"]`);
-                    if (details) /** @type {HTMLDetailsElement} */ (details).open = true;
+                    const details = detailsMap.get(currentPath);
+                    if (details) details.open = true;
                 });
             } else {
                 card.classList.add('hidden');
