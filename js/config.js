@@ -239,7 +239,7 @@ export function updateConfigValue(key, value) {
 }
 
 // Helper function to convert ArrayBuffer to Base64
-function arrayBufferToBase64(buffer) {
+export function arrayBufferToBase64(buffer) {
     let binary = '';
     const bytes = new Uint8Array(buffer);
     const len = bytes.byteLength;
