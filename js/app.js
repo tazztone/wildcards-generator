@@ -1562,31 +1562,79 @@ export const App = {
     },
 
     addNewCategory() {
-        UI.showNotification('Enter new top-level category name:', true, (name) => {
-            if (name && name.trim()) {
-                const key = name.trim().replace(/\s+/g, '_');
-                if (State.state.wildcards[key]) { UI.showToast('Category already exists', 'error'); return; }
-                State.saveStateToHistory();
+        UI.showNotification('Enter new top-level category name (comma-separated for multiple):', true, (inputName) => {
+            if (!inputName) return;
+
+            const names = inputName.split(',').map(n => n.trim()).filter(n => n);
+            if (names.length === 0) return;
+
+            let createdCount = 0;
+            let historySaved = false;
+            const createdNames = [];
+
+            for (const name of names) {
+                const key = name.replace(/\s+/g, '_');
+                if (State.state.wildcards[key]) {
+                    UI.showToast(`Category "${name}" already exists`, 'error');
+                    continue;
+                }
+
+                if (!historySaved) {
+                    State.saveStateToHistory();
+                    historySaved = true;
+                }
+
                 State.state.wildcards[key] = { _id: crypto.randomUUID().slice(0, 8), instruction: '' };
-                UI.showToast(`Created "${name.trim()}"`, 'success');
+                createdCount++;
+                createdNames.push(name);
+            }
+
+            if (createdCount === 1) {
+                UI.showToast(`Created "${createdNames[0]}"`, 'success');
+            } else if (createdCount > 1) {
+                UI.showToast(`Created ${createdCount} new categories`, 'success');
             }
         }, true);
     },
 
     createItem(parentPath, type) {
         // TODO: Add input validation for special characters that might break YAML export
-        // TODO: Support creating multiple items at once (comma-separated names)
-        UI.showNotification(`Enter name for new ${type}:`, true, (name) => {
-            if (!name) return;
-            const key = name.trim().replace(/\s+/g, '_');
-            const parent = State.getObjectByPath(parentPath);
-            if (parent[key]) { UI.showToast('Exists already', 'error'); return; }
+        UI.showNotification(`Enter name for new ${type} (comma-separated for multiple):`, true, (inputName) => {
+            if (!inputName) return;
 
-            State.saveStateToHistory();
-            parent[key] = type === 'list'
-                ? { _id: crypto.randomUUID().slice(0, 8), instruction: '', wildcards: [] }
-                : { _id: crypto.randomUUID().slice(0, 8), instruction: '' };
-            UI.showToast(`Created "${name.trim()}"`, 'success');
+            const names = inputName.split(',').map(n => n.trim()).filter(n => n);
+            if (names.length === 0) return;
+
+            const parent = State.getObjectByPath(parentPath);
+            let createdCount = 0;
+            let historySaved = false;
+            const createdNames = [];
+
+            for (const name of names) {
+                const key = name.replace(/\s+/g, '_');
+                if (parent[key]) {
+                    UI.showToast(`"${name}" exists already`, 'error');
+                    continue;
+                }
+
+                if (!historySaved) {
+                    State.saveStateToHistory();
+                    historySaved = true;
+                }
+
+                parent[key] = type === 'list'
+                    ? { _id: crypto.randomUUID().slice(0, 8), instruction: '', wildcards: [] }
+                    : { _id: crypto.randomUUID().slice(0, 8), instruction: '' };
+
+                createdCount++;
+                createdNames.push(name);
+            }
+
+            if (createdCount === 1) {
+                UI.showToast(`Created "${createdNames[0]}"`, 'success');
+            } else if (createdCount > 1) {
+                UI.showToast(`Created ${createdCount} new ${type}s`, 'success');
+            }
         }, true);
     },
 
