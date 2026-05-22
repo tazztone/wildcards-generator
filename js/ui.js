@@ -2403,7 +2403,12 @@ export const UI = {
 
         if (message.trim().startsWith('<')) {
             this.elements.dialogMessage.classList.remove('whitespace-pre-wrap');
-            this.elements.dialogMessage.innerHTML = message;
+            if (window.DOMPurify) {
+                this.elements.dialogMessage.innerHTML = window.DOMPurify.sanitize(message);
+            } else {
+                // Fail closed: if DOMPurify fails to load, fall back to safe textContent
+                this.elements.dialogMessage.textContent = message;
+            }
         } else {
             this.elements.dialogMessage.classList.add('whitespace-pre-wrap');
             const p = document.createElement('p');
