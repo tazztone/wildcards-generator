@@ -1001,4 +1001,4 @@ const State = {
     }
 };
 
-export { State };
+export { State, deepDiff };
