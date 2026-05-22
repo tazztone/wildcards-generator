@@ -799,8 +799,6 @@ export const App = {
         const items = Array.from(selectedCheckboxes).map(cb => cb.closest('[data-path]'));
         // Separate them
         const folders = items.filter(el => el && el.tagName === 'DETAILS');
-        // Cards are usually divs with wildcard-card class
-        // const cards = items.filter(el => el && el.classList.contains('wildcard-card'));
 
         if (action === 'expand') {
             folders.forEach(cat => { if (cat) /** @type {HTMLDetailsElement} */(cat).open = true; });
