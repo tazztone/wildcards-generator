@@ -342,4 +342,42 @@ test.describe('API Logic Tests', () => {
             }
         });
     });
+
+    test('should handle logRequest persistence failure without crashing', async ({ page }) => {
+        await page.evaluate(async () => {
+            const originalLogRequest = window.Logger.logRequest;
+            const originalConsoleError = console.error;
+            let loggedError = null;
+            let loggedMessage = null;
+
+            try {
+                // Mock Logger.logRequest to reject
+                window.Logger.logRequest = async () => {
+                    throw new Error('Simulated database error');
+                };
+
+                // Capture console.error
+                console.error = (msg, err) => {
+                    loggedMessage = msg;
+                    loggedError = err;
+                };
+
+                // This shouldn't throw an unhandled rejection, but we await a tick
+                // to let the catch block fire since it's fire-and-forget.
+                const resultId = window.Api.logRequest('http://test.com', { test: 1 }, { 'Authorization': 'Bearer test' });
+
+                // Allow microtask queue to process the rejected promise
+                await new Promise(resolve => setTimeout(resolve, 10));
+
+                if (!resultId) throw new Error('Api.logRequest did not return an ID');
+                if (loggedMessage !== 'Failed to persist log:') throw new Error('Wrong console.error message: ' + loggedMessage);
+                if (loggedError.message !== 'Simulated database error') throw new Error('Wrong error object passed to console.error: ' + (loggedError && loggedError.message));
+
+            } finally {
+                // Restore mocks
+                window.Logger.logRequest = originalLogRequest;
+                console.error = originalConsoleError;
+            }
+        });
+    });
 });
