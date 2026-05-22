@@ -342,4 +342,38 @@ test.describe('API Logic Tests', () => {
             }
         });
     });
+
+    test('should log error when logResponse fails', async ({ page }) => {
+        await page.evaluate(async () => {
+            const originalLogResponse = window.Logger.logResponse;
+            const originalConsoleError = console.error;
+            let consoleErrorCalled = false;
+            let consoleErrorMessage = '';
+
+            try {
+                window.Logger.logResponse = async () => {
+                    throw new Error('Database Error');
+                };
+
+                console.error = (msg, err) => {
+                    if (msg === 'Failed to update log:' && err.message === 'Database Error') {
+                        consoleErrorCalled = true;
+                    }
+                    consoleErrorMessage = msg;
+                };
+
+                window.Api.logResponse('test-id', 'test-response');
+
+                // logResponse is fire and forget, so we need a small delay to let the promise rejection handler run
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                if (!consoleErrorCalled) {
+                    throw new Error('console.error was not called correctly. Last message: ' + consoleErrorMessage);
+                }
+            } finally {
+                window.Logger.logResponse = originalLogResponse;
+                console.error = originalConsoleError;
+            }
+        });
+    });
 });
