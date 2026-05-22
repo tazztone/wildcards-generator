@@ -16,8 +16,10 @@ import { TemplateEngine } from './template-engine.js';
 export const App = {
     draggedPath: null,
     lastCheckedBatch: null,
+    abortController: null,
 
     async init() {
+        this.abortController = new AbortController();
         UI.init();
         await State.init(); // This will trigger 'state-reset' which calls UI.renderAll()
 
@@ -59,14 +61,21 @@ export const App = {
         }
     },
 
+    teardown() {
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
+        }
+    },
+
     bindEvents() {
+        const signal = this.abortController.signal;
         // Event Delegation on Container for all dynamic interactions
-        // TODO: Consider using AbortController to clean up event listeners on app teardown
         // TODO: Add touch event handlers for better mobile experience (touchstart, touchmove)
-        UI.elements.container.addEventListener('click', (e) => this.handleContainerClick(e));
-        UI.elements.container.addEventListener('change', (e) => this.handleContainerChange(e));
-        UI.elements.container.addEventListener('blur', (e) => this.handleContainerBlur(e), true);
-        UI.elements.container.addEventListener('keydown', (e) => this.handleContainerKeydown(e));
+        UI.elements.container.addEventListener('click', (e) => this.handleContainerClick(e), { signal });
+        UI.elements.container.addEventListener('change', (e) => this.handleContainerChange(e), { signal });
+        UI.elements.container.addEventListener('blur', (e) => this.handleContainerBlur(e), { capture: true, signal });
+        UI.elements.container.addEventListener('keydown', (e) => this.handleContainerKeydown(e), { signal });
 
         // Double-click to edit names (category names, wildcard names, chip text)
         UI.elements.container.addEventListener('dblclick', (e) => {
@@ -82,7 +91,7 @@ export const App = {
                 e.stopPropagation(); // Prevent category toggle
                 this.enableEditing(editableInput);
             }
-        });
+        }, { signal });
 
         // Prevent category toggle when clicking buttons or during editing mode
         // Also manually toggle when clicking readonly inputs (browsers block native toggle on <input>)
@@ -114,7 +123,7 @@ export const App = {
                     clickedInput.blur();
                 }
             }
-        });
+        }, { signal });
 
         // Click on pencil icon also enables editing
         UI.elements.container.addEventListener('click', (e) => {
@@ -136,15 +145,15 @@ export const App = {
                     return;
                 }
             }
-        });
+        }, { signal });
 
         // Drag and Drop - delegated to DragDrop module
-        DragDrop.bindEvents(UI.elements.container);
+        DragDrop.bindEvents(UI.elements.container, { signal });
 
         // Toolbar actions
-        document.getElementById('theme-toggle')?.addEventListener('click', () => this.toggleTheme());
-        document.getElementById('undo-btn')?.addEventListener('click', () => State.undo());
-        document.getElementById('redo-btn')?.addEventListener('click', () => State.redo());
+        document.getElementById('theme-toggle')?.addEventListener('click', () => this.toggleTheme(), { signal });
+        document.getElementById('undo-btn')?.addEventListener('click', () => State.undo(), { signal });
+        document.getElementById('redo-btn')?.addEventListener('click', () => State.redo(), { signal });
 
         // Settings / API Keys
         document.addEventListener('input', (e) => {
@@ -152,14 +161,14 @@ export const App = {
             if (target.matches('.api-key-input')) {
                 target.classList.remove('input-error');
             }
-        });
+        }, { signal });
 
         document.getElementById('api-endpoint')?.addEventListener('change', (e) => {
             const provider = /** @type {HTMLSelectElement} */ (e.target).value;
             Config.API_ENDPOINT = provider;
             saveConfig(); // Persist choice
             UI.updateSettingsVisibility(provider);
-        });
+        }, { signal });
 
         document.addEventListener('change', (e) => {
             const target = /** @type {HTMLElement} */ (e.target);
@@ -188,7 +197,7 @@ export const App = {
             if (target.id === 'openrouter-free-only' || target.id === 'openrouter-json-only') {
                 UI.filterAndRenderModels('openrouter');
             }
-        });
+        }, { signal });
 
         document.addEventListener('click', (e) => {
             const target = /** @type {HTMLElement} */ (e.target);
@@ -667,10 +676,10 @@ export const App = {
             if (target.closest('#batch-generate')) this.handleBatchAction('generate');
             if (target.closest('#batch-suggest-folders')) this.handleBatchAction('suggest-folders');
             if (target.closest('#batch-suggest-lists')) this.handleBatchAction('suggest-lists');
-        });
+        }, { signal });
 
         // Settings File Input Handler
-        document.getElementById('settings-file-input')?.addEventListener('change', (e) => ImportExport.handleLoadSettings(/** @type {Event & { target: HTMLInputElement }} */(e)));
+        document.getElementById('settings-file-input')?.addEventListener('change', (e) => ImportExport.handleLoadSettings(/** @type {Event & { target: HTMLInputElement }} */(e)), { signal });
 
         // Settings Management -> Reset Handlers
         // Batch Select All
@@ -679,18 +688,18 @@ export const App = {
             document.querySelectorAll('.category-batch-checkbox, .card-batch-checkbox').forEach(cb => /** @type {HTMLInputElement} */(cb).checked = checked);
             this.lastCheckedBatch = null;
             this.updateBatchUI();
-        });
+        }, { signal });
 
         // Keyboard Shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
+        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e), { signal });
 
         // View Mode Selector Buttons
-        document.getElementById('view-list')?.addEventListener('click', () => Mindmap.setView('list'));
-        document.getElementById('view-mindmap')?.addEventListener('click', () => Mindmap.setView('mindmap'));
-        document.getElementById('view-dual')?.addEventListener('click', () => Mindmap.setView('dual'));
+        document.getElementById('view-list')?.addEventListener('click', () => Mindmap.setView('list'), { signal });
+        document.getElementById('view-mindmap')?.addEventListener('click', () => Mindmap.setView('mindmap'), { signal });
+        document.getElementById('view-dual')?.addEventListener('click', () => Mindmap.setView('dual'), { signal });
 
         // Mindmap collapse/expand wildcards toggle
-        document.getElementById('mindmap-toggle-wildcards')?.addEventListener('click', () => Mindmap.toggleWildcards());
+        document.getElementById('mindmap-toggle-wildcards')?.addEventListener('click', () => Mindmap.toggleWildcards(), { signal });
 
         // Theme change observer for Mind Elixir sync
         const themeObserver = new MutationObserver((mutations) => {
@@ -711,7 +720,7 @@ export const App = {
                 const pathStr = path.join('/');
                 this.handleGenerate(pathStr);
             }
-        });
+        }, { signal });
 
         document.addEventListener('mindmap-suggest', (e) => {
             const { path } = /** @type {CustomEvent} */ (e).detail;
@@ -719,7 +728,7 @@ export const App = {
                 const pathStr = path.join('/');
                 this.suggestItems(pathStr, 'list');
             }
-        });
+        }, { signal });
     },
 
     handleKeyboardShortcuts(e) {
