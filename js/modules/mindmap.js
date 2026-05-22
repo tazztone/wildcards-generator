@@ -1196,16 +1196,21 @@ const Mindmap = {
             // The text is inside <span class="text"> within me-tpc
             const topicElements = container.querySelectorAll('me-tpc');
 
-            topicElements.forEach(tpc => {
-                // Get the text from the .text span or fall back to innerText
-                const textSpan = tpc.querySelector('.text');
-                const text = (textSpan?.textContent || tpc.textContent || '').toLowerCase().trim();
+            for (let i = 0; i < topicElements.length; i++) {
+                const tpc = topicElements[i];
+
+                // Optimized extraction avoiding querySelector in loop
+                // getElementsByClassName is significantly faster than querySelector
+                const textElements = tpc.getElementsByClassName('text');
+                const textNode = textElements.length > 0 ? textElements[0] : tpc;
+
+                const text = (textNode.textContent || '').toLowerCase().trim();
 
                 if (text && duplicateSet.has(text)) {
                     tpc.classList.add('mindmap-node-duplicate');
                     totalCount++;
                 }
-            });
+            }
         });
 
         // Store duplicates for reapplication on view change
