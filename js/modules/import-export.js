@@ -171,7 +171,6 @@ export const ImportExport = {
      * Opens a file picker to import YAML wildcard data.
      */
     handleImportYAML() {
-        // TODO: Add file size validation (warn for large files)
         // TODO: Support importing multiple YAML files at once
         // TODO: Add schema validation before import
         const input = document.createElement('input');
@@ -181,6 +180,18 @@ export const ImportExport = {
         input.onchange = async (e) => {
             const file = /** @type {HTMLInputElement} */ (e.target).files[0];
             if (!file) return;
+
+            // Add file size validation (warn for large files > 1MB)
+            const maxSize = 1024 * 1024; // 1MB
+            if (file.size > maxSize) {
+                const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+                const confirm = await UI.showConfirmDialog(
+                    'Large File Warning',
+                    `This file is quite large (${sizeInMB} MB). Importing it may take a long time or cause the browser to freeze. Do you want to continue?`,
+                    { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
+                );
+                if (!confirm) return;
+            }
 
             try {
                 const text = await file.text();
