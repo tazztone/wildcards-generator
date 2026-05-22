@@ -23,6 +23,38 @@ test.describe('State Management Logic', () => {
         expect(historyLen).toBeGreaterThan(0);
     });
 
+    test('History undo out of bounds is handled safely', async ({ page }) => {
+        await page.evaluate(async () => {
+            window.State._rawData.wildcards = {};
+            window.State._initProxy();
+
+            // Push base state first
+            window.State.saveStateToHistory();
+
+            // Step 1
+            window.State.state.wildcards.UndoTest = { instruction: '', wildcards: ['step1'] };
+            window.State.saveStateToHistory();
+
+            // Step 2
+            window.State.state.wildcards.UndoTest.wildcards[0] = 'step2';
+            window.State.saveStateToHistory();
+        });
+
+        // Call undo multiple times, more than history size
+        await page.evaluate(() => {
+            for (let i = 0; i < 5; i++) {
+                window.State.undo();
+            }
+        });
+
+        const index = await page.evaluate(() => window.State.historyIndex);
+        expect(index).toBe(0);
+
+        // The very first history state we saved had empty wildcards
+        const hasUndoTest = await page.evaluate(() => !!window.State.state.wildcards.UndoTest);
+        expect(hasUndoTest).toBe(false);
+    });
+
     test('Undo/Redo restores state correctly', async ({ page }) => {
         await page.evaluate(async () => {
             window.State._rawData.wildcards = {};
