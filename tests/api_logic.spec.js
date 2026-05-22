@@ -297,7 +297,8 @@ test.describe('API Logic Tests', () => {
             try {
                 const result = await window.Api._makeRequest('Sys', 'User');
                 if (callCount !== 3) throw new Error('Expected 3 calls, got ' + callCount);
-                if (result.result[0] !== 'success') throw new Error('Wrong result');
+                const parsed = window.Api._parseResponse(result.result);
+                if (parsed[0] !== 'success') throw new Error('Wrong result');
             } finally {
                 window.fetch = originalFetch;
                 window.setTimeout = originalTimeout;

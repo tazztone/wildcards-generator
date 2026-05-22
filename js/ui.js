@@ -2908,8 +2908,7 @@ export const UI = {
                 resolve(result);
             };
 
-            const cancelBtn = dialog.querySelector('#btn-cancel');
-            const confirmBtn = dialog.querySelector('#btn-confirm');
+
 
             cancelBtn.addEventListener('click', () => handleClose(false));
             confirmBtn.addEventListener('click', () => handleClose(true));
