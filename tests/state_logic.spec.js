@@ -1,5 +1,33 @@
 const { test, expect } = require('./fixtures');
 
+test.describe('generateNodeId', () => {
+    test('generates unique string IDs of expected format', async ({ page }) => {
+        const ids = await page.evaluate(async () => {
+            const { generateNodeId } = await import('/js/state.js');
+            const result = [];
+            for (let i = 0; i < 1000; i++) {
+                result.push(generateNodeId());
+            }
+            return result;
+        });
+
+        expect(ids.length).toBe(1000);
+
+        // Check uniqueness
+        const uniqueIds = new Set(ids);
+        expect(uniqueIds.size).toBeGreaterThanOrEqual(950);
+
+        // Check format (string and non-empty)
+        for (const id of ids) {
+            expect(typeof id).toBe('string');
+            expect(id.length).toBeGreaterThan(0);
+            expect(id.length).toBeLessThanOrEqual(15);
+            // Verify alphanumeric format
+            expect(/^[a-z0-9-]+$/i.test(id)).toBe(true);
+        }
+    });
+});
+
 test.describe('State Management Logic', () => {
 
     test('Deep proxy triggers updates on nested change', async ({ page }) => {
