@@ -46,6 +46,6 @@ test.describe('ZIP Export Progress', () => {
         await expect(toast).not.toBeVisible();
 
         // Final success toast should appear
-        await expect(page.locator('.toast.success')).toBeVisible();
+        await expect(page.locator('.toast.success:has-text("ZIP exported successfully")')).toBeVisible();
     });
 });
