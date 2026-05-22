@@ -342,4 +342,31 @@ test.describe('API Logic Tests', () => {
             }
         });
     });
+
+    test('should handle Logger.clear failure in clearLogs', async ({ page }) => {
+        await page.evaluate(async () => {
+            const originalLoggerClear = window.Logger.clear;
+            const originalConsoleError = console.error;
+            let errorLogs = [];
+
+            console.error = (...args) => {
+                errorLogs.push(args);
+            };
+
+            window.Logger.clear = () => Promise.reject(new Error('Clear Failed'));
+
+            try {
+                window.Api.clearLogs();
+                // Since clearLogs does not return the promise and is fire-and-forget,
+                // we need to wait briefly for the microtask queue to clear
+                await new Promise(resolve => setTimeout(resolve, 0));
+
+                if (errorLogs.length === 0) throw new Error('console.error was not called');
+                if (!errorLogs[0][0].includes('Failed to clear logs:')) throw new Error('Unexpected error message: ' + errorLogs[0][0]);
+            } finally {
+                window.Logger.clear = originalLoggerClear;
+                console.error = originalConsoleError;
+            }
+        });
+    });
 });
