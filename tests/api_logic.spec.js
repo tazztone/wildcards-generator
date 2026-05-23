@@ -342,4 +342,103 @@ test.describe('API Logic Tests', () => {
             }
         });
     });
+
+    test('should handle Logger.clear failure in clearLogs', async ({ page }) => {
+        await page.evaluate(async () => {
+            const originalLoggerClear = window.Logger.clear;
+            const originalConsoleError = console.error;
+            let errorLogs = [];
+
+            console.error = (...args) => {
+                errorLogs.push(args);
+            };
+
+            window.Logger.clear = () => Promise.reject(new Error('Clear Failed'));
+
+            try {
+                window.Api.clearLogs();
+                // Since clearLogs does not return the promise and is fire-and-forget,
+                // we need to wait briefly for the microtask queue to clear
+                await new Promise(resolve => setTimeout(resolve, 0));
+
+                if (errorLogs.length === 0) throw new Error('console.error was not called');
+                if (!errorLogs[0][0].includes('Failed to clear logs:')) throw new Error('Unexpected error message: ' + errorLogs[0][0]);
+            } finally {
+                window.Logger.clear = originalLoggerClear;
+                console.error = originalConsoleError;
+            }
+        });
+    });
+
+    test('should handle logRequest persistence failure without crashing', async ({ page }) => {
+        await page.evaluate(async () => {
+            const originalLogRequest = window.Logger.logRequest;
+            const originalConsoleError = console.error;
+            let loggedError = null;
+            let loggedMessage = null;
+
+            try {
+                // Mock Logger.logRequest to reject
+                window.Logger.logRequest = async () => {
+                    throw new Error('Simulated database error');
+                };
+
+                // Capture console.error
+                console.error = (msg, err) => {
+                    loggedMessage = msg;
+                    loggedError = err;
+                };
+
+                // This shouldn't throw an unhandled rejection, but we await a tick
+                // to let the catch block fire since it's fire-and-forget.
+                const resultId = window.Api.logRequest('http://test.com', { test: 1 }, { 'Authorization': 'Bearer test' });
+
+                // Allow microtask queue to process the rejected promise
+                await new Promise(resolve => setTimeout(resolve, 10));
+
+                if (!resultId) throw new Error('Api.logRequest did not return an ID');
+                if (loggedMessage !== 'Failed to persist log:') throw new Error('Wrong console.error message: ' + loggedMessage);
+                if (loggedError.message !== 'Simulated database error') throw new Error('Wrong error object passed to console.error: ' + (loggedError && loggedError.message));
+
+            } finally {
+                // Restore mocks
+                window.Logger.logRequest = originalLogRequest;
+                console.error = originalConsoleError;
+            }
+        });
+    });
+
+    test('should log error when logResponse fails', async ({ page }) => {
+        await page.evaluate(async () => {
+            const originalLogResponse = window.Logger.logResponse;
+            const originalConsoleError = console.error;
+            let consoleErrorCalled = false;
+            let consoleErrorMessage = '';
+
+            try {
+                window.Logger.logResponse = async () => {
+                    throw new Error('Database Error');
+                };
+
+                console.error = (msg, err) => {
+                    if (msg === 'Failed to update log:' && err.message === 'Database Error') {
+                        consoleErrorCalled = true;
+                    }
+                    consoleErrorMessage = msg;
+                };
+
+                window.Api.logResponse('test-id', 'test-response');
+
+                // logResponse is fire and forget, so we need a small delay to let the promise rejection handler run
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                if (!consoleErrorCalled) {
+                    throw new Error('console.error was not called correctly. Last message: ' + consoleErrorMessage);
+                }
+            } finally {
+                window.Logger.logResponse = originalLogResponse;
+                console.error = originalConsoleError;
+            }
+        });
+    });
 });
