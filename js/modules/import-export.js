@@ -172,60 +172,85 @@ export const ImportExport = {
      */
     handleImportYAML() {
         // TODO: Add file size validation (warn for large files)
-        // TODO: Support importing multiple YAML files at once
         // TODO: Add schema validation before import
         const input = document.createElement('input');
         input.type = 'file';
+        input.multiple = true;
         input.accept = '.yaml,.yml';
-        input.title = 'Select a YAML file to import wildcards';
+        input.title = 'Select YAML files to import wildcards';
         input.onchange = async (e) => {
-            const file = /** @type {HTMLInputElement} */ (e.target).files[0];
-            if (!file) return;
+            const files = /** @type {HTMLInputElement} */ (e.target).files;
+            if (!files || files.length === 0) return;
+
+            let combinedProcessedData = {};
+            let combinedSimpleParsed = {};
+            let validFilesCount = 0;
 
             try {
-                const text = await file.text();
                 // @ts-ignore
                 const YAML = (await import('https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js')).default;
 
-                // Use parseDocument to preserve comments (for # instruction: format)
-                const doc = YAML.parseDocument(text);
-                if (doc.errors && doc.errors.length > 0) {
-                    console.error('YAML Parse Errors:', doc.errors);
-                    throw new Error('YAML parsing failed');
-                }
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    try {
+                        const text = await file.text();
 
-                // Process with State.processYamlNode to extract comment-based instructions
-                let processedData = State.processYamlNode(doc.contents);
+                        // Use parseDocument to preserve comments (for # instruction: format)
+                        const doc = YAML.parseDocument(text);
+                        if (doc.errors && doc.errors.length > 0) {
+                            console.error(`YAML Parse Errors in ${file.name}:`, doc.errors);
+                            throw new Error('YAML parsing failed');
+                        }
 
-                // Also try simple parse for pre-processed YAML (exported format)
-                const simpleParsed = YAML.parse(text);
+                        // Process with State.processYamlNode to extract comment-based instructions
+                        let processedData = State.processYamlNode(doc.contents);
 
-                // If simple parse has wildcards property with instructions, use that instead
-                if (simpleParsed && simpleParsed.wildcards && typeof simpleParsed.wildcards === 'object') {
-                    // Check if it looks like already-processed format (has instruction properties)
-                    const firstKey = Object.keys(simpleParsed.wildcards)[0];
-                    if (firstKey && simpleParsed.wildcards[firstKey] &&
-                        (simpleParsed.wildcards[firstKey].instruction !== undefined ||
-                            simpleParsed.wildcards[firstKey].wildcards !== undefined)) {
-                        processedData = simpleParsed.wildcards;
+                        // Also try simple parse for pre-processed YAML (exported format)
+                        const simpleParsed = YAML.parse(text);
+
+                        // If simple parse has wildcards property with instructions, use that instead
+                        if (simpleParsed && simpleParsed.wildcards && typeof simpleParsed.wildcards === 'object') {
+                            // Check if it looks like already-processed format (has instruction properties)
+                            const firstKey = Object.keys(simpleParsed.wildcards)[0];
+                            if (firstKey && simpleParsed.wildcards[firstKey] &&
+                                (simpleParsed.wildcards[firstKey].instruction !== undefined ||
+                                    simpleParsed.wildcards[firstKey].wildcards !== undefined)) {
+                                processedData = simpleParsed.wildcards;
+                            }
+                        }
+
+                        if (!processedData || typeof processedData !== 'object') {
+                            throw new Error('Invalid YAML structure');
+                        }
+
+                        this._deepMerge(combinedProcessedData, processedData);
+                        if (simpleParsed && simpleParsed.systemPrompt) combinedSimpleParsed.systemPrompt = simpleParsed.systemPrompt;
+                        if (simpleParsed && simpleParsed.suggestItemPrompt) combinedSimpleParsed.suggestItemPrompt = simpleParsed.suggestItemPrompt;
+
+                        validFilesCount++;
+                    } catch (err) {
+                        console.error(`Import YAML failed for ${file.name}:`, err);
+                        UI.showToast(`Import failed for ${file.name}: ${err.message}`, 'error');
                     }
                 }
 
-                if (!processedData || typeof processedData !== 'object') {
-                    throw new Error('Invalid YAML structure');
+                if (validFilesCount === 0) {
+                    return; // No valid files to import
                 }
+
+                const displayFilename = files.length === 1 ? files[0].name : `${validFilesCount} files`;
 
                 // Check if merging is needed
                 const hasExisting = Object.keys(State.state.wildcards).length > 0;
                 if (hasExisting) {
                     // Show Replace/Merge/Cancel dialog
-                    UI.showNotification('How would you like to import this file?', false, null, false, [
+                    UI.showNotification(`How would you like to import ${displayFilename}?`, false, null, false, [
                         {
                             text: 'Replace All',
                             class: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded',
                             onClick: () => {
                                 UI.elements.dialog.close();
-                                this._applyProcessedData(processedData, simpleParsed, file.name, 'replaced');
+                                this._applyProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename, 'replaced');
                             }
                         },
                         {
@@ -233,7 +258,7 @@ export const ImportExport = {
                             class: 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
                             onClick: () => {
                                 UI.elements.dialog.close();
-                                this._mergeProcessedData(processedData, simpleParsed, file.name);
+                                this._mergeProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename);
                             }
                         },
                         {
@@ -243,14 +268,34 @@ export const ImportExport = {
                         }
                     ]);
                 } else {
-                    this._applyProcessedData(processedData, simpleParsed, file.name, 'imported');
+                    this._applyProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename, 'imported');
                 }
             } catch (err) {
-                console.error('Import YAML failed:', err);
-                UI.showToast(`Import failed: ${err.message}`, 'error');
+                console.error('Import process failed:', err);
+                UI.showToast(`Import process failed: ${err.message}`, 'error');
             }
         };
         input.click();
+    },
+
+    /**
+     * Deep merges source object into target object.
+     * @param {object} target - Target object
+     * @param {object} source - Source object
+     */
+    _deepMerge(target, source) {
+        for (const key of Object.keys(source)) {
+            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                if (!target[key]) target[key] = {};
+                this._deepMerge(target[key], source[key]);
+            } else if (Array.isArray(source[key]) && Array.isArray(target[key])) {
+                // Merge arrays (wildcards), avoiding duplicates
+                const combined = [...new Set([...target[key], ...source[key]])];
+                target[key] = combined;
+            } else {
+                target[key] = source[key];
+            }
+        }
     },
 
     /**
@@ -262,23 +307,7 @@ export const ImportExport = {
     _mergeProcessedData(processedData, simpleParsed, filename) {
         State.saveStateToHistory();
 
-        // Deep merge function
-        const deepMerge = (target, source) => {
-            for (const key of Object.keys(source)) {
-                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-                    if (!target[key]) target[key] = {};
-                    deepMerge(target[key], source[key]);
-                } else if (Array.isArray(source[key]) && Array.isArray(target[key])) {
-                    // Merge arrays (wildcards), avoiding duplicates
-                    const combined = [...new Set([...target[key], ...source[key]])];
-                    target[key] = combined;
-                } else {
-                    target[key] = source[key];
-                }
-            }
-        };
-
-        deepMerge(State.state.wildcards, processedData);
+        this._deepMerge(State.state.wildcards, processedData);
         if (simpleParsed && simpleParsed.systemPrompt) State.state.systemPrompt = simpleParsed.systemPrompt;
         if (simpleParsed && simpleParsed.suggestItemPrompt) State.state.suggestItemPrompt = simpleParsed.suggestItemPrompt;
 
