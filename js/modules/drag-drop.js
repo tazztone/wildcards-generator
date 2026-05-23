@@ -236,12 +236,13 @@ export const DragDrop = {
     /**
      * Binds drag-and-drop event listeners to a container element.
      * @param {HTMLElement} container 
+     * @param {AddEventListenerOptions} [options]
      */
-    bindEvents(container) {
-        container.addEventListener('dragstart', (e) => this.handleDragStart(e));
-        container.addEventListener('dragover', (e) => this.handleDragOver(e));
-        container.addEventListener('dragleave', (e) => this.handleDragLeave(e));
-        container.addEventListener('drop', (e) => this.handleDrop(e));
-        container.addEventListener('dragend', (e) => this.handleDragEnd(e));
+    bindEvents(container, options) {
+        container.addEventListener('dragstart', (e) => this.handleDragStart(e), options);
+        container.addEventListener('dragover', (e) => this.handleDragOver(e), options);
+        container.addEventListener('dragleave', (e) => this.handleDragLeave(e), options);
+        container.addEventListener('drop', (e) => this.handleDrop(e), options);
+        container.addEventListener('dragend', (e) => this.handleDragEnd(e), options);
     }
 };

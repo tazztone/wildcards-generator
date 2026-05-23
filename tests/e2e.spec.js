@@ -104,7 +104,7 @@ test.describe('Wildcard Generator E2E Tests', () => {
             await page.waitForTimeout(300);
 
             // Check toast appeared
-            await expect(page.locator('.toast')).toBeVisible();
+            await expect(page.locator('.toast').first()).toBeVisible();
         });
 
         test('adding new top-level category shows dialog', async ({ page }) => {
