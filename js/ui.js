@@ -438,8 +438,8 @@ export const UI = {
     },
 
     renderAll() {
+        const startTime = performance.now();
         // TODO: Implement incremental rendering with requestIdleCallback for large datasets
-        // TODO: Add render performance metrics for debugging slow renders
         // TODO: Consider using DocumentFragment pooling for memory efficiency
         const wildcards = State.state.wildcards;
 
@@ -502,6 +502,9 @@ export const UI = {
         this.elements.container.appendChild(fragment);
 
         this.updateStats();
+
+        const endTime = performance.now();
+        console.debug(`[UI] renderAll completed in ${(endTime - startTime).toFixed(2)}ms`);
     },
 
     setupLogListeners() {
