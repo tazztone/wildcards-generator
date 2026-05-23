@@ -193,6 +193,18 @@ export const ImportExport = {
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     try {
+                        // Warn user if the file size exceeds 1MB limit
+                        const maxSize = 1024 * 1024; // 1MB
+                        if (file.size > maxSize) {
+                            const sizeInMB = (file.size / maxSize).toFixed(2);
+                            const confirm = await UI.showConfirmDialog(
+                                'Large File Warning',
+                                `The file "${file.name}" is quite large (${sizeInMB} MB). Importing it may take a long time or cause the browser to freeze. Do you want to continue?`,
+                                { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
+                            );
+                            if (!confirm) continue;
+                        }
+
                         const text = await file.text();
 
                         // Use parseDocument to preserve comments (for # instruction: format)
