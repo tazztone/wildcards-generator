@@ -9,6 +9,8 @@ import { Settings } from './modules/settings.js';
 import { Mindmap } from './modules/mindmap.js';
 import { TemplateEngine } from './template-engine.js';
 
+const INVALID_NAME_CHARS = /[:{}\[\]#,*!|>'\"%@\`\\?\/]/;
+
 // TODO: Consider implementing a loading/splash screen for initial app load
 // TODO: Add keyboard navigation focus management for accessibility (WCAG 2.1)
 // TODO: Implement offline detection and graceful degradation for API calls
@@ -1236,6 +1238,12 @@ export const App = {
                 const oldKey = path.split('/').pop();
                 const newKey = val.replace(/\s+/g, '_');
                 if (oldKey !== newKey && newKey) {
+                    if (INVALID_NAME_CHARS.test(newKey)) {
+                        UI.showToast('Invalid characters in name', 'error');
+                        e.target.textContent = oldKey.replace(/_/g, ' ');
+                        return;
+                    }
+
                     const parent = State.getParentObjectByPath(path);
                     if (parent[newKey]) {
                         UI.showToast('Name already exists', 'error');
@@ -1578,6 +1586,12 @@ export const App = {
             const names = inputName.split(',').map(n => n.trim()).filter(n => n);
             if (names.length === 0) return;
 
+            const invalidNames = names.filter(n => INVALID_NAME_CHARS.test(n));
+            if (invalidNames.length > 0) {
+                UI.showToast(`Invalid characters in name: ${invalidNames[0]}`, 'error');
+                return;
+            }
+
             let createdCount = 0;
             let historySaved = false;
             const createdNames = [];
@@ -1608,12 +1622,17 @@ export const App = {
     },
 
     createItem(parentPath, type) {
-        // TODO: Add input validation for special characters that might break YAML export
         UI.showNotification(`Enter name for new ${type} (comma-separated for multiple):`, true, (inputName) => {
             if (!inputName) return;
 
             const names = inputName.split(',').map(n => n.trim()).filter(n => n);
             if (names.length === 0) return;
+
+            const invalidNames = names.filter(n => INVALID_NAME_CHARS.test(n));
+            if (invalidNames.length > 0) {
+                UI.showToast(`Invalid characters in name: ${invalidNames[0]}`, 'error');
+                return;
+            }
 
             const parent = State.getObjectByPath(parentPath);
             let createdCount = 0;
