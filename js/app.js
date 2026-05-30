@@ -1575,6 +1575,11 @@ export const App = {
         UI.showNotification('Enter new top-level category name (comma-separated for multiple):', true, (inputName) => {
             if (!inputName) return;
 
+            if (!/^[a-zA-Z0-9\s\-_,]+$/.test(inputName)) {
+                UI.showToast('Name contains invalid characters. Use only letters, numbers, spaces, hyphens, and underscores.', 'error');
+                return;
+            }
+
             const names = inputName.split(',').map(n => n.trim()).filter(n => n);
             if (names.length === 0) return;
 
@@ -1608,9 +1613,13 @@ export const App = {
     },
 
     createItem(parentPath, type) {
-        // TODO: Add input validation for special characters that might break YAML export
         UI.showNotification(`Enter name for new ${type} (comma-separated for multiple):`, true, (inputName) => {
             if (!inputName) return;
+
+            if (!/^[a-zA-Z0-9\s\-_,]+$/.test(inputName)) {
+                UI.showToast('Name contains invalid characters. Use only letters, numbers, spaces, hyphens, and underscores.', 'error');
+                return;
+            }
 
             const names = inputName.split(',').map(n => n.trim()).filter(n => n);
             if (names.length === 0) return;
