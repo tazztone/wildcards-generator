@@ -712,7 +712,7 @@ export const UI = {
                                 <pre class="text-[10px] font-mono bg-black/40 p-2 rounded max-h-80 overflow-auto custom-scrollbar ${log.status === 'error' ? 'text-red-300' : 'text-green-300'} whitespace-pre-wrap">${typeof log.response === 'string' ? log.response : JSON.stringify(log.response, null, 2)}</pre>
                             </div>
                         </details>
-                        ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${log.error}</div>` : ''}
+                        ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${sanitize(log.error)}</div>` : ''}
                     </div>
                 </div>
             `).join('');
