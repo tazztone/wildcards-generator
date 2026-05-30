@@ -972,14 +972,34 @@ export const App = {
 
             // Range selection logic (SHIFT+Click)
             if (e.shiftKey && this.lastCheckedBatch && this.lastCheckedBatch !== target) {
-                const allCheckboxes = Array.from(document.querySelectorAll('.category-batch-checkbox:not(.hidden), .card-batch-checkbox:not(.hidden)'));
-                const startIdx = allCheckboxes.indexOf(this.lastCheckedBatch);
-                const endIdx = allCheckboxes.indexOf(target);
+                let first = this.lastCheckedBatch;
+                let last = target;
+                if (this.lastCheckedBatch.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_PRECEDING) {
+                    first = target;
+                    last = this.lastCheckedBatch;
+                }
 
-                if (startIdx !== -1 && endIdx !== -1) {
-                    const [min, max] = [Math.min(startIdx, endIdx), Math.max(startIdx, endIdx)];
-                    for (let i = min; i <= max; i++) {
-                        /** @type {HTMLInputElement} */(allCheckboxes[i]).checked = isChecked;
+                // Optimization: avoid slow querySelectorAll by utilizing getElementsByTagName
+                // bounded to the closest common ancestor (mindmap-container or document.body fallback).
+                // Iterating a live HTMLCollection of inputs is extremely fast.
+                let root = first.parentElement;
+                while (root && !root.contains(last)) {
+                    root = root.parentElement;
+                }
+                if (!root) root = document.body;
+
+                const inputs = root.getElementsByTagName('input');
+                let inRange = false;
+                const len = inputs.length;
+                for (let i = 0; i < len; i++) {
+                    const cb = inputs[i];
+                    if (cb === first) inRange = true;
+
+                    if (inRange) {
+                        if ((cb.classList.contains('category-batch-checkbox') || cb.classList.contains('card-batch-checkbox')) && !cb.classList.contains('hidden')) {
+                            /** @type {HTMLInputElement} */(cb).checked = isChecked;
+                        }
+                        if (cb === last) break;
                     }
                 }
             }
