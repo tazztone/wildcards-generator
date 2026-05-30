@@ -230,7 +230,12 @@ export function updateConfigValue(key, value) {
 
     if (Config.hasOwnProperty(key)) {
         if (typeof Config[key] === 'number') {
-            Config[key] = Number(value);
+            const parsed = Number(value);
+            if (!isNaN(parsed)) {
+                Config[key] = parsed;
+            } else {
+                return; // Do not update or save if invalid number
+            }
         } else {
             Config[key] = value;
         }
