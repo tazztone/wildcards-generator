@@ -2,6 +2,7 @@
 import { Config } from './config.js';
 import { Logger } from './logger.js';
 import { validate } from './schema-validator.js';
+import { ROLE_DESCRIPTIONS } from './state.js';
 
 // TODO: Add request caching layer for identical prompts to reduce API costs
 // TODO: Implement exponential backoff retry logic for transient failures
@@ -441,15 +442,13 @@ export const Api = {
         const batchSize = 20; // Process in batches to avoid token limits
 
         // System prompt for category classification
+        const roleDefinitions = Object.entries(ROLE_DESCRIPTIONS)
+            .map(([role, desc]) => `- ${role}: ${desc}`)
+            .join('\n');
+
         const systemPrompt = `You are a semantic classifier for image generation prompt categories.
 Classify each category path into ONE of these roles:
-- Subject: People, characters, creatures, beings (living things)
-- Location: Places, environments, scenes, backgrounds
-- Style: Art styles, techniques, aesthetics, artists
-- Modifier: Colors, moods, lighting, weather, time periods
-- Wearable: Clothing, outfits, accessories, armor
-- Object: Items, props, vehicles, food
-- Action: Poses, expressions, activities
+${roleDefinitions}
 
 Return a JSON array with your classifications. Be concise.`;
 
