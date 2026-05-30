@@ -268,6 +268,15 @@ test.describe('Schema Validator', () => {
         expect(result.errors).toEqual([]);
     });
 
+    test('should fail validation if data is not an array for an ARRAY schema without items defined', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const { validate } = await import('/js/schema-validator.js');
+            return validate('not an array', { type: 'ARRAY' });
+        });
+        expect(result.isValid).toBe(false);
+        expect(result.errors).toContain('root: Expected an array, but got string.');
+    });
+
     test('should validate a STRING at the root level', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const { validate } = await import('/js/schema-validator.js');
