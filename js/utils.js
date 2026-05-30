@@ -5,7 +5,9 @@
 export const sanitize = (input) => {
     const temp = document.createElement('div');
     temp.textContent = input;
-    return temp.innerHTML;
+    return temp.innerHTML
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 };
 
 export const throttle = (func, wait) => {
