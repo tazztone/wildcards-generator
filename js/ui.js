@@ -1124,7 +1124,6 @@ export const UI = {
                 // Trigger state save without notification
                 if (typeof State !== 'undefined' && State.state) {
                     State.save(true); // silently save
-                    console.log('[UI] Auto-save triggered');
                 }
             }, intervalMs);
         }
@@ -1336,8 +1335,6 @@ export const UI = {
      * @param {Array<{path: string[], type: string, value: any}>} changes
      */
     handleStatePatch(changes) {
-        console.log('[UI] State patch received:', changes.length, 'changes');
-
         // Track paths that need stats update
         let needsStatsUpdate = false;
 
