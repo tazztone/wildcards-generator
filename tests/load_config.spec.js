@@ -84,21 +84,31 @@ test.describe('loadConfig functionality', () => {
             // Mock console.error
             let consoleErrorCalled = false;
             let consoleErrorMessage = '';
+            let consoleWarnCalled = false;
+            let consoleWarnMessage = '';
             const originalConsoleError = console.error;
+            const originalConsoleWarn = console.warn;
             console.error = (...args) => {
                 consoleErrorCalled = true;
                 consoleErrorMessage = args.join(' ');
+            };
+            console.warn = (...args) => {
+                consoleWarnCalled = true;
+                consoleWarnMessage = args.join(' ');
             };
 
             await window.loadConfig();
 
             // Restore mock
             console.error = originalConsoleError;
+            console.warn = originalConsoleWarn;
 
             return {
                 config: window.Config,
                 consoleErrorCalled,
-                consoleErrorMessage
+                consoleErrorMessage,
+                consoleWarnCalled,
+                consoleWarnMessage
             };
         });
 
@@ -106,7 +116,42 @@ test.describe('loadConfig functionality', () => {
         // It won't have userDefaults like PREFERRED_VIEW unless it was already there,
         // but it should definitely have the constants.
         expect(result.config.CONFIG_STORAGE_KEY).toBe('wildcardGeneratorConfig_v1');
-        expect(result.consoleErrorCalled).toBe(true);
-        expect(result.consoleErrorMessage).toContain('Failed to load configuration:');
+        expect(result.consoleWarnCalled).toBe(true);
+        expect(result.consoleWarnMessage).toContain('Failed to parse saved config, falling back to defaults:');
     });
 });
+
+
+    test('validates saved config against schema and falls back if corrupted', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            // Setup invalid config type (number instead of string for API_ENDPOINT)
+            const savedConfig = {
+                API_ENDPOINT: 12345
+            };
+            localStorage.setItem('wildcardGeneratorConfig_v1', JSON.stringify(savedConfig));
+
+            // Mock console.warn
+            let consoleWarnCalled = false;
+            let consoleWarnMessage = '';
+            const originalConsoleWarn = console.warn;
+            console.warn = (...args) => {
+                consoleWarnCalled = true;
+                consoleWarnMessage = args.join(' ');
+            };
+
+            await window.loadConfig();
+
+            // Restore mock
+            console.warn = originalConsoleWarn;
+
+            return {
+                config: window.Config,
+                consoleWarnCalled,
+                consoleWarnMessage
+            };
+        });
+
+        expect(result.consoleWarnCalled).toBe(true);
+        expect(result.consoleWarnMessage).toContain('Config validation failed, falling back to defaults:');
+        expect(result.config.API_ENDPOINT).toBe('openrouter'); // the default value
+    });
