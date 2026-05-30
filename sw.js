@@ -1,10 +1,9 @@
 // Service Worker for AI-Powered Wildcard Generator
 
-// TODO: Implement versioned caching strategy with automatic cache invalidation
-
-// TODO: Add cache size monitoring and cleanup for storage management
-
-const CACHE_NAME = 'wildcards-v1';
+const CACHE_VERSION = 'v1';
+const CACHE_NAME = `wildcards-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE_NAME = `wildcards-dynamic-${CACHE_VERSION}`;
+const MAX_DYNAMIC_ITEMS = 50;
 const STATIC_ASSETS = [
     './',
     './index.html',
@@ -17,6 +16,38 @@ const STATIC_ASSETS = [
     'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
     'https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js'
 ];
+
+
+// Cache Size Monitoring & Cleanup
+const trimCache = async (cacheName, maxItems) => {
+    try {
+        const cache = await caches.open(cacheName);
+        const keys = await cache.keys();
+        if (keys.length > maxItems) {
+            await cache.delete(keys[0]);
+            await trimCache(cacheName, maxItems); // Recursive call to remove all excess
+        }
+    } catch (e) {
+        console.error('Cache trimming failed', e);
+    }
+};
+
+const manageStorage = async () => {
+    if (navigator.storage && navigator.storage.estimate) {
+        try {
+            const estimate = await navigator.storage.estimate();
+            const usagePercent = (estimate.usage / estimate.quota) * 100;
+
+            // If we're using more than 80% of our quota, aggressively clear dynamic cache
+            if (usagePercent > 80) {
+                console.warn(`Storage usage at ${usagePercent.toFixed(2)}%. Clearing dynamic cache.`);
+                await caches.delete(DYNAMIC_CACHE_NAME);
+            }
+        } catch (e) {
+            console.error('Storage estimation failed', e);
+        }
+    }
+};
 
 // Install: cache static assets
 self.addEventListener('install', event => {
@@ -31,7 +62,13 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
-            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+            Promise.all(
+                keys.map(key => {
+                    if (key !== CACHE_NAME && key !== DYNAMIC_CACHE_NAME) {
+                        return caches.delete(key);
+                    }
+                })
+            )
         ).then(() => self.clients.claim())
     );
 });
@@ -61,7 +98,14 @@ self.addEventListener('fetch', event => {
                     // Cache successful responses
                     if (response.ok) {
                         const clone = response.clone();
-                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                        caches.open(DYNAMIC_CACHE_NAME).then(cache => {
+                            cache.put(event.request, clone);
+                            // Schedule background cleanup
+                            setTimeout(() => {
+                                trimCache(DYNAMIC_CACHE_NAME, MAX_DYNAMIC_ITEMS);
+                                manageStorage();
+                            }, 0);
+                        });
                     }
                     return response;
                 })
