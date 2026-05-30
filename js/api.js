@@ -471,7 +471,7 @@ Return a JSON array with your classifications. Be concise.`;
 
         // Pre-calculate lowercased versions for faster role validation inside the loop
         const validRoles = ['Subject', 'Location', 'Style', 'Modifier', 'Wearable', 'Object', 'Action'];
-        const validRolesLower = validRoles.map(r => ({ original: r, lower: r.toLowerCase() }));
+        const validRolesMap = new Map(validRoles.map(r => [r.toLowerCase(), r]));
 
         // Process in batches
         for (let i = 0; i < unknownCategories.length; i += batchSize) {
@@ -494,11 +494,11 @@ Return a JSON array with your classifications. Be concise.`;
                         if (item.nodeId && item.role) {
                             // Validate role is one of the allowed values
                             const itemRoleLower = item.role.toLowerCase();
-                            const found = validRolesLower.find(v => v.lower === itemRoleLower);
+                            const foundOriginal = validRolesMap.get(itemRoleLower);
 
-                            if (found) {
+                            if (foundOriginal) {
                                 results[item.nodeId] = {
-                                    role: found.original,
+                                    role: foundOriginal,
                                     type: item.type || 'General',
                                     confidence: 0.75 // LLM confidence
                                 };
