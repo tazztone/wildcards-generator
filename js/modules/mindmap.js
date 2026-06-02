@@ -1042,9 +1042,13 @@ const Mindmap = {
 
         // Clear previous highlights across all containers
         containers.forEach(container => {
-            container.querySelectorAll('.mindmap-search-highlight').forEach(el => {
-                el.classList.remove('mindmap-search-highlight');
-            });
+            // Optimized extraction avoiding querySelector in loop
+            // getElementsByClassName is significantly faster than querySelectorAll
+            const highlights = container.getElementsByClassName('mindmap-search-highlight');
+            // Live HTMLCollection, iterate backwards or safely remove
+            while (highlights.length > 0) {
+                highlights[0].classList.remove('mindmap-search-highlight');
+            }
         });
 
         if (!query || !query.trim()) return [];
@@ -1057,13 +1061,15 @@ const Mindmap = {
         const topicSelector = '.mind-elixir-topic, .me-topic, [class*="topic"], me-tpc';
 
         containers.forEach(container => {
-            container.querySelectorAll(topicSelector).forEach(topic => {
+            const topics = container.querySelectorAll(topicSelector);
+            for (let i = 0; i < topics.length; i++) {
+                const topic = topics[i];
                 const text = topic.textContent?.toLowerCase() || '';
                 if (text.includes(normalizedQuery)) {
                     topic.classList.add('mindmap-search-highlight');
                     matchedNodes.push(topic);
                 }
-            });
+            }
         });
 
         // Auto-scroll/center to first match if in mindmap view

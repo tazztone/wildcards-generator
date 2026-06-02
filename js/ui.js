@@ -438,8 +438,8 @@ export const UI = {
     },
 
     renderAll() {
+        const startTime = performance.now();
         // TODO: Implement incremental rendering with requestIdleCallback for large datasets
-        // TODO: Add render performance metrics for debugging slow renders
         // TODO: Consider using DocumentFragment pooling for memory efficiency
         const wildcards = State.state.wildcards;
 
@@ -502,6 +502,9 @@ export const UI = {
         this.elements.container.appendChild(fragment);
 
         this.updateStats();
+
+        const endTime = performance.now();
+        console.debug(`[UI] renderAll completed in ${(endTime - startTime).toFixed(2)}ms`);
     },
 
     setupLogListeners() {
@@ -667,7 +670,7 @@ export const UI = {
                                 ${log.status.toUpperCase()}
                             </span>
                             <span class="text-[10px] text-gray-500 font-mono">${log.timestamp}</span>
-                            <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${log.url}">${log.url.length > 50 ? '...' + log.url.slice(-47) : log.url}</span>
+                            <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${sanitize(log.url)}">${sanitize(log.url.length > 50 ? '...' + log.url.slice(-47) : log.url)}</span>
                         </div>
                         <div class="flex items-center gap-2">
                              <button class="text-[10px] bg-gray-700 hover:bg-gray-600 px-2 py-0.5 rounded transition-colors"
@@ -709,7 +712,7 @@ export const UI = {
                                 <pre class="text-[10px] font-mono bg-black/40 p-2 rounded max-h-80 overflow-auto custom-scrollbar ${log.status === 'error' ? 'text-red-300' : 'text-green-300'} whitespace-pre-wrap">${typeof log.response === 'string' ? log.response : JSON.stringify(log.response, null, 2)}</pre>
                             </div>
                         </details>
-                        ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${log.error}</div>` : ''}
+                        ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${sanitize(log.error)}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -1121,7 +1124,6 @@ export const UI = {
                 // Trigger state save without notification
                 if (typeof State !== 'undefined' && State.state) {
                     State.save(true); // silently save
-                    console.log('[UI] Auto-save triggered');
                 }
             }, intervalMs);
         }
@@ -1333,8 +1335,6 @@ export const UI = {
      * @param {Array<{path: string[], type: string, value: any}>} changes
      */
     handleStatePatch(changes) {
-        console.log('[UI] State patch received:', changes.length, 'changes');
-
         // Track paths that need stats update
         let needsStatsUpdate = false;
 

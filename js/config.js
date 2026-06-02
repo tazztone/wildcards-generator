@@ -1,7 +1,7 @@
 import { UI } from './ui.js';
 import { encrypt, decrypt } from './crypto.js';
+import { validate } from './schema-validator.js';
 
-// TODO: Add config schema validation on load to catch corrupted data
 // TODO: Implement config versioning with automatic migration on version bumps
 // TODO: Add config diff/export for debugging user issues
 
@@ -19,6 +19,54 @@ const CONFIG_CONSTANTS = {
     SHOW_GUIDANCE_STEP: true,
     ENABLE_PROMPT_CACHING: true,
     CACHE_TTL: '1h'
+};
+
+
+const configSchema = {
+    type: 'OBJECT',
+    properties: {
+        API_URL_CUSTOM: { type: 'STRING' },
+        MODEL_NAME_GEMINI: { type: 'STRING' },
+        MODEL_NAME_OPENROUTER: { type: 'STRING' },
+        MODEL_NAME_GROQ: { type: 'STRING' },
+        MODEL_NAME_CUSTOM: { type: 'STRING' },
+        API_ENDPOINT: { type: 'STRING' },
+        CUSTOM_SYSTEM_PROMPT: { type: 'STRING' },
+        CUSTOM_SUGGEST_PROMPT: { type: 'STRING' },
+        CUSTOM_TEMPLATE_PROMPT: { type: 'STRING' },
+        PREFERRED_VIEW: { type: 'STRING' },
+        MODEL_TEMPERATURE: { type: 'NUMBER' },
+        MODEL_MAX_TOKENS: { type: 'NUMBER' },
+        MODEL_TOP_P: { type: 'NUMBER' },
+        MODEL_TOP_K: { type: 'NUMBER' },
+        MODEL_FREQUENCY_PENALTY: { type: 'NUMBER' },
+        MODEL_PRESENCE_PENALTY: { type: 'NUMBER' },
+        MODEL_REPETITION_PENALTY: { type: 'NUMBER' },
+        MODEL_MIN_P: { type: 'NUMBER' },
+        MODEL_TOP_A: { type: 'NUMBER' },
+        MODEL_SEED: { type: 'NUMBER' },
+        MODEL_REASONING_EFFORT: { type: 'STRING' },
+        MODEL_REASONING_MAX_TOKENS: { type: 'NUMBER' },
+        MINDMAP_FONT_SIZE_CATEGORY: { type: 'NUMBER' },
+        MINDMAP_FONT_SIZE_LIST: { type: 'NUMBER' },
+        MINDMAP_FONT_SIZE_WILDCARD: { type: 'NUMBER' },
+        DEFAULT_WILDCARDS_VISIBLE: { type: 'BOOLEAN' },
+        ENABLE_ANIMATIONS: { type: 'BOOLEAN' },
+        COMPACT_CARD_MODE: { type: 'BOOLEAN' },
+        AUTO_SAVE_INTERVAL: { type: 'NUMBER' },
+        CARD_HEIGHT: { type: 'NUMBER' },
+        STORAGE_PROFILE: { type: 'STRING' },
+        USE_HYBRID_ENGINE: { type: 'BOOLEAN' },
+        TEMPLATE_MODE: { type: 'STRING' },
+        SHOW_GUIDANCE_STEP: { type: 'BOOLEAN' },
+        LOG_MAX_ENTRIES: { type: 'NUMBER' },
+        LOG_AUTO_DELETE_DAYS: { type: 'NUMBER' },
+        ENABLE_PROMPT_CACHING: { type: 'BOOLEAN' },
+        CACHE_TTL: { type: 'STRING' },
+        MINDMAP_CATEGORY_FONT_SIZE: { type: 'NUMBER' },
+        MINDMAP_NODE_FONT_SIZE: { type: 'NUMBER' },
+        UNKNOWN_KEY: { type: 'STRING' }
+    }
 };
 
 export const Config = {};
@@ -77,7 +125,27 @@ export async function loadConfig() {
             LOG_AUTO_DELETE_DAYS: 0 // 0 = disabled, delete logs older than X days
         };
 
-        Object.assign(Config, defaultConfig, userDefaults, savedConfig ? JSON.parse(savedConfig) : {});
+
+        let parsedConfig = {};
+        if (savedConfig) {
+            try {
+                parsedConfig = JSON.parse(savedConfig);
+                const { isValid, errors } = validate(parsedConfig, configSchema);
+                if (!isValid) {
+                    console.warn("Config validation failed, falling back to defaults:", errors);
+                    if (UI && UI.showNotification) {
+                        UI.showNotification("Corrupted configuration detected. Falling back to defaults.", "warning");
+                    }
+                    parsedConfig = {}; // Reset to defaults
+                }
+            } catch (e) {
+                console.warn("Failed to parse saved config, falling back to defaults:", e);
+                parsedConfig = {};
+            }
+        }
+
+        Object.assign(Config, defaultConfig, userDefaults, parsedConfig);
+
 
         // Migration: Port old keys to new keys if they exist in Config (merged from saved) but new keys are default
         // Old: MINDMAP_CATEGORY_FONT_SIZE -> New: MINDMAP_FONT_SIZE_CATEGORY
@@ -230,7 +298,12 @@ export function updateConfigValue(key, value) {
 
     if (Config.hasOwnProperty(key)) {
         if (typeof Config[key] === 'number') {
-            Config[key] = Number(value);
+            const parsed = Number(value);
+            if (!isNaN(parsed)) {
+                Config[key] = parsed;
+            } else {
+                return; // Do not update or save if invalid number
+            }
         } else {
             Config[key] = value;
         }
@@ -239,7 +312,7 @@ export function updateConfigValue(key, value) {
 }
 
 // Helper function to convert ArrayBuffer to Base64
-function arrayBufferToBase64(buffer) {
+export function arrayBufferToBase64(buffer) {
     let binary = '';
     const bytes = new Uint8Array(buffer);
     const len = bytes.byteLength;

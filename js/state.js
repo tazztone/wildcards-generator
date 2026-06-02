@@ -62,10 +62,19 @@ const HEURISTIC_RULES = [
     { pattern: /expression|face|facial/i, role: 'Action', type: 'Expression' }
 ];
 
-/** Valid role names for validation */
+/** Role descriptions and examples for LLM classification accuracy */
+const ROLE_DESCRIPTIONS = {
+    Subject: 'People, characters, creatures, beings (living things)',
+    Location: 'Places, environments, scenes, backgrounds',
+    Style: 'Art styles, techniques, aesthetics, artists',
+    Modifier: 'Colors, moods, lighting, weather, time periods',
+    Wearable: 'Clothing, outfits, accessories, armor',
+    Object: 'Items, props, vehicles, food',
+    Action: 'Poses, expressions, activities'
+};
 
-// TODO: Add role descriptions and examples for better LLM classification accuracy
-const VALID_ROLES = new Set(['Subject', 'Location', 'Style', 'Modifier', 'Wearable', 'Object', 'Action']);
+/** Valid role names for validation */
+const VALID_ROLES = new Set(Object.keys(ROLE_DESCRIPTIONS));
 
 
 // Helper to create a deep proxy that knows its path
@@ -643,7 +652,7 @@ const State = {
 
                 if (parent && parent.wildcards && Array.isArray(parent.wildcards)) {
                     // Find index by value
-                    const idx = parent.wildcards.findIndex(w => w.toLowerCase().trim() === dupe.normalized);
+                    const idx = parent.wildcards.indexOf(loc.original);
                     if (idx !== -1) {
                         parent.wildcards.splice(idx, 1);
                         removedCount++;
@@ -1001,4 +1010,4 @@ const State = {
     }
 };
 
-export { State };
+export { State, deepDiff, generateNodeId, ROLE_DESCRIPTIONS };

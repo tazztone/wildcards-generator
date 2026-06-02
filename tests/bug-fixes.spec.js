@@ -27,7 +27,7 @@ test.describe('Bug Fix Tests', () => {
             await dialog.locator('#confirm-btn').click();
 
             // Verify toast shows success
-            await expect(page.locator('.toast')).toContainText('Created', { timeout: 5000 });
+            await expect(page.locator('.toast.success', { hasText: 'Created' })).toBeVisible({ timeout: 5000 });
         });
 
         test('should add new subcategory via + button', async ({ page }) => {
@@ -54,7 +54,7 @@ test.describe('Bug Fix Tests', () => {
                 await dialog.locator('#confirm-btn').click();
 
                 // Verify toast
-                await expect(page.locator('.toast')).toContainText('Created');
+                await expect(page.locator('.toast.success', { hasText: 'Created' })).toBeVisible({ timeout: 5000 });
             }
         });
     });
@@ -134,7 +134,7 @@ test.describe('Bug Fix Tests', () => {
             await expect(dialog).toBeHidden();
 
             // Wait for toast confirmation
-            await expect(page.locator('.toast')).toContainText('Created', { timeout: 3000 });
+            await expect(page.locator('.toast.success', { hasText: 'Created' })).toBeVisible({ timeout: 3000 });
             await page.waitForTimeout(500);
 
             // Verify the category was created

@@ -2,6 +2,8 @@
 import { Config } from './config.js';
 import { Logger } from './logger.js';
 import { validate } from './schema-validator.js';
+import { ROLE_DESCRIPTIONS } from './state.js';
+import { deepClone } from './utils.js';
 
 // TODO: Add request caching layer for identical prompts to reduce API costs
 // TODO: Implement exponential backoff retry logic for transient failures
@@ -18,7 +20,7 @@ export const Api = {
             createdAt: Date.now(),
             timestamp: new Date().toLocaleTimeString(),
             url,
-            payload: JSON.parse(JSON.stringify(payload)), // Deep copy to avoid mutations
+            payload: deepClone(payload), // Deep copy to avoid mutations
             headers: { ...headers },
             status: 'pending',
             response: null,
@@ -441,15 +443,13 @@ export const Api = {
         const batchSize = 20; // Process in batches to avoid token limits
 
         // System prompt for category classification
+        const roleDefinitions = Object.entries(ROLE_DESCRIPTIONS)
+            .map(([role, desc]) => `- ${role}: ${desc}`)
+            .join('\n');
+
         const systemPrompt = `You are a semantic classifier for image generation prompt categories.
 Classify each category path into ONE of these roles:
-- Subject: People, characters, creatures, beings (living things)
-- Location: Places, environments, scenes, backgrounds
-- Style: Art styles, techniques, aesthetics, artists
-- Modifier: Colors, moods, lighting, weather, time periods
-- Wearable: Clothing, outfits, accessories, armor
-- Object: Items, props, vehicles, food
-- Action: Poses, expressions, activities
+${roleDefinitions}
 
 Return a JSON array with your classifications. Be concise.`;
 
@@ -471,7 +471,7 @@ Return a JSON array with your classifications. Be concise.`;
 
         // Pre-calculate lowercased versions for faster role validation inside the loop
         const validRoles = ['Subject', 'Location', 'Style', 'Modifier', 'Wearable', 'Object', 'Action'];
-        const validRolesLower = validRoles.map(r => ({ original: r, lower: r.toLowerCase() }));
+        const validRolesMap = new Map(validRoles.map(r => [r.toLowerCase(), r]));
 
         // Process in batches
         for (let i = 0; i < unknownCategories.length; i += batchSize) {
@@ -494,11 +494,11 @@ Return a JSON array with your classifications. Be concise.`;
                         if (item.nodeId && item.role) {
                             // Validate role is one of the allowed values
                             const itemRoleLower = item.role.toLowerCase();
-                            const found = validRolesLower.find(v => v.lower === itemRoleLower);
+                            const foundOriginal = validRolesMap.get(itemRoleLower);
 
-                            if (found) {
+                            if (foundOriginal) {
                                 results[item.nodeId] = {
-                                    role: found.original,
+                                    role: foundOriginal,
                                     type: item.type || 'General',
                                     confidence: 0.75 // LLM confidence
                                 };

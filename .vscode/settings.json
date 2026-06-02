@@ -1,3 +1,5 @@
 {
-    "kiroAgent.configureMCP": "Disabled"
+    "kiroAgent.configureMCP": "Disabled",
+    "specstory.cloudSync.enabled": "never",
+    "specstory.helpUsImprove": false
 }
