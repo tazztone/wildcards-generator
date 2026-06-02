@@ -670,7 +670,7 @@ export const UI = {
                                 ${log.status.toUpperCase()}
                             </span>
                             <span class="text-[10px] text-gray-500 font-mono">${log.timestamp}</span>
-                            <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${log.url}">${log.url.length > 50 ? '...' + log.url.slice(-47) : log.url}</span>
+                            <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${sanitize(log.url)}">${sanitize(log.url.length > 50 ? '...' + log.url.slice(-47) : log.url)}</span>
                         </div>
                         <div class="flex items-center gap-2">
                              <button class="text-[10px] bg-gray-700 hover:bg-gray-600 px-2 py-0.5 rounded transition-colors"
@@ -712,7 +712,7 @@ export const UI = {
                                 <pre class="text-[10px] font-mono bg-black/40 p-2 rounded max-h-80 overflow-auto custom-scrollbar ${log.status === 'error' ? 'text-red-300' : 'text-green-300'} whitespace-pre-wrap">${typeof log.response === 'string' ? log.response : JSON.stringify(log.response, null, 2)}</pre>
                             </div>
                         </details>
-                        ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${log.error}</div>` : ''}
+                        ${log.error ? `<div class="text-[10px] text-red-400 font-mono bg-red-900/20 p-2 rounded border border-red-800/50">⚠️ Error: ${sanitize(log.error)}</div>` : ''}
                     </div>
                 </div>
             `).join('');
