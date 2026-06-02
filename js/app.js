@@ -71,7 +71,6 @@ export const App = {
     bindEvents() {
         const signal = this.abortController.signal;
         // Event Delegation on Container for all dynamic interactions
-        // TODO: Consider using AbortController to clean up event listeners on app teardown
         // TODO: Add touch event handlers for better mobile experience (touchstart, touchmove)
         UI.elements.container.addEventListener('click', (e) => this.handleContainerClick(e), { signal });
         UI.elements.container.addEventListener('change', (e) => this.handleContainerChange(e), { signal });
