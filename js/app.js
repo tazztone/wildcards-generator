@@ -2,7 +2,7 @@ import { State } from './state.js';
 import { UI } from './ui.js';
 import { Api } from './api.js';
 import { Config, saveApiKey, saveConfig } from './config.js';
-import { debounce, sanitize } from './utils.js';
+import { debounce, sanitize, deepClone } from './utils.js';
 import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
@@ -262,7 +262,7 @@ export const App = {
                         urlEl.textContent = result.stats.request.url;
                         try {
                             // Redact API Key in payload display for safety/screenshots
-                            const safePayload = JSON.parse(JSON.stringify(result.stats.request.payload));
+                            const safePayload = deepClone(result.stats.request.payload);
                             // Also check headers if we displayed them
                             payloadEl.textContent = JSON.stringify(safePayload, null, 2);
                         } catch (e) {

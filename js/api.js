@@ -2,6 +2,7 @@
 import { Config } from './config.js';
 import { Logger } from './logger.js';
 import { validate } from './schema-validator.js';
+import { deepClone } from './utils.js';
 
 // TODO: Add request caching layer for identical prompts to reduce API costs
 // TODO: Implement exponential backoff retry logic for transient failures
@@ -18,7 +19,7 @@ export const Api = {
             createdAt: Date.now(),
             timestamp: new Date().toLocaleTimeString(),
             url,
-            payload: JSON.parse(JSON.stringify(payload)), // Deep copy to avoid mutations
+            payload: deepClone(payload), // Deep copy to avoid mutations
             headers: { ...headers },
             status: 'pending',
             response: null,

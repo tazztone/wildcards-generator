@@ -1,6 +1,12 @@
-// TODO: Add deep clone utility that's more performant than JSON.parse/stringify
 // TODO: Add string truncation utility with ellipsis for UI
 // TODO: Consider moving DOM sanitization to DOMPurify for security
+
+export const deepClone = (obj) => {
+    if (typeof structuredClone === 'function') {
+        return structuredClone(obj);
+    }
+    return JSON.parse(JSON.stringify(obj));
+};
 
 export const sanitize = (input) => {
     const temp = document.createElement('div');
