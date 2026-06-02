@@ -73,6 +73,19 @@ export function validate(data, schema, path = 'root') {
             }
             break;
 
+
+        case 'NUMBER':
+            if (typeof data !== 'number') {
+                errors.push(`${path}: Expected a number, but got ${typeof data}.`);
+            }
+            break;
+
+        case 'BOOLEAN':
+            if (typeof data !== 'boolean') {
+                errors.push(`${path}: Expected a boolean, but got ${typeof data}.`);
+            }
+            break;
+
         default:
             errors.push(`${path}: Unknown schema type "${schema.type}".`);
             break;
