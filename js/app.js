@@ -1616,7 +1616,6 @@ export const App = {
                 UI.showToast(`Invalid characters in name: ${invalidNames[0]}`, 'error');
                 return;
             }
-
             let createdCount = 0;
             let historySaved = false;
             const createdNames = [];
@@ -1663,7 +1662,6 @@ export const App = {
                 UI.showToast(`Invalid characters in name: ${invalidNames[0]}`, 'error');
                 return;
             }
-
             const parent = State.getObjectByPath(parentPath);
             let createdCount = 0;
             let historySaved = false;
