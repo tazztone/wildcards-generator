@@ -32,7 +32,7 @@ test.describe('Utils Unit Tests', () => {
             return sanitize('<script>alert("xss")</script>');
         });
 
-        expect(result).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+        expect(result).toBe('');
     });
 
     test('debounce function delays execution', async ({ page }) => {

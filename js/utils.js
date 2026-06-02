@@ -1,5 +1,4 @@
 // TODO: Add string truncation utility with ellipsis for UI
-// TODO: Consider moving DOM sanitization to DOMPurify for security
 
 export const deepClone = (obj) => {
     if (typeof structuredClone === 'function') {
@@ -9,6 +8,9 @@ export const deepClone = (obj) => {
 };
 
 export const sanitize = (input) => {
+    if (window.DOMPurify) {
+        return window.DOMPurify.sanitize(input);
+    }
     const temp = document.createElement('div');
     temp.textContent = input;
     return temp.innerHTML
