@@ -643,7 +643,7 @@ const State = {
 
                 if (parent && parent.wildcards && Array.isArray(parent.wildcards)) {
                     // Find index by value
-                    const idx = parent.wildcards.findIndex(w => w.toLowerCase().trim() === dupe.normalized);
+                    const idx = parent.wildcards.indexOf(loc.original);
                     if (idx !== -1) {
                         parent.wildcards.splice(idx, 1);
                         removedCount++;
