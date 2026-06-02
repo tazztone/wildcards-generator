@@ -2,12 +2,14 @@ import { State } from './state.js';
 import { UI } from './ui.js';
 import { Api } from './api.js';
 import { Config, saveApiKey, saveConfig } from './config.js';
-import { debounce, sanitize } from './utils.js';
+import { debounce, sanitize, deepClone } from './utils.js';
 import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
 import { Mindmap } from './modules/mindmap.js';
 import { TemplateEngine } from './template-engine.js';
+
+const INVALID_NAME_CHARS = /[:{}\[\]#,*!|>'\"%@\`\\?\/]/;
 
 // TODO: Consider implementing a loading/splash screen for initial app load
 // TODO: Add keyboard navigation focus management for accessibility (WCAG 2.1)
@@ -71,7 +73,6 @@ export const App = {
     bindEvents() {
         const signal = this.abortController.signal;
         // Event Delegation on Container for all dynamic interactions
-        // TODO: Consider using AbortController to clean up event listeners on app teardown
         // TODO: Add touch event handlers for better mobile experience (touchstart, touchmove)
         UI.elements.container.addEventListener('click', (e) => this.handleContainerClick(e), { signal });
         UI.elements.container.addEventListener('change', (e) => this.handleContainerChange(e), { signal });
@@ -263,7 +264,7 @@ export const App = {
                         urlEl.textContent = result.stats.request.url;
                         try {
                             // Redact API Key in payload display for safety/screenshots
-                            const safePayload = JSON.parse(JSON.stringify(result.stats.request.payload));
+                            const safePayload = deepClone(result.stats.request.payload);
                             // Also check headers if we displayed them
                             payloadEl.textContent = JSON.stringify(safePayload, null, 2);
                         } catch (e) {
@@ -766,23 +767,24 @@ export const App = {
 
         if (['ArrowUp', 'ArrowDown', 'Enter', 'Escape'].includes(e.key)) {
             const container = document.getElementById('wildcard-container');
-            const categories = Array.from(container.querySelectorAll(':scope > details'));
+            const categories = container.children;
             if (categories.length === 0) return;
             const focused = document.activeElement;
             const currentCategory = focused?.closest('details[data-path]');
-            const currentIndex = categories.indexOf(currentCategory);
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                const nextIndex = currentIndex < categories.length - 1 ? currentIndex + 1 : 0;
-                categories[nextIndex].querySelector('summary').focus();
+                const nextCategory = currentCategory?.nextElementSibling || categories[0];
+                nextCategory.querySelector('summary').focus();
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                const prevIndex = currentIndex > 0 ? currentIndex - 1 : categories.length - 1;
-                categories[prevIndex].querySelector('summary').focus();
+                const prevCategory = currentCategory?.previousElementSibling || categories[categories.length - 1];
+                prevCategory.querySelector('summary').focus();
             } else if (e.key === 'Enter' && currentCategory) {
                 /** @type {HTMLDetailsElement} */ (currentCategory).open = !/** @type {HTMLDetailsElement} */ (currentCategory).open;
             } else if (e.key === 'Escape') {
-                categories.forEach(c => /** @type {HTMLDetailsElement} */(c).open = false);
+                for (let i = 0; i < categories.length; i++) {
+                    /** @type {HTMLDetailsElement} */(categories[i]).open = false;
+                }
                 UI.showToast('All categories collapsed', 'info');
             }
         }
@@ -972,14 +974,34 @@ export const App = {
 
             // Range selection logic (SHIFT+Click)
             if (e.shiftKey && this.lastCheckedBatch && this.lastCheckedBatch !== target) {
-                const allCheckboxes = Array.from(document.querySelectorAll('.category-batch-checkbox:not(.hidden), .card-batch-checkbox:not(.hidden)'));
-                const startIdx = allCheckboxes.indexOf(this.lastCheckedBatch);
-                const endIdx = allCheckboxes.indexOf(target);
+                let first = this.lastCheckedBatch;
+                let last = target;
+                if (this.lastCheckedBatch.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_PRECEDING) {
+                    first = target;
+                    last = this.lastCheckedBatch;
+                }
 
-                if (startIdx !== -1 && endIdx !== -1) {
-                    const [min, max] = [Math.min(startIdx, endIdx), Math.max(startIdx, endIdx)];
-                    for (let i = min; i <= max; i++) {
-                        /** @type {HTMLInputElement} */(allCheckboxes[i]).checked = isChecked;
+                // Optimization: avoid slow querySelectorAll by utilizing getElementsByTagName
+                // bounded to the closest common ancestor (mindmap-container or document.body fallback).
+                // Iterating a live HTMLCollection of inputs is extremely fast.
+                let root = first.parentElement;
+                while (root && !root.contains(last)) {
+                    root = root.parentElement;
+                }
+                if (!root) root = document.body;
+
+                const inputs = root.getElementsByTagName('input');
+                let inRange = false;
+                const len = inputs.length;
+                for (let i = 0; i < len; i++) {
+                    const cb = inputs[i];
+                    if (cb === first) inRange = true;
+
+                    if (inRange) {
+                        if ((cb.classList.contains('category-batch-checkbox') || cb.classList.contains('card-batch-checkbox')) && !cb.classList.contains('hidden')) {
+                            /** @type {HTMLInputElement} */(cb).checked = isChecked;
+                        }
+                        if (cb === last) break;
                     }
                 }
             }
@@ -1236,6 +1258,12 @@ export const App = {
                 const oldKey = path.split('/').pop();
                 const newKey = val.replace(/\s+/g, '_');
                 if (oldKey !== newKey && newKey) {
+                    if (INVALID_NAME_CHARS.test(newKey)) {
+                        UI.showToast('Invalid characters in name', 'error');
+                        e.target.textContent = oldKey.replace(/_/g, ' ');
+                        return;
+                    }
+
                     const parent = State.getParentObjectByPath(path);
                     if (parent[newKey]) {
                         UI.showToast('Name already exists', 'error');
@@ -1575,8 +1603,19 @@ export const App = {
         UI.showNotification('Enter new top-level category name (comma-separated for multiple):', true, (inputName) => {
             if (!inputName) return;
 
+            if (!/^[a-zA-Z0-9\s\-_,]+$/.test(inputName)) {
+                UI.showToast('Name contains invalid characters. Use only letters, numbers, spaces, hyphens, and underscores.', 'error');
+                return;
+            }
+
             const names = inputName.split(',').map(n => n.trim()).filter(n => n);
             if (names.length === 0) return;
+
+            const invalidNames = names.filter(n => INVALID_NAME_CHARS.test(n));
+            if (invalidNames.length > 0) {
+                UI.showToast(`Invalid characters in name: ${invalidNames[0]}`, 'error');
+                return;
+            }
 
             let createdCount = 0;
             let historySaved = false;
@@ -1608,12 +1647,22 @@ export const App = {
     },
 
     createItem(parentPath, type) {
-        // TODO: Add input validation for special characters that might break YAML export
         UI.showNotification(`Enter name for new ${type} (comma-separated for multiple):`, true, (inputName) => {
             if (!inputName) return;
 
+            if (!/^[a-zA-Z0-9\s\-_,]+$/.test(inputName)) {
+                UI.showToast('Name contains invalid characters. Use only letters, numbers, spaces, hyphens, and underscores.', 'error');
+                return;
+            }
+
             const names = inputName.split(',').map(n => n.trim()).filter(n => n);
             if (names.length === 0) return;
+
+            const invalidNames = names.filter(n => INVALID_NAME_CHARS.test(n));
+            if (invalidNames.length > 0) {
+                UI.showToast(`Invalid characters in name: ${invalidNames[0]}`, 'error');
+                return;
+            }
 
             const parent = State.getObjectByPath(parentPath);
             let createdCount = 0;
