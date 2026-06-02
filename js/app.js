@@ -765,23 +765,24 @@ export const App = {
 
         if (['ArrowUp', 'ArrowDown', 'Enter', 'Escape'].includes(e.key)) {
             const container = document.getElementById('wildcard-container');
-            const categories = Array.from(container.querySelectorAll(':scope > details'));
+            const categories = container.children;
             if (categories.length === 0) return;
             const focused = document.activeElement;
             const currentCategory = focused?.closest('details[data-path]');
-            const currentIndex = categories.indexOf(currentCategory);
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                const nextIndex = currentIndex < categories.length - 1 ? currentIndex + 1 : 0;
-                categories[nextIndex].querySelector('summary').focus();
+                const nextCategory = currentCategory?.nextElementSibling || categories[0];
+                nextCategory.querySelector('summary').focus();
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                const prevIndex = currentIndex > 0 ? currentIndex - 1 : categories.length - 1;
-                categories[prevIndex].querySelector('summary').focus();
+                const prevCategory = currentCategory?.previousElementSibling || categories[categories.length - 1];
+                prevCategory.querySelector('summary').focus();
             } else if (e.key === 'Enter' && currentCategory) {
                 /** @type {HTMLDetailsElement} */ (currentCategory).open = !/** @type {HTMLDetailsElement} */ (currentCategory).open;
             } else if (e.key === 'Escape') {
-                categories.forEach(c => /** @type {HTMLDetailsElement} */(c).open = false);
+                for (let i = 0; i < categories.length; i++) {
+                    /** @type {HTMLDetailsElement} */(categories[i]).open = false;
+                }
                 UI.showToast('All categories collapsed', 'info');
             }
         }
