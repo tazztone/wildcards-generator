@@ -53,6 +53,25 @@ test.describe('updateConfigValue', () => {
         expect(result.before).toBe(50);
     });
 
+    test('ignores update if value is an invalid string for numeric keys', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            // Setup an initial value
+            window.updateConfigValue('HISTORY_LIMIT', 50);
+            const beforeLimit = window.Config.HISTORY_LIMIT;
+
+            window.updateConfigValue('HISTORY_LIMIT', 'abc');
+
+            const afterLimit = window.Config.HISTORY_LIMIT;
+            return {
+                before: beforeLimit,
+                after: afterLimit
+            };
+        });
+
+        expect(result.after).toBe(50);
+        expect(result.before).toBe(50);
+    });
+
     test('ignores update if value is empty or whitespace-only string', async ({ page }) => {
         const result = await page.evaluate(() => {
             window.updateConfigValue('API_ENDPOINT', 'openrouter');

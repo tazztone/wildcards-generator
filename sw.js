@@ -4,6 +4,7 @@ const CACHE_VERSION = 'v1';
 const CACHE_NAME = `wildcards-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `wildcards-dynamic-${CACHE_VERSION}`;
 const MAX_DYNAMIC_ITEMS = 50;
+
 const STATIC_ASSETS = [
     './',
     './index.html',
@@ -17,20 +18,23 @@ const STATIC_ASSETS = [
     'https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js'
 ];
 
-
-// Cache Size Monitoring & Cleanup
-const trimCache = async (cacheName, maxItems) => {
+/**
+ * Enforces a maximum number of items in a cache by removing the oldest entries.
+ * @param {string} cacheName - The name of the cache to monitor.
+ * @param {number} maxItems - The maximum number of allowed items.
+ */
+async function enforceCacheSizeLimit(cacheName, maxItems) {
     try {
         const cache = await caches.open(cacheName);
         const keys = await cache.keys();
         if (keys.length > maxItems) {
             await cache.delete(keys[0]);
-            await trimCache(cacheName, maxItems); // Recursive call to remove all excess
+            await enforceCacheSizeLimit(cacheName, maxItems);
         }
-    } catch (e) {
-        console.error('Cache trimming failed', e);
+    } catch (error) {
+        console.error(`[SW] Failed to enforce cache size limit for ${cacheName}:`, error);
     }
-};
+}
 
 const manageStorage = async () => {
     if (navigator.storage && navigator.storage.estimate) {
@@ -62,13 +66,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
-            Promise.all(
-                keys.map(key => {
-                    if (key !== CACHE_NAME && key !== DYNAMIC_CACHE_NAME) {
-                        return caches.delete(key);
-                    }
-                })
-            )
+            Promise.all(keys.filter(k => k !== CACHE_NAME && k !== DYNAMIC_CACHE_NAME).map(k => caches.delete(k)))
         ).then(() => self.clients.claim())
     );
 });
@@ -90,25 +88,51 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Cache-first for static assets
+    // Cache-first for static assets, then dynamic cache
     event.respondWith(
         caches.match(event.request)
             .then(cached => cached || fetch(event.request)
                 .then(response => {
-                    // Cache successful responses
+                    // Cache successful responses in dynamic cache
                     if (response.ok) {
                         const clone = response.clone();
                         caches.open(DYNAMIC_CACHE_NAME).then(cache => {
                             cache.put(event.request, clone);
-                            // Schedule background cleanup
-                            setTimeout(() => {
-                                trimCache(DYNAMIC_CACHE_NAME, MAX_DYNAMIC_ITEMS);
-                                manageStorage();
-                            }, 0);
+                            enforceCacheSizeLimit(DYNAMIC_CACHE_NAME, MAX_DYNAMIC_ITEMS);
+                            manageStorage();
                         });
                     }
                     return response;
                 })
             )
     );
+});
+
+// Listen for messages from clients to monitor and manage storage
+self.addEventListener('message', async (event) => {
+    if (!event.data) return;
+
+    if (event.data.type === 'GET_STORAGE_INFO') {
+        try {
+            if (navigator.storage && navigator.storage.estimate) {
+                const estimate = await navigator.storage.estimate();
+                event.ports[0].postMessage({
+                    usage: estimate.usage,
+                    quota: estimate.quota,
+                    usageDetails: estimate.usageDetails
+                });
+            } else {
+                event.ports[0].postMessage({ error: 'Storage API not supported' });
+            }
+        } catch (error) {
+            event.ports[0].postMessage({ error: error.message });
+        }
+    } else if (event.data.type === 'CLEAR_DYNAMIC_CACHE') {
+        try {
+            await caches.delete(DYNAMIC_CACHE_NAME);
+            event.ports[0].postMessage({ success: true });
+        } catch (error) {
+            event.ports[0].postMessage({ error: error.message });
+        }
+    }
 });

@@ -8,6 +8,23 @@ test.describe('Utils Unit Tests', () => {
         await page.waitForLoadState('networkidle');
     });
 
+    test('deepClone creates an independent copy', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const { deepClone } = await import('./js/utils.js');
+            const original = { a: 1, b: { c: 2 } };
+            const clone = deepClone(original);
+
+            // Modify clone
+            clone.b.c = 3;
+
+            return { original, clone };
+        });
+
+        expect(result.original.b.c).toBe(2);
+        expect(result.clone.b.c).toBe(3);
+        expect(result.clone).toEqual({ a: 1, b: { c: 3 } });
+    });
+
     test('sanitize function escapes HTML', async ({ page }) => {
         const result = await page.evaluate(async () => {
             // Import utils dynamically
@@ -15,7 +32,7 @@ test.describe('Utils Unit Tests', () => {
             return sanitize('<script>alert("xss")</script>');
         });
 
-        expect(result).toBe('&lt;script&gt;alert("xss")&lt;/script&gt;');
+        expect(result).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
     });
 
     test('debounce function delays execution', async ({ page }) => {

@@ -171,7 +171,6 @@ export const ImportExport = {
      * Opens a file picker to import YAML wildcard data.
      */
     handleImportYAML() {
-        // TODO: Add file size validation (warn for large files)
         // TODO: Add schema validation before import
         const input = document.createElement('input');
         input.type = 'file';
@@ -181,6 +180,23 @@ export const ImportExport = {
         input.onchange = async (e) => {
             const files = /** @type {HTMLInputElement} */ (e.target).files;
             if (!files || files.length === 0) return;
+
+            // Warn user if the total file size exceeds 1MB limit
+            const maxSize = 1024 * 1024; // 1MB
+            let totalSize = 0;
+            for (let i = 0; i < files.length; i++) {
+                totalSize += files[i].size;
+            }
+
+            if (totalSize > maxSize) {
+                const sizeInMB = (totalSize / maxSize).toFixed(2);
+                const confirm = await UI.showConfirmDialog(
+                    'Large Files Warning',
+                    `The selected files total ${sizeInMB} MB. Importing them may take a long time or cause the browser to freeze. Do you want to continue?`,
+                    { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
+                );
+                if (!confirm) return;
+            }
 
             let combinedProcessedData = {};
             let combinedSimpleParsed = {};
@@ -193,18 +209,6 @@ export const ImportExport = {
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     try {
-                        // Warn user if the file size exceeds 1MB limit
-                        const maxSize = 1024 * 1024; // 1MB
-                        if (file.size > maxSize) {
-                            const sizeInMB = (file.size / maxSize).toFixed(2);
-                            const confirm = await UI.showConfirmDialog(
-                                'Large File Warning',
-                                `The file "${file.name}" is quite large (${sizeInMB} MB). Importing it may take a long time or cause the browser to freeze. Do you want to continue?`,
-                                { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
-                            );
-                            if (!confirm) continue;
-                        }
-
                         const text = await file.text();
 
                         // Use parseDocument to preserve comments (for # instruction: format)
