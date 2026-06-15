@@ -20,6 +20,20 @@ export const App = {
     lastCheckedBatch: null,
     abortController: null,
 
+    // DOM Caches
+    _domCache: {
+        batchModeBtn: null,
+        batchOpsBar: null,
+        batchSelectAll: null,
+        batchCount: null,
+        batchExpand: null,
+        batchCollapse: null,
+        batchDelete: null,
+        batchGenerate: null,
+        batchSuggestFolders: null,
+        batchSuggestLists: null
+    },
+
     async init() {
         this.abortController = new AbortController();
         UI.init();
@@ -850,19 +864,27 @@ export const App = {
     updateBatchUI() {
         const selected = document.querySelectorAll('.category-batch-checkbox:checked, .card-batch-checkbox:checked');
         const count = selected.length;
-        const countEl = document.getElementById('batch-count');
+        if (!this._domCache.batchCount) this._domCache.batchCount = document.getElementById('batch-count');
+        const countEl = this._domCache.batchCount;
         if (countEl) countEl.textContent = `(${count} selected)`;
 
         const hasSelection = count > 0;
 
         // Button states
+        if (!this._domCache.batchExpand) this._domCache.batchExpand = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-expand'));
+        if (!this._domCache.batchCollapse) this._domCache.batchCollapse = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-collapse'));
+        if (!this._domCache.batchDelete) this._domCache.batchDelete = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-delete'));
+        if (!this._domCache.batchGenerate) this._domCache.batchGenerate = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-generate'));
+        if (!this._domCache.batchSuggestFolders) this._domCache.batchSuggestFolders = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-suggest-folders'));
+        if (!this._domCache.batchSuggestLists) this._domCache.batchSuggestLists = /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-suggest-lists'));
+
         const btns = {
-            expand: /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-expand')),
-            collapse: /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-collapse')),
-            delete: /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-delete')),
-            generate: /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-generate')),
-            suggestFolders: /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-suggest-folders')),
-            suggestLists: /** @type {HTMLButtonElement|null} */ (document.getElementById('batch-suggest-lists'))
+            expand: this._domCache.batchExpand,
+            collapse: this._domCache.batchCollapse,
+            delete: this._domCache.batchDelete,
+            generate: this._domCache.batchGenerate,
+            suggestFolders: this._domCache.batchSuggestFolders,
+            suggestLists: this._domCache.batchSuggestLists
         };
 
         Object.values(btns).forEach(btn => { if (btn) btn.disabled = !hasSelection; });
@@ -876,7 +898,10 @@ export const App = {
         if (btns.suggestLists) btns.suggestLists.title = hasSelection ? `Suggest wildcard lists for ${count} categories` : 'Select categories to suggest lists';
 
         // The bar is shown/hidden by toggleBatchSelectMode, but we ensure it's visible if there's a selection
-        if (hasSelection) document.getElementById('batch-ops-bar')?.classList.remove('hidden');
+        if (hasSelection) {
+            if (!this._domCache.batchOpsBar) this._domCache.batchOpsBar = document.getElementById('batch-ops-bar');
+            this._domCache.batchOpsBar?.classList.remove('hidden');
+        }
     },
     /**
      * Toggle batch select mode on/off
@@ -884,34 +909,34 @@ export const App = {
      */
     toggleBatchSelectMode(enable) {
         const body = document.body;
-        const batchModeBtn = document.getElementById('batch-mode-btn');
-        const batchOpsBar = document.getElementById('batch-ops-bar');
+        if (!this._domCache.batchModeBtn) this._domCache.batchModeBtn = document.getElementById('batch-mode-btn');
+        if (!this._domCache.batchOpsBar) this._domCache.batchOpsBar = document.getElementById('batch-ops-bar');
 
         if (enable) {
             body.classList.add('batch-select-mode');
-            batchModeBtn?.classList.add('active');
-            batchOpsBar?.classList.remove('hidden');
+            this._domCache.batchModeBtn?.classList.add('active');
+            this._domCache.batchOpsBar?.classList.remove('hidden');
 
             // Clear any previous selection
             document.querySelectorAll('.category-batch-checkbox, .card-batch-checkbox').forEach(cb => {
                 /** @type {HTMLInputElement} */(cb).checked = false;
             });
-            const selectAll = /** @type {HTMLInputElement|null} */(document.getElementById('batch-select-all'));
-            if (selectAll) selectAll.checked = false;
+            if (!this._domCache.batchSelectAll) this._domCache.batchSelectAll = /** @type {HTMLInputElement|null} */(document.getElementById('batch-select-all'));
+            if (this._domCache.batchSelectAll) this._domCache.batchSelectAll.checked = false;
 
             UI.showToast('Batch Mode: Select categories for AI operations', 'info');
         } else {
             body.classList.remove('batch-select-mode');
-            batchModeBtn?.classList.remove('active');
+            this._domCache.batchModeBtn?.classList.remove('active');
 
             // Clear all selections
             document.querySelectorAll('.category-batch-checkbox, .card-batch-checkbox').forEach(cb => {
                 /** @type {HTMLInputElement} */(cb).checked = false;
             });
-            const selectAll = /** @type {HTMLInputElement|null} */(document.getElementById('batch-select-all'));
-            if (selectAll) selectAll.checked = false;
+            if (!this._domCache.batchSelectAll) this._domCache.batchSelectAll = /** @type {HTMLInputElement|null} */(document.getElementById('batch-select-all'));
+            if (this._domCache.batchSelectAll) this._domCache.batchSelectAll.checked = false;
 
-            batchOpsBar?.classList.add('hidden');
+            this._domCache.batchOpsBar?.classList.add('hidden');
             this.lastCheckedBatch = null;
             UI.showToast('Exited Batch Mode', 'info');
         }
