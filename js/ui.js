@@ -1,5 +1,5 @@
 import { State } from './state.js';
-import { sanitize, debounce } from './utils.js';
+import { sanitize, debounce, truncate } from './utils.js';
 import { Config, saveConfig, saveApiKey, getEffectivePrompt, setCustomPrompt, isUsingDefault, resetToDefault } from './config.js';
 import { Api } from './api.js';
 import { Logger } from './logger.js';
@@ -670,7 +670,7 @@ export const UI = {
                                 ${log.status.toUpperCase()}
                             </span>
                             <span class="text-[10px] text-gray-500 font-mono">${log.timestamp}</span>
-                            <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${sanitize(log.url)}">${sanitize(log.url.length > 50 ? '...' + log.url.slice(-47) : log.url)}</span>
+                            <span class="text-xs text-indigo-400 font-medium truncate max-w-[250px]" title="${sanitize(log.url)}">${sanitize(truncate(log.url, 50, 'start'))}</span>
                         </div>
                         <div class="flex items-center gap-2">
                              <button class="text-[10px] bg-gray-700 hover:bg-gray-600 px-2 py-0.5 rounded transition-colors"
@@ -2022,7 +2022,7 @@ export const UI = {
                     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
                     if (streamText) {
                         // Show streaming text preview (truncated)
-                        const preview = streamText.length > 20 ? streamText.slice(-20) + '...' : streamText;
+                        const preview = truncate(streamText, 20, 'start');
                         text.textContent = `${elapsed}s | ${preview}`;
                     } else {
                         text.textContent = `${elapsed}s...`;

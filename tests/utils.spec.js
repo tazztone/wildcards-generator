@@ -8,6 +8,31 @@ test.describe('Utils Unit Tests', () => {
         await page.waitForLoadState('networkidle');
     });
 
+    test('truncate limits string length and adds ellipsis', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const { truncate } = await import('./js/utils.js');
+            return {
+                short: truncate('hello', 10),
+                exact: truncate('hello world', 11),
+                longEnd: truncate('hello world', 8),
+                longStart: truncate('hello world', 8, 'start'),
+                longMiddle: truncate('hello world', 8, 'middle'),
+                tooShortForEllipsis: truncate('hello world', 2),
+                notString: truncate(null, 5),
+                middleEdge: truncate('hello', 4, 'middle')
+            };
+        });
+
+        expect(result.short).toBe('hello');
+        expect(result.exact).toBe('hello world');
+        expect(result.longEnd).toBe('hello...');
+        expect(result.longStart).toBe('...world');
+        expect(result.longMiddle).toBe('hel...ld');
+        expect(result.tooShortForEllipsis).toBe('he');
+        expect(result.notString).toBe('');
+        expect(result.middleEdge).toBe('h...');
+    });
+
     test('deepClone creates an independent copy', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const { deepClone } = await import('./js/utils.js');
