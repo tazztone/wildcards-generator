@@ -340,17 +340,24 @@ const Mindmap = {
         }, 300);
 
         // Smart Context Menu Observer
+        const menuRegex = /(?:mind-elixir-menu|menu-list)/;
         this.observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
-                    if (node instanceof HTMLElement && node.tagName === 'UL' && (node.className.includes('mind-elixir-menu') || node.className.includes('menu-list'))) {
-                        requestAnimationFrame(() => this.optimizeContextMenu(/** @type {HTMLElement} */(node)));
+                    if (node instanceof HTMLElement && node.tagName === 'UL') {
+                        const cn = node.className;
+                        if (menuRegex.test(cn)) {
+                            requestAnimationFrame(() => this.optimizeContextMenu(/** @type {HTMLElement} */(node)));
+                        }
                     }
                 });
                 if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                     const target = /** @type {HTMLElement} */ (mutation.target);
-                    if (target instanceof HTMLElement && (target.className.includes('mind-elixir-menu') || target.className.includes('menu-list')) && target.style.display !== 'none') {
-                        requestAnimationFrame(() => this.optimizeContextMenu(target));
+                    if (target instanceof HTMLElement && target.style.display !== 'none') {
+                        const cn = target.className;
+                        if (menuRegex.test(cn)) {
+                            requestAnimationFrame(() => this.optimizeContextMenu(target));
+                        }
                     }
                 }
             });
