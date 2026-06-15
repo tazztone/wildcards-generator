@@ -3,7 +3,6 @@ import { encrypt, decrypt } from './crypto.js';
 import { validate } from './schema-validator.js';
 
 // TODO: Implement config versioning with automatic migration on version bumps
-// TODO: Add config diff/export for debugging user issues
 
 // Hardcoded defaults as Single Source of Truth for structure and prompts
 const CONFIG_CONSTANTS = {
@@ -69,61 +68,64 @@ const configSchema = {
     }
 };
 
+const USER_DEFAULTS = {
+    API_URL_CUSTOM: "http://127.0.0.1:1234/v1",
+    MODEL_NAME_GEMINI: "",
+    MODEL_NAME_OPENROUTER: "",
+    MODEL_NAME_GROQ: "",
+    MODEL_NAME_CUSTOM: "",
+    API_ENDPOINT: "openrouter",
+    CUSTOM_SYSTEM_PROMPT: null,  // null = use default from config.json
+    CUSTOM_SUGGEST_PROMPT: null,  // null = use default from config.json
+    CUSTOM_TEMPLATE_PROMPT: null, // null = use default from config.json
+    // View Mode Preference
+    PREFERRED_VIEW: 'list',  // 'list', 'mindmap', or 'dual'
+    // Advanced Model Defaults
+    MODEL_TEMPERATURE: 0.7,
+    MODEL_MAX_TOKENS: 1000,
+    MODEL_TOP_P: 1.0,
+    MODEL_TOP_K: 0,
+    MODEL_FREQUENCY_PENALTY: 0.0,
+    MODEL_PRESENCE_PENALTY: 0.0,
+    MODEL_REPETITION_PENALTY: 1.0,
+    MODEL_MIN_P: 0.0,
+    MODEL_TOP_A: 0.0,
+    MODEL_SEED: 0,
+    MODEL_REASONING_EFFORT: 'default', // default, high, medium, low, none
+    MODEL_REASONING_MAX_TOKENS: 0, // 0 = disabled
+    // Mindmap Configuration
+    MINDMAP_FONT_SIZE_CATEGORY: 96, // Bold, Outlined
+    MINDMAP_FONT_SIZE_LIST: 64,     // Filled background
+    MINDMAP_FONT_SIZE_WILDCARD: 20, // Basic
+    // Display & UI Settings
+    DEFAULT_WILDCARDS_VISIBLE: true,
+    ENABLE_ANIMATIONS: true,
+    COMPACT_CARD_MODE: false,
+    AUTO_SAVE_INTERVAL: 0, // 0 = disabled, ms between auto-saves
+    CARD_HEIGHT: 54, // User-adjustable height for wildcard cards
+    // Storage Profile
+    STORAGE_PROFILE: 'default',
+    // Hybrid Template Engine
+    USE_HYBRID_ENGINE: false,
+    TEMPLATE_MODE: 'wildcard',  // 'wildcard' | 'strict' | 'hybrid'
+    SHOW_GUIDANCE_STEP: true,
+    // Logging
+    LOG_MAX_ENTRIES: 5000,
+    LOG_AUTO_DELETE_DAYS: 0, // 0 = disabled, delete logs older than X days
+    // Prompt Caching
+    ENABLE_PROMPT_CACHING: true,
+    CACHE_TTL: '1h'
+};
+
+const ALL_DEFAULTS = { ...CONFIG_CONSTANTS, ...USER_DEFAULTS };
+
 export const Config = {};
 
 export async function loadConfig() {
     try {
         // Use CONFIG_CONSTANTS as the single source of truth for defaults
-        const defaultConfig = { ...CONFIG_CONSTANTS };
+        const savedConfig = localStorage.getItem(ALL_DEFAULTS.CONFIG_STORAGE_KEY);
 
-        const savedConfig = localStorage.getItem(defaultConfig.CONFIG_STORAGE_KEY);
-
-        // Define defaults for user settings that are no longer in config.json
-        const userDefaults = {
-            API_URL_CUSTOM: "http://127.0.0.1:1234/v1",
-            MODEL_NAME_GEMINI: "",
-            MODEL_NAME_OPENROUTER: "",
-            MODEL_NAME_GROQ: "",
-            MODEL_NAME_CUSTOM: "",
-            API_ENDPOINT: "openrouter",
-            CUSTOM_SYSTEM_PROMPT: null,  // null = use default from config.json
-            CUSTOM_SUGGEST_PROMPT: null,  // null = use default from config.json
-            CUSTOM_TEMPLATE_PROMPT: null, // null = use default from config.json
-            // View Mode Preference
-            PREFERRED_VIEW: 'list',  // 'list', 'mindmap', or 'dual'
-            // Advanced Model Defaults
-            MODEL_TEMPERATURE: 0.7,
-            MODEL_MAX_TOKENS: 1000,
-            MODEL_TOP_P: 1.0,
-            MODEL_TOP_K: 0,
-            MODEL_FREQUENCY_PENALTY: 0.0,
-            MODEL_PRESENCE_PENALTY: 0.0,
-            MODEL_REPETITION_PENALTY: 1.0,
-            MODEL_MIN_P: 0.0,
-            MODEL_TOP_A: 0.0,
-            MODEL_SEED: 0,
-            MODEL_REASONING_EFFORT: 'default', // default, high, medium, low, none
-            MODEL_REASONING_MAX_TOKENS: 0, // 0 = disabled
-            // Mindmap Configuration
-            MINDMAP_FONT_SIZE_CATEGORY: 96, // Bold, Outlined
-            MINDMAP_FONT_SIZE_LIST: 64,     // Filled background
-            MINDMAP_FONT_SIZE_WILDCARD: 20, // Basic
-            // Display & UI Settings
-            DEFAULT_WILDCARDS_VISIBLE: true,
-            ENABLE_ANIMATIONS: true,
-            COMPACT_CARD_MODE: false,
-            AUTO_SAVE_INTERVAL: 0, // 0 = disabled, ms between auto-saves
-            CARD_HEIGHT: 54, // User-adjustable height for wildcard cards
-            // Storage Profile
-            STORAGE_PROFILE: 'default',
-            // Hybrid Template Engine
-            USE_HYBRID_ENGINE: false,
-            TEMPLATE_MODE: 'wildcard',  // 'wildcard' | 'strict' | 'hybrid'
-            SHOW_GUIDANCE_STEP: true,
-            // Logging
-            LOG_MAX_ENTRIES: 5000,
-            LOG_AUTO_DELETE_DAYS: 0 // 0 = disabled, delete logs older than X days
-        };
 
 
         let parsedConfig = {};
@@ -144,7 +146,7 @@ export async function loadConfig() {
             }
         }
 
-        Object.assign(Config, defaultConfig, userDefaults, parsedConfig);
+        Object.assign(Config, ALL_DEFAULTS, parsedConfig);
 
 
         // Migration: Port old keys to new keys if they exist in Config (merged from saved) but new keys are default
@@ -208,74 +210,7 @@ let lastSaveToastTime = 0;
 
 export async function saveConfig() {
     try {
-        // Build complete defaults from CONFIG_CONSTANTS + user defaults
-        const userDefaults = {
-            API_URL_CUSTOM: "http://127.0.0.1:1234/v1",
-            MODEL_NAME_GEMINI: "",
-            MODEL_NAME_OPENROUTER: "",
-            MODEL_NAME_CUSTOM: "",
-            API_ENDPOINT: "openrouter",
-            CUSTOM_SYSTEM_PROMPT: null,
-            CUSTOM_SUGGEST_PROMPT: null,
-            CUSTOM_TEMPLATE_PROMPT: null,
-            PREFERRED_VIEW: 'list',
-            MODEL_TEMPERATURE: 0.7,
-            MODEL_MAX_TOKENS: 1000,
-            MODEL_TOP_P: 1.0,
-            MODEL_TOP_K: 0,
-            MODEL_FREQUENCY_PENALTY: 0.0,
-            MODEL_PRESENCE_PENALTY: 0.0,
-            MODEL_REPETITION_PENALTY: 1.0,
-            MODEL_MIN_P: 0.0,
-            MODEL_TOP_A: 0.0,
-            MODEL_SEED: 0,
-            MODEL_REASONING_EFFORT: 'default',
-            MODEL_REASONING_MAX_TOKENS: 0,
-            MINDMAP_FONT_SIZE_CATEGORY: 96,
-            MINDMAP_FONT_SIZE_LIST: 64,
-            MINDMAP_FONT_SIZE_WILDCARD: 20,
-            DEFAULT_WILDCARDS_VISIBLE: true,
-            ENABLE_ANIMATIONS: true,
-            COMPACT_CARD_MODE: false,
-            AUTO_SAVE_INTERVAL: 0,
-            CARD_HEIGHT: 54,
-            STORAGE_PROFILE: 'default',
-            USE_HYBRID_ENGINE: false,
-            TEMPLATE_MODE: 'wildcard',
-            // Prompt Caching
-            ENABLE_PROMPT_CACHING: true,
-            CACHE_TTL: '1h'
-        };
-        const allDefaults = { ...CONFIG_CONSTANTS, ...userDefaults };
-
-        const changedConfig = {};
-        for (const key in Config) {
-            // Skip runtime-only keys
-            if (key.startsWith('API_KEY')) continue;
-
-            // Save if it's a known config key AND it's different from default OR it's a new user setting
-            if (Config.hasOwnProperty(key)) {
-                // If present in defaults, check if changed
-                if (allDefaults.hasOwnProperty(key)) {
-                    if (JSON.stringify(Config[key]) !== JSON.stringify(allDefaults[key])) {
-                        changedConfig[key] = Config[key];
-                    }
-                }
-                // If it's a user setting loaded from storage (not in static defaults but valid config)
-                else if (['API_URL_CUSTOM', 'MODEL_NAME_GEMINI', 'MODEL_NAME_OPENROUTER', 'MODEL_NAME_CUSTOM', 'API_ENDPOINT', 'CUSTOM_SYSTEM_PROMPT', 'CUSTOM_SUGGEST_PROMPT', 'CUSTOM_TEMPLATE_PROMPT', 'PREFERRED_VIEW',
-                    'MODEL_TEMPERATURE', 'MODEL_MAX_TOKENS', 'MODEL_TOP_P', 'MODEL_TOP_K', 'MODEL_FREQUENCY_PENALTY', 'MODEL_PRESENCE_PENALTY', 'MODEL_REPETITION_PENALTY', 'MODEL_MIN_P', 'MODEL_TOP_A', 'MODEL_SEED',
-                    'MODEL_REASONING_EFFORT', 'MODEL_REASONING_MAX_TOKENS',
-                    'MINDMAP_FONT_SIZE_CATEGORY', 'MINDMAP_FONT_SIZE_LIST', 'MINDMAP_FONT_SIZE_WILDCARD',
-                    'DEFAULT_WILDCARDS_VISIBLE', 'ENABLE_ANIMATIONS', 'COMPACT_CARD_MODE', 'AUTO_SAVE_INTERVAL', 'STORAGE_PROFILE', 'CARD_HEIGHT',
-                    'DEFAULT_WILDCARDS_VISIBLE', 'ENABLE_ANIMATIONS', 'COMPACT_CARD_MODE', 'AUTO_SAVE_INTERVAL', 'STORAGE_PROFILE',
-                    'USE_HYBRID_ENGINE', 'TEMPLATE_MODE',
-                    'ENABLE_PROMPT_CACHING', 'CACHE_TTL',
-                    'LOG_MAX_ENTRIES', 'LOG_AUTO_DELETE_DAYS'
-                ].includes(key)) {
-                    changedConfig[key] = Config[key];
-                }
-            }
-        }
+        const changedConfig = getConfigDiff();
 
         localStorage.setItem(Config.CONFIG_STORAGE_KEY, JSON.stringify(changedConfig));
 
@@ -468,4 +403,55 @@ export function setCustomPrompt(key, value) {
         }
     }
     saveConfig();
+}
+
+/**
+ * Returns an object containing all config settings that differ from their default values.
+ * Useful for debugging and building a concise save payload.
+ * @returns {Object} The configuration differences
+ */
+export function getConfigDiff() {
+    const changedConfig = {};
+    for (const key in Config) {
+        // Skip runtime-only keys entirely
+        if (key.startsWith('API_KEY')) continue;
+
+        if (Config.hasOwnProperty(key)) {
+            // Include if the value differs from ALL_DEFAULTS
+            if (ALL_DEFAULTS.hasOwnProperty(key)) {
+                if (JSON.stringify(Config[key]) !== JSON.stringify(ALL_DEFAULTS[key])) {
+                    changedConfig[key] = Config[key];
+                }
+            } else {
+                 // For safety: if there's a setting in Config that isn't in ALL_DEFAULTS, include it
+                 changedConfig[key] = Config[key];
+            }
+        }
+    }
+    return changedConfig;
+}
+
+/**
+ * Builds a debug payload including config diff, user-agent, and a timestamp.
+ * Filters out sensitive keys like API keys.
+ * @returns {string} JSON string of the debug config
+ */
+export function exportConfigForDebug() {
+    const diff = getConfigDiff();
+
+    // Safety check to ensure no API keys leak
+    for (const key of Object.keys(diff)) {
+        if (key.includes('API_KEY')) {
+            delete diff[key];
+        }
+    }
+
+    const payload = {
+        _comment: "Wildcards Generator Debug Config",
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        configDiff: diff
+    };
+
+    return JSON.stringify(payload, null, 2);
 }

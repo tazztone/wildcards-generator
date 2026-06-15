@@ -168,6 +168,20 @@ export const ImportExport = {
     },
 
     /**
+     * Exports a debug configuration diff for troubleshooting user issues.
+     */
+    handleExportDebugConfig() {
+        try {
+            const jsonContent = Config.exportConfigForDebug();
+            this._downloadFile(jsonContent, 'debug-config.json', 'application/json');
+            UI.showToast('Debug config exported successfully', 'success');
+        } catch (e) {
+            console.error('Export Debug Config failed:', e);
+            UI.showToast('Export failed', 'error');
+        }
+    },
+
+    /**
      * Opens a file picker to import YAML wildcard data.
      */
     handleImportYAML() {
