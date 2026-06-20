@@ -1041,4 +1041,4 @@ const State = {
     }
 };
 
-export { State, deepDiff, generateNodeId, ROLE_DESCRIPTIONS };
+export { State, deepDiff, generateNodeId, ROLE_DESCRIPTIONS, createDeepProxy };

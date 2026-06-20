@@ -91,3 +91,69 @@ NullKey: null
     });
 
 });
+
+    test.describe('createDeepProxy', () => {
+        test('returns primitives untouched', async ({ page }) => {
+            const result = await page.evaluate(async () => {
+                const { createDeepProxy } = await import('./js/state.js');
+                return {
+                    num: createDeepProxy(1),
+                    str: createDeepProxy("test"),
+                    nil: createDeepProxy(null),
+                    bool: createDeepProxy(true)
+                };
+            });
+            expect(result.num).toBe(1);
+            expect(result.str).toBe("test");
+            expect(result.nil).toBe(null);
+            expect(result.bool).toBe(true);
+        });
+
+        test('proxies nested objects and triggers onChange for deep sets', async ({ page }) => {
+            const changes = await page.evaluate(async () => {
+                const { createDeepProxy } = await import('./js/state.js');
+                const target = { a: { b: { c: 1 } } };
+                const changes = [];
+                const proxy = createDeepProxy(target, [], (path, value, targetRef, type) => {
+                    changes.push({ path, value, type: type || 'set' });
+                });
+                proxy.a.b.c = 2;
+                return changes;
+            });
+            expect(changes.length).toBe(1);
+            expect(changes[0].path).toEqual(['a', 'b', 'c']);
+            expect(changes[0].value).toBe(2);
+            expect(changes[0].type).toBe('set');
+        });
+
+        test('triggers onChange for property deletions', async ({ page }) => {
+            const changes = await page.evaluate(async () => {
+                const { createDeepProxy } = await import('./js/state.js');
+                const target = { x: 10, y: 20 };
+                const changes = [];
+                const proxy = createDeepProxy(target, [], (path, value, targetRef, type) => {
+                    changes.push({ path, value, type });
+                });
+                delete proxy.x;
+                return changes;
+            });
+            expect(changes.length).toBe(1);
+            expect(changes[0].path).toEqual(['x']);
+            expect(changes[0].value).toBe(undefined);
+            expect(changes[0].type).toBe('delete');
+        });
+
+        test('does not trigger onChange when setting to same value', async ({ page }) => {
+            const changes = await page.evaluate(async () => {
+                const { createDeepProxy } = await import('./js/state.js');
+                const target = { a: 1 };
+                const changes = [];
+                const proxy = createDeepProxy(target, [], (path, value, targetRef, type) => {
+                    changes.push({ path, value, type });
+                });
+                proxy.a = 1;
+                return changes;
+            });
+            expect(changes.length).toBe(0);
+        });
+    });
