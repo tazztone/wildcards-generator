@@ -190,6 +190,10 @@ const State = {
     readyPromise: null,
     _resolveReady: null,
 
+    // Cache for duplicate finding
+    _cachedDuplicates: null,
+    _duplicatesCacheValid: false,
+
     history: [],
     historyIndex: -1,
 
@@ -257,10 +261,13 @@ const State = {
                 }
             }
 
-            // 2. Save to LocalStorage
+            // 2. Invalidate duplicates cache
+            this._duplicatesCacheValid = false;
+
+            // 3. Save to LocalStorage
             this._debouncedSave();
 
-            // 3. Dispatch Custom Event
+            // 4. Dispatch Custom Event
             const event = new CustomEvent('state-updated', {
                 detail: {
                     path: path,
@@ -336,6 +343,7 @@ const State = {
 
                 this._initProxy();
 
+                this._duplicatesCacheValid = false;
                 this.events.dispatchEvent(new CustomEvent('state-reset'));
                 if (notify) this.events.dispatchEvent(new CustomEvent('notification', { detail: 'State reset to defaults.' }));
 
@@ -350,6 +358,7 @@ const State = {
             this._rawData.systemPrompt = "";
             this._saveToLocalStorage();
             this._initProxy();
+            this._duplicatesCacheValid = false;
             this.events.dispatchEvent(new CustomEvent('state-reset'));
         } finally {
             if (this._resolveReady) this._resolveReady(true);
@@ -430,6 +439,7 @@ const State = {
             this._saveHistoryToStorage();
             this._saveToLocalStorage();
             this._initProxy();
+            this._duplicatesCacheValid = false;
 
             // Dispatch patch event if we have specific changes, otherwise fallback to reset
             if (changes.length > 0 && changes.length < 50) {
@@ -456,6 +466,7 @@ const State = {
             this._saveHistoryToStorage();
             this._saveToLocalStorage();
             this._initProxy();
+            this._duplicatesCacheValid = false;
 
             // Dispatch patch event if we have specific changes, otherwise fallback to reset
             if (changes.length > 0 && changes.length < 50) {
@@ -529,8 +540,11 @@ const State = {
      * @returns {{duplicates: Array, duplicateMap: Set}}
      */
 
-    // TODO: Cache duplicate results and invalidate only on relevant changes
     findDuplicates() {
+        if (this._duplicatesCacheValid && this._cachedDuplicates) {
+            return this._cachedDuplicates;
+        }
+
         const wildcardMap = new Map();
 
         const scanData = (data, path) => {
@@ -567,7 +581,10 @@ const State = {
         // Sort by count descending
         duplicates.sort((a, b) => b.count - a.count);
 
-        return { duplicates, duplicateMap: duplicateNormalized };
+        this._cachedDuplicates = { duplicates, duplicateMap: duplicateNormalized };
+        this._duplicatesCacheValid = true;
+
+        return this._cachedDuplicates;
     },
 
     /**
@@ -663,6 +680,7 @@ const State = {
         });
 
         if (requiresUpdate) {
+            this._duplicatesCacheValid = false;
             this._saveToLocalStorage();
             // Dispatch reset to force full UI refresh since we bypassed proxy events
             this.events.dispatchEvent(new CustomEvent('state-reset'));
