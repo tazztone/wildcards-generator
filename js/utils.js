@@ -22,9 +22,13 @@ export const sanitize = (input) => {
     if (window.DOMPurify) {
         return window.DOMPurify.sanitize(input);
     }
-    const temp = document.createElement('div');
-    temp.textContent = input;
-    return temp.innerHTML
+    if (typeof input !== 'string') {
+        input = String(input ?? '');
+    }
+    return input
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 };
