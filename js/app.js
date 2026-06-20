@@ -306,7 +306,7 @@ export const App = {
 
                     // Reset state
                     previewSection.classList.add('hidden');
-                    previewEl.innerHTML = '';
+                    previewEl.textContent = '';
 
                     // Populate Common Data
                     timeEl.textContent = result.stats?.responseTime ? `${result.stats.responseTime} ms` : '-- ms';
@@ -342,12 +342,20 @@ export const App = {
                         // Formatted Preview
                         if (result.stats.parsedContent && Array.isArray(result.stats.parsedContent)) {
                             previewSection.classList.remove('hidden');
-                            previewEl.innerHTML = result.stats.parsedContent.map(item =>
-                                `<span class="px-2 py-1 bg-indigo-900/50 text-indigo-200 border border-indigo-700/50 rounded text-xs">${sanitize(item)}</span>`
-                            ).join('');
+                            previewEl.textContent = '';
+                            result.stats.parsedContent.forEach(item => {
+                                const span = document.createElement('span');
+                                span.className = 'px-2 py-1 bg-indigo-900/50 text-indigo-200 border border-indigo-700/50 rounded text-xs';
+                                span.textContent = item; // textContent handles escaping, no need for sanitize()
+                                previewEl.appendChild(span);
+                            });
                         } else if (typeof result.stats.parsedContent === 'object') {
                             previewSection.classList.remove('hidden');
-                            previewEl.innerHTML = `<span class="text-gray-400 text-xs italic">Result is an object, not an array. (Count: ${Object.keys(result.stats.parsedContent).length})</span>`;
+                            previewEl.textContent = '';
+                            const span = document.createElement('span');
+                            span.className = 'text-gray-400 text-xs italic';
+                            span.textContent = `Result is an object, not an array. (Count: ${Object.keys(result.stats.parsedContent).length})`;
+                            previewEl.appendChild(span);
                         }
 
                         // Raw Response
