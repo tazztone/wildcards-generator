@@ -29,41 +29,6 @@ export const sanitize = (input) => {
         .replace(/'/g, '&#39;');
 };
 
-export const throttle = (func, wait) => {
-    let timeout = null;
-    let previous = 0;
-    let latestArgs;
-    let context;
-
-    const throttled = function(...args) {
-        const now = Date.now();
-        const remaining = wait - (now - previous);
-        latestArgs = args;
-        context = this;
-
-        if (remaining <= 0 || remaining > wait) {
-            if (timeout) {
-                clearTimeout(timeout);
-                timeout = null;
-            }
-            previous = now;
-            func.apply(context, latestArgs);
-            latestArgs = null;
-            context = null;
-        } else if (!timeout) {
-            timeout = setTimeout(() => {
-                previous = Date.now();
-                timeout = null;
-                func.apply(context, latestArgs);
-                latestArgs = null;
-                context = null;
-            }, remaining);
-        }
-    };
-
-    return throttled;
-};
-
 export const debounce = (func, wait) => {
     let timeout;
     let latestArgs;
