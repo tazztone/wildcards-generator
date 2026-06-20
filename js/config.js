@@ -266,8 +266,14 @@ export function arrayBufferToBase64(buffer) {
 export function isValidApiKeyFormat(provider, key) {
     if (!key) return { isValid: true, error: null }; // Allow empty keys (resetting)
 
+    if (typeof key !== 'string') {
+        return { isValid: false, error: 'Key must be a string' };
+    }
+
     const k = key.trim();
-    switch (provider.toLowerCase()) {
+    const p = typeof provider === 'string' ? provider.toLowerCase() : '';
+
+    switch (p) {
         case 'openrouter':
             if (!k.startsWith('sk-or-')) {
                 return { isValid: false, error: 'OpenRouter keys typically start with "sk-or-"' };
