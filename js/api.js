@@ -71,7 +71,13 @@ export const Api = {
             }
 
             let lastText = "";
-            try { lastText = await res.clone().text(); } catch(e){}
+            try {
+                if (typeof res.clone === 'function') {
+                    lastText = await res.clone().text();
+                } else if (typeof res.text === 'function') {
+                    lastText = await res.text();
+                }
+            } catch (e){}
 
             if (logHook && logId) {
                 logHook.logResponse(logId, lastText, `HTTP ${res.status}`);
