@@ -676,6 +676,9 @@ export const App = {
             if (target.matches('#export-settings-btn')) {
                 ImportExport.handleExportSettings();
             }
+            if (target.matches('#export-debug-config-btn')) {
+                ImportExport.handleExportDebugConfig();
+            }
             if (target.matches('#load-settings-btn')) {
                 document.getElementById('settings-file-input')?.click();
             }
