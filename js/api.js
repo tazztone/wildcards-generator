@@ -6,7 +6,6 @@ import { ROLE_DESCRIPTIONS } from './state.js';
 import { deepClone } from './utils.js';
 
 // TODO: Add request caching layer for identical prompts to reduce API costs
-// TODO: Implement exponential backoff retry logic for transient failures
 // TODO: Add support for request queuing with configurable concurrency limits
 // TODO: Create provider abstraction layer to simplify adding new LLM providers
 
@@ -55,6 +54,66 @@ export const Api = {
         Logger.clear().catch(e => console.error("Failed to clear logs:", e));
     },
 
+    /**
+     * Standard recursive retry wrapper around the fetch call with exponential backoff.
+     */
+    async _fetchWithRetry(url, options, payload = null, maxRetries = 3, attempt = 0, logHook = null) {
+        let logId = null;
+        if (logHook && payload) {
+            logId = logHook.logRequest(url, payload, options.headers);
+        }
+
+        try {
+            const res = await fetch(url, options);
+
+            if (res.ok) {
+                return { ok: true, res, logId };
+            }
+
+            let lastText = "";
+            try { lastText = await res.clone().text(); } catch(e){}
+
+            if (logHook && logId) {
+                logHook.logResponse(logId, lastText, `HTTP ${res.status}`);
+            }
+
+            // Only retry on 429 (Rate Limit) or 503 (Service Unavailable)
+            if (attempt < maxRetries && (res.status === 429 || res.status === 503)) {
+                let delay = Math.pow(2, attempt) * 1000;
+
+                // Respect Retry-After header if present
+                const retryAfter = res.headers.get('Retry-After');
+                if (retryAfter) {
+                    const seconds = parseInt(retryAfter);
+                    if (!isNaN(seconds)) delay = seconds * 1000;
+                    else {
+                        const date = new Date(retryAfter);
+                        if (!isNaN(date.getTime())) delay = Math.max(0, date.getTime() - Date.now());
+                    }
+                }
+
+                console.warn(`API request failed with ${res.status}. Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this._fetchWithRetry(url, options, payload, maxRetries, attempt + 1, logHook);
+            }
+
+            return { ok: false, res, logId, status: res.status, text: lastText };
+        } catch (error) {
+            if (error.name === 'AbortError') throw error;
+            console.error(`Attempt ${attempt + 1} failed:`, error);
+
+            if (logHook && logId) {
+                logHook.logResponse(logId, error.message, 'Fetch Error');
+            }
+
+            if (attempt >= maxRetries) throw error;
+
+            const delay = Math.pow(2, attempt) * 1000;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return this._fetchWithRetry(url, options, payload, maxRetries, attempt + 1, logHook);
+        }
+    },
+
     async _makeRequest(globalPrompt, userPrompt, generationConfig, abortPrevious = true) {
         if (abortPrevious && this.activeController) this.activeController.abort();
         const controller = new AbortController();
@@ -63,62 +122,20 @@ export const Api = {
         try {
             const { url, payload, headers } = this._prepareRequest(globalPrompt, userPrompt, generationConfig);
             const makeRequest = async (currentPayload) => {
-                const maxRetries = 3;
-                let lastStatus = 0;
-                let lastText = "";
+                const options = {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(currentPayload),
+                    signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)])
+                };
 
-                for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                    const logId = this.logRequest(url, currentPayload, headers);
-                    try {
-                        const res = await fetch(url, {
-                            method: 'POST',
-                            headers,
-                            body: JSON.stringify(currentPayload),
-                            signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)])
-                        });
-
-                        if (res.ok) {
-                            const json = await res.json();
-                            this.logResponse(logId, json);
-                            return { ok: true, json };
-                        }
-
-                        lastStatus = res.status;
-                        lastText = await res.text();
-                        this.logResponse(logId, lastText, `HTTP ${res.status}`);
-
-                        // Only retry on 429 (Rate Limit) or 503 (Service Unavailable)
-                        if (attempt < maxRetries && (res.status === 429 || res.status === 503)) {
-                            let delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
-
-                            // Respect Retry-After header if present
-                            const retryAfter = res.headers.get('Retry-After');
-                            if (retryAfter) {
-                                const seconds = parseInt(retryAfter);
-                                if (!isNaN(seconds)) {
-                                    delay = seconds * 1000;
-                                } else {
-                                    const date = new Date(retryAfter);
-                                    if (!isNaN(date.getTime())) {
-                                        delay = Math.max(0, date.getTime() - Date.now());
-                                    }
-                                }
-                            }
-
-                            console.warn(`API request failed with ${res.status}. Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            continue;
-                        }
-
-                        return { ok: false, status: lastStatus, text: lastText };
-                    } catch (e) {
-                        if (e.name === 'AbortError') throw e;
-                        console.error(`Attempt ${attempt + 1} failed:`, e);
-                        if (attempt === maxRetries) throw e;
-                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-                    }
+                const fetchResult = await this._fetchWithRetry(url, options, currentPayload, 3, 0, this);
+                if (fetchResult.ok) {
+                    const json = await fetchResult.res.json();
+                    if (fetchResult.logId) this.logResponse(fetchResult.logId, json);
+                    return { ok: true, json };
                 }
-                return { ok: false, status: lastStatus, text: lastText };
+                return fetchResult; // has ok: false, status, text
             };
 
             let reqResult = await makeRequest(payload);
@@ -168,51 +185,17 @@ export const Api = {
             payload.stream = true; // Enable streaming
 
             const makeStreamingRequest = async (currentPayload) => {
-                const maxRetries = 3;
-                let lastStatus = 0;
-                let lastText = "";
-
-                for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                    const logId = this.logRequest(url, currentPayload, headers);
-                    try {
-                        const res = await fetch(url, {
-                            method: 'POST',
-                            headers,
-                            body: JSON.stringify(currentPayload),
-                            signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60000)])
-                        });
-
-                        if (res.ok) {
-                            return { ok: true, body: res.body, logId };
-                        }
-
-                        lastStatus = res.status;
-                        lastText = await res.text();
-                        this.logResponse(logId, lastText, `HTTP ${res.status}`);
-
-                        // Only retry on 429 (Rate Limit) or 503 (Service Unavailable)
-                        if (attempt < maxRetries && (res.status === 429 || res.status === 503)) {
-                            let delay = Math.pow(2, attempt) * 1000;
-                            const retryAfter = res.headers.get('Retry-After');
-                            if (retryAfter) {
-                                const seconds = parseInt(retryAfter);
-                                if (!isNaN(seconds)) delay = seconds * 1000;
-                            }
-
-                            console.warn(`Streaming request failed with ${res.status}. Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            continue;
-                        }
-
-                        return { ok: false, status: lastStatus, text: lastText };
-                    } catch (e) {
-                        if (e.name === 'AbortError') throw e;
-                        console.error(`Streaming attempt ${attempt + 1} failed:`, e);
-                        if (attempt === maxRetries) throw e;
-                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-                    }
+                const options = {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(currentPayload),
+                    signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60000)])
+                };
+                const fetchResult = await this._fetchWithRetry(url, options, currentPayload, 3, 0, this);
+                if (fetchResult.ok) {
+                    return { ok: true, body: fetchResult.res.body, logId: fetchResult.logId };
                 }
-                return { ok: false, status: lastStatus, text: lastText };
+                return fetchResult;
             };
 
             let reqResult = await makeStreamingRequest(payload);
@@ -632,17 +615,18 @@ Return a JSON array with your classifications. Be concise.`;
 
                 // 1. Verify Key first using /auth/key endpoint
                 const authUrl = 'https://openrouter.ai/api/v1/auth/key';
-                const authResponse = await fetch(authUrl, {
+                const authOptions = {
                     method: 'GET',
                     headers: { 'Authorization': `Bearer ${apiKey}` }
-                });
+                };
+                const authResult = await this._fetchWithRetry(authUrl, authOptions, null, 3, 0, null);
 
-                if (authResponse.status === 401) {
+                if (authResult.status === 401) {
                     throw new Error("Invalid OpenRouter API Key.");
-                } else if (!authResponse.ok) {
+                } else if (!authResult.ok) {
                     // Some other error, but let's try reading text
-                    const text = await authResponse.text();
-                    throw new Error(`OpenRouter Auth Check Failed: ${authResponse.status} - ${text}`);
+                    const text = authResult.text || 'Could not retrieve error details.';
+                    throw new Error(`OpenRouter Auth Check Failed: ${authResult.status} - ${text}`);
                 }
 
                 // 2. Fetch Models
@@ -666,12 +650,12 @@ Return a JSON array with your classifications. Be concise.`;
 
             if (!url) throw new Error("Could not determine URL for testing.");
 
-            const response = await fetch(url, requestOptions);
-            if (!response.ok) {
-                const errorText = await response.text().catch(() => 'Could not retrieve error details.');
-                throw new Error(`Request failed: ${response.status} ${response.statusText}. Response: ${errorText}`);
+            const fetchResult = await this._fetchWithRetry(url, requestOptions, null, 3, 0, null);
+            if (!fetchResult.ok) {
+                const errorText = fetchResult.text || 'Could not retrieve error details.';
+                throw new Error(`Request failed: ${fetchResult.status}. Response: ${errorText}`);
             }
-            const data = await response.json();
+            const data = await fetchResult.res.json();
 
             let successMessage = '';
             let models = [];
@@ -1047,12 +1031,12 @@ Return a JSON array with your classifications. Be concise.`;
 
             // Fallback logic for models that don't support json_object
             const makeRequest = async (currentPayload) => {
-                const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(currentPayload) });
-                if (!res.ok) {
-                    const text = await res.text();
-                    return { ok: false, status: res.status, text };
+                const options = { method: 'POST', headers, body: JSON.stringify(currentPayload) };
+                const fetchResult = await this._fetchWithRetry(url, options, currentPayload, 3, 0, null);
+                if (!fetchResult.ok) {
+                    return fetchResult;
                 }
-                return { ok: true, json: await res.json() };
+                return { ok: true, json: await fetchResult.res.json() };
             };
 
             let reqResult = await makeRequest(payload);
@@ -1593,18 +1577,19 @@ Return a JSON array with your classifications. Be concise.`;
             if (topP !== undefined && topP !== 1.0) payload.top_p = topP;
         }
 
-        const response = await fetch(url, {
+        const options = {
             method: 'POST',
             headers,
             body: JSON.stringify(payload)
-        });
+        };
+        const fetchResult = await this._fetchWithRetry(url, options, payload, 3, 0, null);
 
-        if (!response.ok) {
-            const text = await response.text();
-            throw new Error(`HTTP ${response.status}: ${text}`);
+        if (!fetchResult.ok) {
+            const text = fetchResult.text || 'Could not retrieve error details.';
+            throw new Error(`HTTP ${fetchResult.status}: ${text}`);
         }
 
-        return { result: await response.json(), request: { url, payload } };
+        return { result: await fetchResult.res.json(), request: { url, payload } };
     },
 
     /**
