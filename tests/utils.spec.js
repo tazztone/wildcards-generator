@@ -50,6 +50,76 @@ test.describe('Utils Unit Tests', () => {
         expect(result.clone).toEqual({ a: 1, b: { c: 3 } });
     });
 
+    test('deepClone handles primitive values correctly', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const { deepClone } = await import('./js/utils.js');
+            return {
+                stringClone: deepClone('test'),
+                numberClone: deepClone(42),
+                booleanClone: deepClone(true),
+                nullClone: deepClone(null),
+                undefinedClone: deepClone(undefined)
+            };
+        });
+
+        expect(result.stringClone).toBe('test');
+        expect(result.numberClone).toBe(42);
+        expect(result.booleanClone).toBe(true);
+        expect(result.nullClone).toBe(null);
+        expect(result.undefinedClone).toBe(undefined);
+    });
+
+    test('deepClone handles arrays and nested arrays', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const { deepClone } = await import('./js/utils.js');
+            const original = [1, [2, 3], { a: 4 }];
+            const clone = deepClone(original);
+
+            // Modify clone
+            clone[1][0] = 99;
+            clone[2].a = 100;
+
+            return { original, clone };
+        });
+
+        expect(result.original).toEqual([1, [2, 3], { a: 4 }]);
+        expect(result.clone).toEqual([1, [99, 3], { a: 100 }]);
+    });
+
+    test('deepClone uses JSON fallback when structuredClone is unavailable', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            // Backup structuredClone
+            const originalStructuredClone = window.structuredClone;
+
+            try {
+                // Delete structuredClone from global object to force fallback
+                // @ts-ignore
+                delete window.structuredClone;
+
+                const { deepClone } = await import('./js/utils.js');
+                const original = { a: 1, b: { c: 2 }, d: [1, 2] };
+                const clone = deepClone(original);
+
+                // Modify clone
+                clone.b.c = 3;
+                clone.d.push(3);
+
+                return {
+                    original,
+                    clone,
+                    isStructuredCloneMissing: typeof window.structuredClone === 'undefined'
+                };
+            } finally {
+                // Restore structuredClone
+                window.structuredClone = originalStructuredClone;
+            }
+        });
+
+        expect(result.isStructuredCloneMissing).toBe(true);
+        expect(result.original).toEqual({ a: 1, b: { c: 2 }, d: [1, 2] });
+        expect(result.clone).toEqual({ a: 1, b: { c: 3 }, d: [1, 2, 3] });
+    });
+
     test('sanitize function escapes HTML', async ({ page }) => {
         const result = await page.evaluate(async () => {
             // Import utils dynamically

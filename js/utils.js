@@ -12,6 +12,7 @@ export const truncate = (str, maxLength, position = 'end') => {
 };
 
 export const deepClone = (obj) => {
+    if (obj === undefined) return undefined;
     if (typeof structuredClone === 'function') {
         return structuredClone(obj);
     }
