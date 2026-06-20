@@ -26,6 +26,53 @@ test.describe('generateNodeId', () => {
             expect(/^[a-z0-9-]+$/i.test(id)).toBe(true);
         }
     });
+
+    test('generates fallback IDs when crypto is unavailable', async ({ page }) => {
+        const ids = await page.evaluate(async () => {
+            // Save just the function reference, not the whole crypto object
+            const originalRandomUUID = window.crypto ? window.crypto.randomUUID : undefined;
+
+            try {
+                // Mock crypto.randomUUID to be undefined to force the fallback branch
+                if (window.crypto) {
+                    Object.defineProperty(window.crypto, 'randomUUID', {
+                        value: undefined,
+                        configurable: true
+                    });
+                }
+
+                const { generateNodeId } = await import('./js/state.js');
+                const result = [];
+                for (let i = 0; i < 1000; i++) {
+                    result.push(generateNodeId());
+                }
+                return result;
+            } finally {
+                // Restore crypto.randomUUID
+                if (window.crypto && originalRandomUUID !== undefined) {
+                    Object.defineProperty(window.crypto, 'randomUUID', {
+                        value: originalRandomUUID,
+                        configurable: true
+                    });
+                }
+            }
+        });
+
+        expect(ids.length).toBe(1000);
+
+        // Check uniqueness
+        const uniqueIds = new Set(ids);
+        expect(uniqueIds.size).toBeGreaterThanOrEqual(950);
+
+        // Check format for fallback
+        for (const id of ids) {
+            expect(typeof id).toBe('string');
+            expect(id.length).toBeGreaterThan(0);
+            expect(id.length).toBeLessThanOrEqual(20);
+            // Verify alphanumeric format
+            expect(/^[a-z0-9-]+$/i.test(id)).toBe(true);
+        }
+    });
 });
 
 test.describe('State Management Logic', () => {
