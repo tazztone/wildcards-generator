@@ -73,7 +73,10 @@ export const App = {
     bindEvents() {
         const signal = this.abortController.signal;
         // Event Delegation on Container for all dynamic interactions
-        // TODO: Add touch event handlers for better mobile experience (touchstart, touchmove)
+
+        // Touch events for better mobile experience (enables CSS :active state on iOS)
+        UI.elements.container.addEventListener('touchstart', () => {}, { signal, passive: true });
+
         UI.elements.container.addEventListener('click', (e) => this.handleContainerClick(e), { signal });
         UI.elements.container.addEventListener('change', (e) => this.handleContainerChange(e), { signal });
         UI.elements.container.addEventListener('blur', (e) => this.handleContainerBlur(e), { capture: true, signal });
