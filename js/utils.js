@@ -19,6 +19,15 @@ export const deepClone = (obj) => {
     return JSON.parse(JSON.stringify(obj));
 };
 
+export const escapeHtml = (unsafe) => {
+    return String(unsafe || '')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+};
+
 export const sanitize = (input) => {
     if (window.DOMPurify) {
         return window.DOMPurify.sanitize(input);
