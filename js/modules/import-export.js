@@ -4,7 +4,6 @@
  */
 
 // TODO: Add support for importing/exporting JSON format as alternative to YAML
-// TODO: Implement drag-and-drop file import on the main container
 // TODO: Add import validation with preview before applying changes
 
 
@@ -182,6 +181,124 @@ export const ImportExport = {
     },
 
     /**
+     * Processes files for import.
+     * @param {FileList|File[]} files - The files to process
+     */
+    async processImportFiles(files) {
+        if (!files || files.length === 0) return;
+
+        // Warn user if the total file size exceeds 1MB limit
+        const maxSize = 1024 * 1024; // 1MB
+        let totalSize = 0;
+        for (let i = 0; i < files.length; i++) {
+            totalSize += files[i].size;
+        }
+
+        if (totalSize > maxSize) {
+            const sizeInMB = (totalSize / maxSize).toFixed(2);
+            const confirm = await UI.showConfirmDialog(
+                'Large Files Warning',
+                `The selected files total ${sizeInMB} MB. Importing them may take a long time or cause the browser to freeze. Do you want to continue?`,
+                { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
+            );
+            if (!confirm) return;
+        }
+
+        let combinedProcessedData = {};
+        let combinedSimpleParsed = {};
+        let validFilesCount = 0;
+
+        try {
+            // @ts-ignore
+            const YAML = (await import('https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js')).default;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    const text = await file.text();
+
+                    // Use parseDocument to preserve comments (for # instruction: format)
+                    const doc = YAML.parseDocument(text);
+                    if (doc.errors && doc.errors.length > 0) {
+                        console.error(`YAML Parse Errors in ${file.name}:`, doc.errors);
+                        throw new Error('YAML parsing failed');
+                    }
+
+                    // Process with State.processYamlNode to extract comment-based instructions
+                    let processedData = State.processYamlNode(doc.contents);
+
+                    // Also try simple parse for pre-processed YAML (exported format)
+                    const simpleParsed = YAML.parse(text);
+
+                    // If simple parse has wildcards property with instructions, use that instead
+                    if (simpleParsed && simpleParsed.wildcards && typeof simpleParsed.wildcards === 'object') {
+                        // Check if it looks like already-processed format (has instruction properties)
+                        const firstKey = Object.keys(simpleParsed.wildcards)[0];
+                        if (firstKey && simpleParsed.wildcards[firstKey] &&
+                            (simpleParsed.wildcards[firstKey].instruction !== undefined ||
+                                simpleParsed.wildcards[firstKey].wildcards !== undefined)) {
+                            processedData = simpleParsed.wildcards;
+                        }
+                    }
+
+                    if (!processedData || typeof processedData !== 'object') {
+                        throw new Error('Invalid YAML structure');
+                    }
+
+                    this._deepMerge(combinedProcessedData, processedData);
+                    if (simpleParsed && simpleParsed.systemPrompt) combinedSimpleParsed.systemPrompt = simpleParsed.systemPrompt;
+                    if (simpleParsed && simpleParsed.suggestItemPrompt) combinedSimpleParsed.suggestItemPrompt = simpleParsed.suggestItemPrompt;
+
+                    validFilesCount++;
+                } catch (err) {
+                    console.error(`Import YAML failed for ${file.name}:`, err);
+                    UI.showToast(`Import failed for ${file.name}: ${err.message}`, 'error');
+                }
+            }
+
+            if (validFilesCount === 0) {
+                return; // No valid files to import
+            }
+
+            const displayFilename = files.length === 1 ? files[0].name : `${validFilesCount} files`;
+
+            // Check if merging is needed
+            const hasExisting = Object.keys(State.state.wildcards).length > 0;
+            if (hasExisting) {
+                // Show Replace/Merge/Cancel dialog
+                UI.showNotification(`How would you like to import ${displayFilename}?`, false, null, false, [
+                    {
+                        text: 'Replace All',
+                        class: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded',
+                        onClick: () => {
+                            UI.elements.dialog.close();
+                            this._applyProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename, 'replaced');
+                        }
+                    },
+                    {
+                        text: 'Merge',
+                        class: 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
+                        onClick: () => {
+                            UI.elements.dialog.close();
+                            this._mergeProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename);
+                        }
+                    },
+                    {
+                        text: 'Cancel',
+                        class: 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded',
+                        onClick: () => UI.elements.dialog.close()
+                    }
+                ]);
+            } else {
+                this._applyProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename, 'imported');
+            }
+        } catch (err) {
+            console.error('Import process failed:', err);
+            UI.showToast(`Import process failed: ${err.message}`, 'error');
+        }
+    },
+
+    /**
      * Opens a file picker to import YAML wildcard data.
      */
     handleImportYAML() {
@@ -193,117 +310,7 @@ export const ImportExport = {
         input.title = 'Select YAML files to import wildcards';
         input.onchange = async (e) => {
             const files = /** @type {HTMLInputElement} */ (e.target).files;
-            if (!files || files.length === 0) return;
-
-            // Warn user if the total file size exceeds 1MB limit
-            const maxSize = 1024 * 1024; // 1MB
-            let totalSize = 0;
-            for (let i = 0; i < files.length; i++) {
-                totalSize += files[i].size;
-            }
-
-            if (totalSize > maxSize) {
-                const sizeInMB = (totalSize / maxSize).toFixed(2);
-                const confirm = await UI.showConfirmDialog(
-                    'Large Files Warning',
-                    `The selected files total ${sizeInMB} MB. Importing them may take a long time or cause the browser to freeze. Do you want to continue?`,
-                    { confirmText: 'Continue', cancelText: 'Cancel', danger: true }
-                );
-                if (!confirm) return;
-            }
-
-            let combinedProcessedData = {};
-            let combinedSimpleParsed = {};
-            let validFilesCount = 0;
-
-            try {
-                // @ts-ignore
-                const YAML = (await import('https://cdn.jsdelivr.net/npm/yaml@2.8.2/browser/index.js')).default;
-
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    try {
-                        const text = await file.text();
-
-                        // Use parseDocument to preserve comments (for # instruction: format)
-                        const doc = YAML.parseDocument(text);
-                        if (doc.errors && doc.errors.length > 0) {
-                            console.error(`YAML Parse Errors in ${file.name}:`, doc.errors);
-                            throw new Error('YAML parsing failed');
-                        }
-
-                        // Process with State.processYamlNode to extract comment-based instructions
-                        let processedData = State.processYamlNode(doc.contents);
-
-                        // Also try simple parse for pre-processed YAML (exported format)
-                        const simpleParsed = YAML.parse(text);
-
-                        // If simple parse has wildcards property with instructions, use that instead
-                        if (simpleParsed && simpleParsed.wildcards && typeof simpleParsed.wildcards === 'object') {
-                            // Check if it looks like already-processed format (has instruction properties)
-                            const firstKey = Object.keys(simpleParsed.wildcards)[0];
-                            if (firstKey && simpleParsed.wildcards[firstKey] &&
-                                (simpleParsed.wildcards[firstKey].instruction !== undefined ||
-                                    simpleParsed.wildcards[firstKey].wildcards !== undefined)) {
-                                processedData = simpleParsed.wildcards;
-                            }
-                        }
-
-                        if (!processedData || typeof processedData !== 'object') {
-                            throw new Error('Invalid YAML structure');
-                        }
-
-                        this._deepMerge(combinedProcessedData, processedData);
-                        if (simpleParsed && simpleParsed.systemPrompt) combinedSimpleParsed.systemPrompt = simpleParsed.systemPrompt;
-                        if (simpleParsed && simpleParsed.suggestItemPrompt) combinedSimpleParsed.suggestItemPrompt = simpleParsed.suggestItemPrompt;
-
-                        validFilesCount++;
-                    } catch (err) {
-                        console.error(`Import YAML failed for ${file.name}:`, err);
-                        UI.showToast(`Import failed for ${file.name}: ${err.message}`, 'error');
-                    }
-                }
-
-                if (validFilesCount === 0) {
-                    return; // No valid files to import
-                }
-
-                const displayFilename = files.length === 1 ? files[0].name : `${validFilesCount} files`;
-
-                // Check if merging is needed
-                const hasExisting = Object.keys(State.state.wildcards).length > 0;
-                if (hasExisting) {
-                    // Show Replace/Merge/Cancel dialog
-                    UI.showNotification(`How would you like to import ${displayFilename}?`, false, null, false, [
-                        {
-                            text: 'Replace All',
-                            class: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded',
-                            onClick: () => {
-                                UI.elements.dialog.close();
-                                this._applyProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename, 'replaced');
-                            }
-                        },
-                        {
-                            text: 'Merge',
-                            class: 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
-                            onClick: () => {
-                                UI.elements.dialog.close();
-                                this._mergeProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename);
-                            }
-                        },
-                        {
-                            text: 'Cancel',
-                            class: 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded',
-                            onClick: () => UI.elements.dialog.close()
-                        }
-                    ]);
-                } else {
-                    this._applyProcessedData(combinedProcessedData, combinedSimpleParsed, displayFilename, 'imported');
-                }
-            } catch (err) {
-                console.error('Import process failed:', err);
-                UI.showToast(`Import process failed: ${err.message}`, 'error');
-            }
+            this.processImportFiles(files);
         };
         input.click();
     },

@@ -92,6 +92,41 @@ export const App = {
         UI.elements.container.addEventListener('touchstart', () => {}, { signal, passive: true });
 
         UI.elements.container.addEventListener('click', (e) => this.handleContainerClick(e), { signal });
+
+        // Global Drag and Drop for YAML/JSON file import
+        document.body.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        }, { signal });
+
+        document.body.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+        }, { signal });
+
+        document.body.addEventListener('drop', (e) => {
+            e.preventDefault();
+
+            // Allow drop only if files are present and it's not a DOM element dragging
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                const files = Array.from(e.dataTransfer.files);
+
+                // Filter for supported extensions (.yaml, .yml)
+                const validFiles = files.filter(file => {
+                    const name = file.name.toLowerCase();
+                    return name.endsWith('.yaml') || name.endsWith('.yml');
+                });
+
+                if (validFiles.length > 0) {
+                    ImportExport.processImportFiles(validFiles);
+                } else {
+                    // Only show a warning if they actually tried dropping a file,
+                    // not for internal drag-and-drop ops (which also trigger drop events on body if not caught).
+                    // We can check if any files were dropped at all.
+                    if (files.length > 0) {
+                       UI.showToast('Please drop valid .yaml or .yml files', 'warning');
+                    }
+                }
+            }
+        }, { signal });
         UI.elements.container.addEventListener('change', (e) => this.handleContainerChange(e), { signal });
         UI.elements.container.addEventListener('blur', (e) => this.handleContainerBlur(e), { capture: true, signal });
         UI.elements.container.addEventListener('keydown', (e) => this.handleContainerKeydown(e), { signal });
