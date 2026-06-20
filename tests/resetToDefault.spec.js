@@ -91,4 +91,54 @@ test.describe('Config resetToDefault', () => {
 
         expect(result.unknownKeyAfter).toBe('custom value');
     });
+
+    test('handles edge cases gracefully without throwing errors', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            let errorCaught = false;
+            try {
+                window.resetToDefault(undefined);
+                window.resetToDefault(null);
+                window.resetToDefault('');
+                window.resetToDefault(123);
+                window.resetToDefault({});
+                window.resetToDefault([]);
+                window.resetToDefault(true);
+            } catch (e) {
+                errorCaught = true;
+            }
+            return errorCaught;
+        });
+
+        expect(result).toBe(false);
+    });
+
+    test('does not call saveConfig for invalid or edge case keys', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            let saveCount = 0;
+            const originalSetItem = localStorage.setItem;
+
+            localStorage.setItem = (key, value) => {
+                if (key === window.Config.CONFIG_STORAGE_KEY) {
+                    saveCount++;
+                }
+            };
+
+            try {
+                window.resetToDefault(undefined);
+                window.resetToDefault(null);
+                window.resetToDefault('');
+                window.resetToDefault(123);
+                window.resetToDefault({});
+                window.resetToDefault([]);
+                window.resetToDefault(true);
+                window.resetToDefault('NON_EXISTENT_KEY');
+            } finally {
+                localStorage.setItem = originalSetItem;
+            }
+
+            return saveCount;
+        });
+
+        expect(result).toBe(0);
+    });
 });
