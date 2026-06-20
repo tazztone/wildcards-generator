@@ -73,4 +73,53 @@ test.describe('isUsingDefault functionality', () => {
         });
         expect(result).toBe(false);
     });
+
+    test('returns false for undefined key', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            return window.isUsingDefault(undefined);
+        });
+        expect(result).toBe(false);
+    });
+
+    test('returns false for null key', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            return window.isUsingDefault(null);
+        });
+        expect(result).toBe(false);
+    });
+
+    test('returns false for empty string key', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            return window.isUsingDefault('');
+        });
+        expect(result).toBe(false);
+    });
+
+    test('returns false for numeric key', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            return window.isUsingDefault(123);
+        });
+        expect(result).toBe(false);
+    });
+
+    test('returns false for object key', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            return window.isUsingDefault({ key: 'CUSTOM_SYSTEM_PROMPT' });
+        });
+        expect(result).toBe(false);
+    });
+
+    test('returns false for array key', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            return window.isUsingDefault(['CUSTOM_SYSTEM_PROMPT']);
+        });
+        expect(result).toBe(false);
+    });
+
+    test('returns false for prototype properties', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            return window.isUsingDefault('toString');
+        });
+        expect(result).toBe(false);
+    });
 });
