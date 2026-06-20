@@ -263,7 +263,7 @@ export function arrayBufferToBase64(buffer) {
  * @param {string} key - The API key string
  * @returns {{isValid: boolean, error: string|null}}
  */
-export function isValidApiKeyFormat(provider, key) {
+function isValidApiKeyFormat(provider, key) {
     if (!key) return { isValid: true, error: null }; // Allow empty keys (resetting)
 
     const k = key.trim();
