@@ -1283,10 +1283,18 @@ const Mindmap = {
         if (container && !container.querySelector('.filter-mode-indicator')) {
             const indicator = document.createElement('div');
             indicator.className = 'filter-mode-indicator';
-            indicator.innerHTML = `
-                <span class="indicator-icon">🔍</span>
-                <span class="indicator-text">Filter Mode: Showing ${paths.size} lists with duplicates</span>
-            `;
+
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'indicator-icon';
+            iconSpan.textContent = '🔍';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'indicator-text';
+            textSpan.textContent = `Filter Mode: Showing ${paths.size} lists with duplicates`;
+
+            indicator.appendChild(iconSpan);
+            indicator.appendChild(textSpan);
+
             container.appendChild(indicator);
         }
     },
