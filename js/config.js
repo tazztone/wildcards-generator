@@ -323,19 +323,10 @@ export async function saveApiKey(provider, key, persist) {
  * @returns {boolean} - True if using default, false if custom
  */
 export function isUsingDefault(key) {
-    if (key === 'CUSTOM_SYSTEM_PROMPT') {
-        return Config.CUSTOM_SYSTEM_PROMPT === null;
+    if (!key || typeof key !== 'string' || !ALL_DEFAULTS.hasOwnProperty(key)) {
+        return false;
     }
-    if (key === 'CUSTOM_SUGGEST_PROMPT') {
-        return Config.CUSTOM_SUGGEST_PROMPT === null;
-    }
-    if (key === 'CUSTOM_TEMPLATE_PROMPT') {
-        return Config.CUSTOM_TEMPLATE_PROMPT === null;
-    }
-    if (key === 'API_ENDPOINT') {
-        return Config.API_ENDPOINT === 'openrouter';
-    }
-    return false;
+    return Config[key] === ALL_DEFAULTS[key];
 }
 
 /**
