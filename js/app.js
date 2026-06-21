@@ -1926,55 +1926,79 @@ export const App = {
             });
 
             // TODO: Show progress bar with estimated time remaining
-            // Execute sequentially to be nice to API
+            const concurrencyLimit = 3;
+            const activeTasks = new Set();
+            let completedCount = 0;
+            let batchStopped = false;
+
             for (let i = 0; i < tasks.length; i++) {
+                if (batchStopped) break;
+
                 const task = tasks[i];
                 const cleanName = task.path.split('/').pop().replace(/_/g, ' ');
 
-                let retry = true;
-                while (retry) {
-                    UI.showToast(`Generating for "${cleanName}" (${i + 1}/${tasks.length})...`, 'info');
+                const taskPromise = (async () => {
+                    let retry = true;
+                    while (retry && !batchStopped) {
+                        // Scroll to item
+                        const card = cardMap.get(task.path);
+                        if (card) {
+                            try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e){}
+                            // Expand parents if hidden? ensure visibility
+                        }
 
-                    // Scroll to item
-                    const card = cardMap.get(task.path);
-                    if (card) {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        // Expand parents if hidden? ensure visibility
-                    }
+                        try {
+                            // Pass true for rethrow so we can handle errors here
+                            await this.handleGenerate(task.path, true);
+                            retry = false; // Success, exit retry loop and continue to next task
+                        } catch (e) {
+                            console.error('Batch generation error:', e);
+                            if (batchStopped) return; // Exit if another task already stopped the batch
 
-                    try {
-                        // Pass true for rethrow so we can handle errors here
-                        await this.handleGenerate(task.path, true);
-                        retry = false; // Success, exit retry loop and continue to next task
-                    } catch (e) {
-                        console.error('Batch generation error:', e);
+                            // Ask user what to do
+                            const shouldRetry = await UI.showConfirmDialog(
+                                'Batch Generation Error',
+                                `Error generating for "${cleanName}":\n${e.message}\n\nDo you want to try again?`,
+                                {
+                                    confirmText: 'Try Again',
+                                    cancelText: 'Stop Batch',
+                                    danger: true
+                                }
+                            );
 
-                        // Ask user what to do
-                        const shouldRetry = await UI.showConfirmDialog(
-                            'Batch Generation Error',
-                            `Error generating for "${cleanName}":\n${e.message}\n\nDo you want to try again?`,
-                            {
-                                confirmText: 'Try Again',
-                                cancelText: 'Stop Batch',
-                                danger: true
+                            if (shouldRetry) {
+                                retry = true;
+                                UI.showToast('Retrying...', 'info');
+                                await new Promise(r => setTimeout(r, 1000)); // Wait a bit before retry
+                            } else {
+                                batchStopped = true;
+                                return; // Exit the task
                             }
-                        );
-
-                        if (shouldRetry) {
-                            retry = true;
-                            UI.showToast('Retrying...', 'info');
-                            await new Promise(r => setTimeout(r, 1000)); // Wait a bit before retry
-                        } else {
-                            UI.showToast('Batch generation stopped by user', 'info');
-                            return; // Exit the entire generation function (stops the batch)
                         }
                     }
-                }
 
-                // Small delay between requests (only if we didn't return/cancel above)
-                await new Promise(r => setTimeout(r, 500));
+                    if (!batchStopped) {
+                        completedCount++;
+                        UI.showToast(`Generated for "${cleanName}" (${completedCount}/${tasks.length})...`, 'info');
+                    }
+                })();
+
+                activeTasks.add(taskPromise);
+                taskPromise.finally(() => activeTasks.delete(taskPromise));
+
+                if (activeTasks.size >= concurrencyLimit) {
+                    await Promise.race(activeTasks);
+                }
             }
-            UI.showToast('Batch generation complete!', 'success');
+
+            // Wait for remaining tasks to complete
+            await Promise.all(activeTasks);
+
+            if (batchStopped) {
+                UI.showToast('Batch generation stopped by user', 'info');
+            } else {
+                UI.showToast('Batch generation complete!', 'success');
+            }
         });
     },
 
