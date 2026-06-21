@@ -77,14 +77,18 @@ const ROLE_DESCRIPTIONS = {
 const VALID_ROLES = new Set(Object.keys(ROLE_DESCRIPTIONS));
 
 
+const proxyCache = new WeakMap();
+
 // Helper to create a deep proxy that knows its path
 function createDeepProxy(target, path = [], onChange) {
     if (typeof target !== 'object' || target === null) {
         return target;
     }
 
-    // If it's already a proxy, return it (to avoid double wrapping if logic allows)
-    // But standard Proxy doesn't expose this, so we rely on structure.
+    // If it's already a proxy, return it
+    if (proxyCache.has(target)) {
+        return proxyCache.get(target);
+    }
 
     const handler = {
         get(target, property, receiver) {
@@ -92,9 +96,16 @@ function createDeepProxy(target, path = [], onChange) {
 
             // Only proxy objects and arrays
             if (typeof value === 'object' && value !== null) {
+                // Return cached proxy if available
+                if (proxyCache.has(value)) {
+                    return proxyCache.get(value);
+                }
+
                 // We need to return a proxy for this nested object too
                 // The path for this nested object is [...path, property]
-                return createDeepProxy(value, [...path, property], onChange);
+                const proxy = createDeepProxy(value, [...path, property], onChange);
+                proxyCache.set(value, proxy);
+                return proxy;
             }
             return value;
         },
@@ -116,7 +127,9 @@ function createDeepProxy(target, path = [], onChange) {
             return success;
         }
     };
-    return new Proxy(target, handler);
+    const proxy = new Proxy(target, handler);
+    proxyCache.set(target, proxy);
+    return proxy;
 }
 
 /**
