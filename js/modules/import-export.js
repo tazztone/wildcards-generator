@@ -230,6 +230,9 @@ export const ImportExport = {
                     // Also try simple parse for pre-processed YAML (exported format)
                     const simpleParsed = YAML.parse(text);
 
+                    // Validate schema before proceeding
+                    this._validateImportSchema(simpleParsed);
+
                     // If simple parse has wildcards property with instructions, use that instead
                     if (simpleParsed && simpleParsed.wildcards && typeof simpleParsed.wildcards === 'object') {
                         // Check if it looks like already-processed format (has instruction properties)
@@ -299,10 +302,43 @@ export const ImportExport = {
     },
 
     /**
+     * Validates the schema of an imported YAML file.
+     * @param {object} parsedData - The parsed YAML object.
+     * @returns {boolean} - True if valid, throws error otherwise.
+     */
+    _validateImportSchema(parsedData) {
+        if (!parsedData || typeof parsedData !== 'object') {
+            throw new Error('Root must be an object');
+        }
+
+        // Check if it's the exported layout format
+        if ('wildcards' in parsedData) {
+            if (typeof parsedData.wildcards !== 'object' || parsedData.wildcards === null || Array.isArray(parsedData.wildcards)) {
+                throw new Error('The "wildcards" property must be an object of categories');
+            }
+            // Check that values are arrays or structured objects
+            for (const category in parsedData.wildcards) {
+                const val = parsedData.wildcards[category];
+                if (!Array.isArray(val) && (typeof val !== 'object' || val === null)) {
+                    throw new Error(`Category "${category}" must be an array of strings or an object with wildcards property`);
+                }
+            }
+        } else {
+            // Check if it's a direct dictionary of categories format
+            for (const category in parsedData) {
+                const val = parsedData[category];
+                if (!Array.isArray(val) && (typeof val !== 'object' || val === null)) {
+                    throw new Error(`Invalid category "${category}": must be an array or object`);
+                }
+            }
+        }
+        return true;
+    },
+
+    /**
      * Opens a file picker to import YAML wildcard data.
      */
     handleImportYAML() {
-        // TODO: Add schema validation before import
         const input = document.createElement('input');
         input.type = 'file';
         input.multiple = true;
