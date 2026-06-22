@@ -1340,9 +1340,15 @@ Return a JSON array with your classifications. Be concise.`;
             'C': 'PLACES/Natural_Environments'
         };
 
-        const pathContext = Object.entries(pathMap)
-            .map(([code, path]) => `${code} = "${path.replace(/\//g, ' > ').replace(/_/g, ' ')}"`)
-            .join('\n');
+        let pathContext = '';
+        let isFirst = true;
+        for (const code in pathMap) {
+            if (Object.hasOwn(pathMap, code)) {
+                if (!isFirst) pathContext += '\n';
+                pathContext += `${code} = "${pathMap[code].replace(/\//g, ' > ').replace(/_/g, ' ')}"`;
+                isFirst = false;
+            }
+        }
 
         const userPrompt = `PATH MAP:\n${pathContext}\n\nINSTRUCTIONS: Create creative scene compositions`;
 
