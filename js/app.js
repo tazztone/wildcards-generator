@@ -11,7 +11,6 @@ import { TemplateEngine } from './template-engine.js';
 
 const INVALID_NAME_CHARS = /[:{}\[\]#,*!|>'\"%@\`\\?\/]/;
 
-// TODO: Consider implementing a loading/splash screen for initial app load
 // TODO: Add keyboard navigation focus management for accessibility (WCAG 2.1)
 // TODO: Implement offline detection and graceful degradation for API calls
 
