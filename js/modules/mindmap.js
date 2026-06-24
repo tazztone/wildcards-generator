@@ -969,7 +969,11 @@ const Mindmap = {
 
         const items = menuEl.querySelectorAll('li');
         items.forEach(item => {
-            const text = item.textContent?.toLowerCase().trim() || '';
+            let text = item._cachedLowerText;
+            if (text === undefined) {
+                text = item.textContent?.toLowerCase().trim() || '';
+                item._cachedLowerText = text;
+            }
             // Reset visibility first to ensure we don't permanently hide items
             item.style.display = 'block';
 
@@ -1071,7 +1075,11 @@ const Mindmap = {
             const topics = container.querySelectorAll(topicSelector);
             for (let i = 0; i < topics.length; i++) {
                 const topic = topics[i];
-                const text = topic.textContent?.toLowerCase() || '';
+                let text = topic._cachedLowerText;
+                if (text === undefined) {
+                    text = topic.textContent?.toLowerCase() || '';
+                    topic._cachedLowerText = text;
+                }
                 if (text.includes(normalizedQuery)) {
                     topic.classList.add('mindmap-search-highlight');
                     matchedNodes.push(topic);
