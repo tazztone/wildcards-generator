@@ -53,6 +53,9 @@ export const UI = {
             saveConfig();
         }, 1000);
 
+        // Sync initial state of UI with configuration
+        document.documentElement.style.setProperty('--card-height', `${Config.CARD_HEIGHT}px`);
+
         this._cardResizeObserver = new ResizeObserver(entries => {
             // Find the entry that actually changed (usually just one during user resize)
             // But if we sync others, they will also appear in entries.
@@ -64,11 +67,13 @@ export const UI = {
                     Config.CARD_HEIGHT = targetHeight;
                     debouncedSave();
 
-                    // Sync all boxes to this new height
+                    // Sync all boxes to this new height using CSS variables (O(1) DOM updates vs O(N))
+                    document.documentElement.style.setProperty('--card-height', `${targetHeight}px`);
+
+                    // Clear inline styles on other containers so CSS variable takes precedence
                     document.querySelectorAll('.chip-container').forEach(el => {
-                        const htmlEl = /** @type {HTMLElement} */(el);
-                        if (Math.abs(htmlEl.offsetHeight - targetHeight) > 1) {
-                            htmlEl.style.height = `${targetHeight}px`;
+                        if (el !== entry.target) {
+                            /** @type {HTMLElement} */(el).style.height = '';
                         }
                     });
 
@@ -2309,7 +2314,7 @@ export const UI = {
                 </div>
             </div>
             <!-- Chips Container -->
-            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto resize-y items-start content-start" style="height: ${Config.CARD_HEIGHT}px; min-height: 1.5rem;">
+            <div class="chip-container custom-scrollbar flex flex-wrap gap-1 card-folder rounded p-1 w-full border border-gray-600/50 overflow-y-auto resize-y items-start content-start" style="min-height: 1.5rem;">
                 <button class="add-chip-btn chip chip-base text-xs px-1.5 py-0.5 rounded flex items-center gap-1 btn-action btn-green" title="Add new item to this list">+</button>
                 ${(data.wildcards && data.wildcards.length > 0) ? data.wildcards.map((wc, i) => this.createChip(wc, i, path)).join('') : this.getEmptyListHtml()}
             </div>

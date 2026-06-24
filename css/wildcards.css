@@ -1,4 +1,7 @@
         :root {
+            /* User-adjustable variables */
+            --card-height: 54px;
+
             /* Modern Palette */
             --bg-primary: #111827;
             /* gray-900 */
@@ -2229,6 +2232,7 @@
         /* Ensure chip containers don't force minimum widths */
         .dual-list-pane .chip-container {
             min-width: 0;
+            height: var(--card-height, 54px);
         }
 
         /* =================================================================
