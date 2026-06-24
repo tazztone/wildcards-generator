@@ -555,10 +555,15 @@ Return a JSON array with your classifications. Be concise.`;
             const batchPromises = parallelBatches.map(async (batch) => {
                 // Build user prompt for this batch
                 const batchPrompt = batch.map(d => {
-                    const pathOptions = d.locations.map(l =>
-                        `  - ${l.path.replace(/\//g, ' > ').replace(/_/g, ' ')}`
-                    ).join('\n');
-                    return `Wildcard: "${d.normalized}"\nFound in:\n${pathOptions}`;
+                    const uniquePaths = new Set();
+                    const pathOptions = [];
+                    for (const l of d.locations) {
+                        if (!uniquePaths.has(l.path)) {
+                            uniquePaths.add(l.path);
+                            pathOptions.push(`  - ${l.path.replace(/\//g, ' > ').replace(/_/g, ' ')}`);
+                        }
+                    }
+                    return `Wildcard: "${d.normalized}"\nFound in:\n${pathOptions.join('\n')}`;
                 }).join('\n\n');
 
                 const userPrompt = `Please analyze these ${batch.length} duplicate wildcards and pick the best category for each:\n\n${batchPrompt}`;
@@ -1409,10 +1414,15 @@ Return a JSON array with your classifications. Be concise.`;
         ];
 
         const batchPrompt = mockDuplicates.map(d => {
-            const pathOptions = d.locations.map(l =>
-                `  - ${l.path.replace(/\//g, ' > ').replace(/_/g, ' ')}`
-            ).join('\n');
-            return `Wildcard: "${d.normalized}"\nFound in:\n${pathOptions}`;
+            const uniquePaths = new Set();
+            const pathOptions = [];
+            for (const l of d.locations) {
+                if (!uniquePaths.has(l.path)) {
+                    uniquePaths.add(l.path);
+                    pathOptions.push(`  - ${l.path.replace(/\//g, ' > ').replace(/_/g, ' ')}`);
+                }
+            }
+            return `Wildcard: "${d.normalized}"\nFound in:\n${pathOptions.join('\n')}`;
         }).join('\n\n');
 
         const userPrompt = `Please analyze these ${mockDuplicates.length} duplicate wildcards and pick the best category for each:\n\n${batchPrompt}`;
