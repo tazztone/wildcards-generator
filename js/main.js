@@ -2,7 +2,7 @@ import { App } from './app.js';
 import { State } from './state.js';
 import { UI } from './ui.js';
 import { Api } from './api.js';
-import { loadConfig, saveConfig, Config, isUsingDefault, resetToDefault, updateConfigValue, arrayBufferToBase64 } from './config.js';
+import { loadConfig, saveConfig, Config, isUsingDefault, resetToDefault, updateConfigValue, arrayBufferToBase64, exportConfigForDebug } from './config.js';
 import { DragDrop } from './modules/drag-drop.js';
 import { ImportExport } from './modules/import-export.js';
 import { Settings } from './modules/settings.js';
@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.resetToDefault = resetToDefault;
         window.updateConfigValue = updateConfigValue;
         window.arrayBufferToBase64 = arrayBufferToBase64;
+        window.exportConfigForDebug = exportConfigForDebug;
         window.DragDrop = DragDrop;
         window.ImportExport = ImportExport;
         window.Settings = Settings;
